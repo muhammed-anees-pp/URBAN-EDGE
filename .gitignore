@@ -1,0 +1,48 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+urban/
+*.env
+*.venv
+
+# Django specific
+db.sqlite3
+*.log
+
+# Static and media files
+/static/
+/media/
+
+# VS Code settings
+.vscode/
+
+# MacOS specific files
+.DS_Store
+
+# Python egg files
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Coverage reports
+htmlcov/
+.coverage
+.cache
+
+# Unit test and pytest cache
+.pytest_cache/
+.tox/
+
+# IDE and editor specific
+.idea/
+*.swp
+*.swo
+
+# Production-specific settings (e.g., sensitive data or keys)
+config/settings/production.py
