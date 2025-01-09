@@ -1,37 +1,62 @@
 {% load static %}
-<!-- <h2>Email Verification</h2>
-<form method="post">
-    {% csrf_token %}
-    <p>Enter OTP sent to {{ email }}</p>
-    <input type="text" name="otp" placeholder="Enter OTP" required>
-    <button type="submit">Verify</button>
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
-</form> -->
-
-<!-- templates/verify_email.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Verify OTP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <link rel="stylesheet" href="{% static 'style_otp.css' %}">
 </head>
 <body>
-    <h2>Verify OTP</h2>
-    <!-- In verify_email.html -->
-    {% if error %}
-    <p style="color: red;">{{ error }}</p>
-    {% endif %}
-
-    <form method="post">
-        {% csrf_token %}
-        {% if error %}
-            <p style="color: red;">{{ error }}</p>
+    <div class="verification-container">
+        <h1>Please check your email</h1>
+        <p class="email-text">We've sent a code to {{ email }}.</p>
+        
+        <!-- Display Messages -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <p class="message {{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+        </div>
         {% endif %}
-        <input type="text" name="otp" placeholder="Enter OTP" required>
-        <button type="submit">Verify OTP</button>
-    </form>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="otp-inputs">
+                <input type="text" name="otp1" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" name="otp2" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" name="otp3" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" name="otp4" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            </div>
+
+            <p class="resend-link">
+                Didn't get the code? <a href="#">Click to resend</a>
+            </p>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Verify</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Auto-focus next input when a number is entered
+        const inputs = document.querySelectorAll('.otp-input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

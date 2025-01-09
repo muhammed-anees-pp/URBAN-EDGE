@@ -1,210 +1,56 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urban Edge - Registration</title>
-    <link rel="stylesheet" href="{% static 'style_signup.css' %}">
+    <title>OTP Verification</title>
+    <link rel="stylesheet" href="{% static 'style_otp.css' %}">
 </head>
 <body>
-    <div class="registration-container">
-        <div class="logo-section">
-            <img src="{% static 'logo.png' %}" alt="Urban Edge Logo">
-        </div>
-        <div class="form-section">
-            <h1>Registration</h1>
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                    {{ form.first_name }}  <!-- First Name field with placeholder -->
-                </div>
-                <div class="form-group">
-                    {{ form.last_name }}  <!-- Last Name field with placeholder -->
-                </div>
-                <div class="form-group">
-                    {{ form.username }}  <!-- Username field with placeholder -->
-                </div>
-                <div class="form-group">
-                    {{ form.email }}  <!-- Email field with placeholder -->
-                </div>
-                <div class="form-group">
-                    {{ form.password }}  <!-- Password field with placeholder -->
-                </div>
-                <div class="form-group">
-                    {{ form.confirm_password }}  <!-- Confirm Password field with placeholder -->
-                </div>
-                <button type="submit" class="btn btn-primary">Sign Up</button>
-                <div class="form-links">
-                    <span>Already have an account? <a href="{% url 'login' %}">Sign in</a></span>
-                </div>
-                <div class="divider">OR</div>
-                <button type="button" class="btn btn-google">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="white">
-                        <path d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
-                        <path d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/>
-                        <path d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/>
-                        <path d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/>
-                    </svg>
-                    SIGN UP WITH GOOGLE
-                </button>
-            </form>
-        </div>
+    <div class="verification-container">
+        <h1>Please check your email</h1>
+        <p class="email-text">We've sent a code to your email address.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            {% if error %}
+                <p style="color: red;">{{ error }}</p>
+            {% endif %}
+            <div class="otp-inputs">
+                <input type="text" name="otp1" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" name="otp2" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" name="otp3" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" name="otp4" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            </div>
+
+            <p class="resend-link">
+                Didn't get the code? <a href="#">Click to resend</a>
+            </p>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Verify</button>
+            </div>
+        </form>
     </div>
+
+    <script>
+        // Auto-focus next input when a number is entered
+        const inputs = document.querySelectorAll('.otp-input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
-
-
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-body {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #1a1a1a;
-}
-
-.registration-container {
-    display: flex;
-    width: 100%;
-    max-width: 900px;
-    min-height: 700px;  /* Increased height */
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    margin: 1rem;
-}
-
-.logo-section {
-    flex: 1;
-    background: #ffffff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-}
-
-.logo-section img {
-    max-width: 80%;
-    height: auto;
-}
-
-.form-section {
-    flex: 1;
-    padding: 3rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-h1 {
-    font-size: 2rem;
-    margin-bottom: 2rem;
-    color: #000000;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.form-links {
-    text-align: center;
-    margin: 1rem 0;
-    font-size: 0.9rem;
-}
-
-.form-links a {
-    color: #0066ff;
-    text-decoration: none;
-}
-
-.btn {
-    width: 100%;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-bottom: 1rem;
-}
-
-.btn-primary {
-    background: #0066ff;
-    color: white;
-}
-
-.btn-google {
-    background: #dd4b39;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.divider {
-    text-align: center;
-    margin: 1rem 0;
-    color: #666;
-}
-
-.alert-container {
-    margin-bottom: 20px;
-}
-
-.alert {
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
-    background-color: #f8d7da; /* Default for error */
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.alert-info {
-    background-color: #cce5ff;
-    color: #004085;
-    border: 1px solid #b8daff;
-}
-
-.alert-warning {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-}
-
-
-@media (max-width: 768px) {
-    .registration-container {
-        flex-direction: column;
-        min-height: auto;  /* Adjusted for smaller screen sizes */
-    }
-
-    .logo-section {
-        padding: 2rem;
-    }
-
-    .form-section {
-        padding: 2rem;
-    }
-}

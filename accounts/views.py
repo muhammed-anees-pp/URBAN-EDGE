@@ -316,10 +316,37 @@ def signup(request):
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
 
+# def verify_email(request, email):
+#     if request.method == "POST":
+#         otp = request.POST.get('otp')
+#         if otp and otp_storage.get(email) == int(otp):
+#             # Process verified user creation
+#             user_data = user_storage.pop(email, None)
+#             if user_data:
+#                 user = User(
+#                     first_name=user_data['first_name'],
+#                     last_name=user_data['last_name'],
+#                     username=user_data['username'],
+#                     email=user_data['email'],
+#                     is_verified=True,
+#                 )
+#                 user.set_password(user_data['password'])  # Hash the password
+#                 user.save()
+#                 otp_storage.pop(email, None)
+#                 messages.success(request, 'Account created successfully! You can now log in.')
+#                 return redirect('login')
+#         else:
+#             messages.error(request, 'Invalid or expired OTP.')
+#     return render(request, 'verify_email.html', {'email': email})
+
+
 def verify_email(request, email):
     if request.method == "POST":
-        otp = request.POST.get('otp')
-        if otp and otp_storage.get(email) == int(otp):
+        # Combine OTP inputs from the form
+        otp = ''.join([request.POST.get(f'otp{i}') for i in range(1, 5)])
+        correct_otp = otp_storage.get(email)  # Retrieve OTP from storage
+
+        if otp and otp == str(correct_otp):  # Validate OTP
             # Process verified user creation
             user_data = user_storage.pop(email, None)
             if user_data:
@@ -337,7 +364,11 @@ def verify_email(request, email):
                 return redirect('login')
         else:
             messages.error(request, 'Invalid or expired OTP.')
+
+    # Render the template with the email address
     return render(request, 'verify_email.html', {'email': email})
+
+
 
 def login_view(request):
     if request.method == "POST":
