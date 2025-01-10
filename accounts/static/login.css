@@ -1,4 +1,3 @@
-/* Reset CSS */
 * {
     margin: 0;
     padding: 0;
@@ -6,7 +5,6 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Body and container styles */
 body {
     min-height: 100vh;
     display: flex;
@@ -15,24 +13,25 @@ body {
     background-color: #1a1a1a;
 }
 
-.registration-container {
+.login-container {
     display: flex;
     width: 100%;
     max-width: 900px;
-    min-height: 700px;
+    height: 480px; /* Reduced height */
     background: #fff;
     border-radius: 8px;
     overflow: hidden;
     margin: 1rem;
+    flex-shrink: 0; /* Prevent resizing */
 }
 
 .logo-section {
     flex: 1;
-    background: #ffffff;
+    background: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 2rem;
+    padding: 1.5rem; /* Reduced padding */
 }
 
 .logo-section img {
@@ -42,40 +41,34 @@ body {
 
 .form-section {
     flex: 1;
-    padding: 3rem;
+    padding: 2rem; /* Reduced padding */
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
 h1 {
-    font-size: 2rem;
-    margin-bottom: 2rem;
+    font-size: 1.8rem; /* Slightly smaller font size */
+    margin-bottom: 1.5rem; /* Reduced margin */
     color: #000000;
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem; /* Reduced spacing */
 }
 
 .form-group input {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.6rem; /* Reduced padding */
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 1rem;
-    margin-top: 0.25rem;
-}
-
-.form-group label {
-    font-size: 1rem;
-    color: #333;
-    font-weight: 600;
 }
 
 .form-links {
-    text-align: center;
-    margin: 1rem 0;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem; /* Reduced margin */
     font-size: 0.9rem;
 }
 
@@ -86,12 +79,12 @@ h1 {
 
 .btn {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.6rem; /* Reduced padding */
     border: none;
     border-radius: 4px;
     font-size: 1rem;
     cursor: pointer;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem; /* Reduced margin */
 }
 
 .btn-primary {
@@ -110,73 +103,52 @@ h1 {
 
 .divider {
     text-align: center;
-    margin: 1rem 0;
+    margin: 0.8rem 0; /* Reduced margin */
     color: #666;
 }
 
-/* Alert fade-out animation */
-@keyframes fadeOut {
-    0% {
-        opacity: 1;
-    }
-    80% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-        visibility: hidden;
-    }
+.messages {
+    margin-bottom: 1rem;
+    max-height: 60px; /* Fixed height for messages container */
+    overflow-y: auto; /* Enable scrolling for overflow */
 }
 
-/* Alerts container */
-.alert-container {
-    margin-bottom: 20px;
+.message {
+    padding: 0.6rem; /* Reduced padding */
+    margin-bottom: 0.4rem; /* Reduced spacing */
+    border-radius: 4px;
+    font-size: 0.9rem;
 }
 
-/* Default alert style (error) */
-.alert {
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    animation: fadeOut 5s forwards;
-}
-
-/* Success alert style */
-.alert-success {
+.message.success {
     background-color: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
 }
 
-/* Info alert style */
-.alert-info {
-    background-color: #cce5ff;
-    color: #004085;
-    border: 1px solid #b8daff;
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
 }
 
-/* Warning alert style */
-.alert-warning {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
+.message.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
 }
 
-/* Mobile adjustments */
 @media (max-width: 768px) {
-    .registration-container {
+    .login-container {
         flex-direction: column;
-        min-height: auto;
+        height: auto;
     }
 
     .logo-section {
-        padding: 2rem;
+        padding: 1.5rem;
     }
 
     .form-section {
-        padding: 2rem;
+        padding: 1.5rem;
     }
 }
