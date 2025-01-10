@@ -11,7 +11,7 @@
     <div class="verification-container">
         <h1>Please check your email</h1>
         <p class="email-text">We've sent a code to {{ email }}.</p>
-        
+
         <!-- Display Messages -->
         {% if messages %}
         <div class="messages">
@@ -38,9 +38,32 @@
                 <button type="submit" class="btn btn-primary">Verify</button>
             </div>
         </form>
+
+        <!-- Timer Display -->
+        <div id="otp-timer" class="timer-container">
+            <p>OTP expires in <span id="timer">01:00</span></p>
+        </div>
     </div>
 
     <script>
+        // Countdown timer logic
+        let countdown = 60; // Time in seconds
+        const timerElement = document.getElementById("timer");
+
+        const interval = setInterval(() => {
+            const minutes = String(Math.floor(countdown / 60)).padStart(2, '0');
+            const seconds = String(countdown % 60).padStart(2, '0');
+            timerElement.textContent = `${minutes}:${seconds}`;
+
+            countdown--;
+
+            // Stop the timer and display expired message
+            if (countdown < 0) {
+                clearInterval(interval);
+                timerElement.textContent = "Time's up!";
+            }
+        }, 1000);
+
         // Auto-focus next input when a number is entered
         const inputs = document.querySelectorAll('.otp-input');
         inputs.forEach((input, index) => {

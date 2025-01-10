@@ -7,6 +7,11 @@ import random
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages  # Import the messages module
 
+# from django.utils import timezone
+# from datetime import timedelta
+from datetime import datetime, timedelta
+
+
 otp_storage = {}  # Temporary OTP storage for demonstration purposes.
 user_storage = {}  # Temporary user storage before OTP verification.
 
@@ -62,7 +67,6 @@ def signup(request):
 
     return render(request, 'signup.html', {'form': form})
 
-
 def verify_email(request, email):
     if request.method == "POST":
         # Combine OTP inputs from the form
@@ -91,7 +95,6 @@ def verify_email(request, email):
     # Render the template with the email address
     return render(request, 'verify_email.html', {'email': email})
 
-
 def login_view(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -106,10 +109,10 @@ def login_view(request):
                     messages.success(request, 'Logged in successfully!')
                     return redirect('home')
                 else:
-                    messages.error(request, 'Invalid credentials or account not verified.')
+                    messages.error(request, 'Password incorrect.')
                     return render(request, 'login.html', {'form': form})
             except User.DoesNotExist:
-                messages.error(request, 'Invalid credentials.')
+                messages.error(request, 'Invalid username.')
                 return render(request, 'login.html', {'form': form})
     else:
         form = LoginForm()
