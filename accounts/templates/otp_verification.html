@@ -21,6 +21,16 @@
                     </div>
                 {% endif %}
 
+                <!-- Display Email Address -->
+                <p class="text-center mb-3">
+                    OTP has been sent to your email: <strong>{{ request.session.user_data.email }}</strong>
+                </p>
+
+                <!-- Timeout Notification -->
+                <p class="text-center text-muted mb-4">
+                    Note: OTP will expire in one minute.
+                </p>
+
                 <!-- OTP Verification Form -->
                 <form method="post" novalidate>
                     {% csrf_token %}
@@ -31,9 +41,14 @@
                     <button type="submit" class="btn btn-primary w-100">Verify OTP</button>
                 </form>
 
+                <!-- Resend OTP -->
                 <div class="text-center mt-3">
-                    <a href="{% url 'user_signup' %}">Resend OTP</a>
+                    <form method="post" action="{% url 'resend_otp' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link">Resend OTP</button>
+                    </form>
                 </div>
+
             </div>
         </div>
     </div>

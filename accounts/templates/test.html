@@ -1,61 +1,137 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <h2 class="text-center mb-4">Sign Up</h2>
+from django.core.mail import send_mail
+from random import randint
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
+from django.contrib.auth import login as auth_login, logout as auth_logout
+from .models import User_Details
+from django.conf import settings
 
-                <!-- Display messages -->
-                {% if messages %}
-                    <div>
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+def user_signup(request):
+    if request.method == "POST":
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        confirm_password = request.POST.get("confirm_password")
 
-                <!-- Signup Form -->
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="first_name" class="form-label">First Name</label>
-                        <input type="text" id="first_name" name="first_name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="last_name" class="form-label">Last Name</label>
-                        <input type="text" id="last_name" name="last_name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" id="username" name="username" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" id="email" name="email" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" id="password" name="password" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirm_password" class="form-label">Confirm Password</label>
-                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Sign Up</button>
-                </form>
+        # Validate password match
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect("user_signup")
 
-                <div class="text-center mt-3">
-                    Already have an account? <a href="{% url 'login' %}">Log in</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return redirect("user_signup")
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already exists.")
+            return redirect("user_signup")
+
+        # Store user data temporarily in session for later creation
+        request.session['user_data'] = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'username': username,
+            'email': email,
+            'password': make_password(password),
+        }
+
+        # Generate 4-digit OTP
+        otp = randint(1000, 9999)
+        request.session['otp'] = otp  # Store OTP in session
+
+        # Send OTP to email
+        send_mail(
+            'Your OTP Code',
+            f'Your OTP code is {otp}',
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
+        )
+
+        messages.info(request, "Please check your email for the OTP code.")
+        return redirect("otp_verification")
+
+    return render(request, "signup.html")
+
+
+def otp_verification(request):
+    if request.method == "POST":
+        otp = request.POST.get("otp")
+
+        if otp == str(request.session.get("otp")):
+            # Retrieve user data from session
+            user_data = request.session.get("user_data")
+
+            if not user_data:
+                messages.error(request, "Session expired. Please sign up again.")
+                return redirect("user_signup")
+
+            # Create User instance
+            user = User.objects.create(
+                username=user_data['username'],
+                first_name=user_data['first_name'],
+                last_name=user_data['last_name'],
+                email=user_data['email'],
+                password=user_data['password'],
+                is_active=True,
+            )
+
+            # Create User_Details instance
+            User_Details.objects.create(
+                first_name=user.first_name,
+                last_name=user.last_name,
+                username=user.username,
+                email=user.email,
+                password=user.password,
+                user=user,
+            )
+
+            # Clear session data
+            del request.session['user_data']
+            del request.session['otp']
+
+            messages.success(request, "Account activated! You can now log in.")
+            return redirect("user_login")
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+
+    return render(request, "otp_verification.html")
+
+
+def user_login(request):
+    if request.method == 'POST':
+        email_or_username = request.POST.get('email')  # Capture either username or email
+        password = request.POST.get('password')
+
+        # Try to find the user by email or username
+        if '@' in email_or_username:  # If it's an email
+            try:
+                user = User.objects.get(email=email_or_username)  # Get user by email
+            except User.DoesNotExist:
+                user = None
+        else:  # Otherwise, treat it as a username
+            try:
+                user = User.objects.get(username=email_or_username)  # Get user by username
+            except User.DoesNotExist:
+                user = None
+
+        # Authenticate the user with password if the user exists
+        if user and user.check_password(password):
+            auth_login(request, user)  # Log the user in
+            messages.success(request, "Login successful!")
+            return redirect('home')  # Redirect to home or any other page
+        else:
+            messages.error(request, "Invalid username/email or password.")
+            return redirect('user_login')
+
+    return render(request, 'login.html')
+
+
+def user_logout(request):
+    auth_logout(request)
+    messages.success(request, "You have logged out successfully.")
+    return redirect('user_login')  # Redirect to login after logout
