@@ -1,127 +1,84 @@
 from django.shortcuts import render, redirect
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import User
-from .forms import SignupForm, LoginForm
-import random
-from django.contrib.auth.hashers import make_password
-from django.contrib import messages  # Import the messages module
-
-# from django.utils import timezone
-# from datetime import timedelta
-from datetime import datetime, timedelta
-
-
-otp_storage = {}  # Temporary OTP storage for demonstration purposes.
-user_storage = {}  # Temporary user storage before OTP verification.
+from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.hashers import make_password  # Add this import
+from django.contrib import messages
+from django.contrib.auth.models import User
+from .models import User_Details
+from home.views import home
 
 def signup(request):
     if request.method == "POST":
-        form = SignupForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            username = form.cleaned_data['username']
+        # Get form data
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        confirm_password = request.POST.get("confirm_password")
 
-            # Check if the email is already registered
-            if User.objects.filter(email=email).exists():
-                messages.error(request, 'Email is already registered.')
-                return render(request, 'signup.html', {'form': form})
+        # Validation
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect("signup")
 
-            # Check if the username is already taken
-            if User.objects.filter(username=username).exists():
-                messages.error(request, 'Username is already taken.')
-                return render(request, 'signup.html', {'form': form})
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return redirect("signup")
 
-            # Temporarily store user data before OTP verification
-            user_data = {
-                'first_name': form.cleaned_data['first_name'],
-                'last_name': form.cleaned_data['last_name'],
-                'username': username,
-                'email': email,
-                'password': form.cleaned_data['password'],
-            }
-            # Store user data temporarily in user_storage
-            otp_storage[email] = None
-            user_storage[email] = user_data
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already exists.")
+            return redirect("signup")
 
-            # Generate and send OTP
-            otp = random.randint(1000, 9999)
-            otp_storage[email] = otp
-            send_mail(
-                'Your OTP for Verification',
-                f'Your OTP is: {otp}',
-                settings.EMAIL_HOST_USER,
-                [email],
-                fail_silently=False,
-            )
-            messages.success(request, 'OTP sent successfully! Please verify your email.')
-            return redirect('verify_email', email=email)
-        else:
-            # Add form validation errors to messages (corrected line)
-            for field in form.errors.values():
-                for error in field:
-                    messages.error(request, error)
+        # Create User instance
+        user = User.objects.create(
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password=make_password(password),  # Use make_password to hash the password
+        )
 
-    else:
-        form = SignupForm()
+        # Create User_Details instance
+        User_Details.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            email=email,
+            password=make_password(password),  # Hash the password for User_Details as well
+            user=user,
+        )
 
-    return render(request, 'signup.html', {'form': form})
+        messages.success(request, "Account created successfully! Please log in.")
+        return redirect("login")
+    return render(request, "signup.html")
 
-def verify_email(request, email):
-    if request.method == "POST":
-        # Combine OTP inputs from the form
-        otp = ''.join([request.POST.get(f'otp{i}') for i in range(1, 5)])
-        correct_otp = otp_storage.get(email)  # Retrieve OTP from storage
 
-        if otp and otp == str(correct_otp):  # Validate OTP
-            # Process verified user creation
-            user_data = user_storage.pop(email, None)
-            if user_data:
-                user = User(
-                    first_name=user_data['first_name'],
-                    last_name=user_data['last_name'],
-                    username=user_data['username'],
-                    email=user_data['email'],
-                    is_verified=True,
-                )
-                user.set_password(user_data['password'])  # Hash the password
-                user.save()
-                otp_storage.pop(email, None)
-                messages.success(request, 'Account created successfully! You can now log in.')
-                return redirect('login')
-        else:
-            messages.error(request, 'Invalid or expired OTP.')
+def login(request):
+    if request.method == 'POST':
+        email_or_username = request.POST.get('email')  # Capture either username or email
+        password = request.POST.get('password')
 
-    # Render the template with the email address
-    return render(request, 'verify_email.html', {'email': email})
-
-def login_view(request):
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
+        # Try to find the user by email or username
+        if '@' in email_or_username:  # If it's an email
             try:
-                user = User.objects.get(username=username)
-                if user.is_verified and user.check_password(password):  # Use check_password to verify the password
-                    # For simplicity, store user ID in session
-                    request.session['user_id'] = user.id
-                    messages.success(request, 'Logged in successfully!')
-                    return redirect('home')
-                else:
-                    messages.error(request, 'Password incorrect.')
-                    return render(request, 'login.html', {'form': form})
+                user = User.objects.get(email=email_or_username)  # Get user by email
             except User.DoesNotExist:
-                messages.error(request, 'Invalid username.')
-                return render(request, 'login.html', {'form': form})
-    else:
-        form = LoginForm()
-    return render(request, 'login.html', {'form': form})
+                user = None
+        else:  # Otherwise, treat it as a username
+            try:
+                user = User.objects.get(username=email_or_username)  # Get user by username
+            except User.DoesNotExist:
+                user = None
 
-def home(request):
-    if 'user_id' in request.session:
-        user = User.objects.get(id=request.session['user_id'])
-        return render(request, 'home.html', {'user': user})
-    else:
-        messages.info(request, 'Please log in to access your account.')
-        return redirect('login')
+        # Authenticate the user with password if the user exists
+        if user and user.check_password(password):
+            auth_login(request, user)  # Log the user in
+            messages.success(request, "Login successful!")
+            return redirect('home')  # Redirect to home or any other page
+        else:
+            messages.error(request, "Invalid username/email or password.")
+            return redirect('login')
+
+    return render(request, 'login.html')
+
+

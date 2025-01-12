@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="text-center mb-4">Sign Up</h2>
+                
+                <!-- Display messages -->
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <!-- Registration Form -->
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ user_form.username.label_tag }}
+                        {{ user_form.username }}
+                        <div class="form-text text-danger">
+                            {{ user_form.username.errors }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ user_form.email.label_tag }}
+                        {{ user_form.email }}
+                        <div class="form-text text-danger">
+                            {{ user_form.email.errors }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ user_form.first_name.label_tag }}
+                        {{ user_form.first_name }}
+                        <div class="form-text text-danger">
+                            {{ user_form.first_name.errors }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ user_form.last_name.label_tag }}
+                        {{ user_form.last_name }}
+                        <div class="form-text text-danger">
+                            {{ user_form.last_name.errors }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ user_form.password.label_tag }}
+                        {{ user_form.password }}
+                        <div class="form-text text-danger">
+                            {{ user_form.password.errors }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ user_form.confirm_password.label_tag }}
+                        {{ user_form.confirm_password }}
+                        <div class="form-text text-danger">
+                            {{ user_form.confirm_password.errors }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    Already have an account? <a href="{% url 'login' %}">Log in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
