@@ -1,0 +1,121 @@
+{% include "header.html" %}
+
+<!-- Hero Section -->
+<section id="home-section" class="hero">
+    <div class="home-slider owl-carousel">
+        <!-- Slide 1 -->
+        <div class="slider-item js-fullheight" style="background-image: url('images/gabriel-benois-sVIBH6dMIlI-unsplash.jpg');">
+            <div class="overlay"></div>
+            <div class="container">
+                <div class="row slider-text align-items-center justify-content-center">
+                    <div class="col-md-6 text-center">
+                        <h1 class="mb-4">Shirt Collection 2019</h1>
+                        <p>A small river named Duden flows by their place and supplies it with the necessary regelialia.</p>
+                        <p><a href="#" class="btn btn-primary">Discover Now</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="slider-item js-fullheight" style="background-image: url('images/ian-dooley-ufl6sF3VSLI-unsplash.jpg');">
+            <div class="overlay"></div>
+            <div class="container">
+                <div class="row slider-text align-items-center justify-content-center">
+                    <div class="col-md-6 text-center">
+                        <h1 class="mb-4">New Hoddies Winter Collection</h1>
+                        <p>A small river named Duden flows by their place and supplies it with the necessary regelialia.</p>
+                        <p><a href="#" class="btn btn-primary">Discover Now</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3 (optional) -->
+        <div class="slider-item js-fullheight" style="background-image: url('images/greg-raines-rqFBIR6vQXg-unsplash.jpg');">
+            <div class="overlay"></div>
+            <div class="container">
+                <div class="row slider-text align-items-center justify-content-center">
+                    <div class="col-md-6 text-center">
+                        <h1 class="mb-4">Summer Pant Collection</h1>
+                        <p>Enjoy the sun and the sea with our new summer collection.</p>
+                        <p><a href="#" class="btn btn-primary">Explore Now</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="ftco-section ftco-services">
+    <div class="container">
+        <div class="row">
+            <!-- Service Item -->
+            <div class="col-md-4 text-center">
+                <div class="service-box">
+                    <div class="icon mb-4">
+                        <span class="fas fa-shipping-fast"></span>
+                    </div>
+                    <h3>Free Shipping</h3>
+                    <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+                </div>
+            </div>
+
+            <!-- Service Item -->
+            <div class="col-md-4 text-center">
+                <div class="service-box">
+                    <div class="icon mb-4">
+                        <span class="fas fa-headset"></span>
+                    </div>
+                    <h3>Customer Support</h3>
+                    <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+                </div>
+            </div>
+
+            <!-- Service Item -->
+            <div class="col-md-4 text-center">
+                <div class="service-box">
+                    <div class="icon mb-4">
+                        <span class="fas fa-lock"></span>
+                    </div>
+                    <h3>Secure Payments</h3>
+                    <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Product Section -->
+<section class="ftco-section bg-light">
+    <div class="container">
+        <div class="row justify-content-center mb-3 pb-3">
+            <div class="col-md-12 heading-section text-center">
+                <h2>New Shoes Arrival</h2>
+                <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <!-- Use Django's template for dynamic product cards -->
+            {% for product in products %}
+            <div class="col-md-3 mb-4">
+                <div class="product">
+                    <a href="#" class="img-prod">
+                        <img class="img-fluid" src="{{ product.image_url }}" alt="{{ product.name }}">
+                    </a>
+                    <div class="text py-3 px-3">
+                        <h3><a href="#">{{ product.name }}</a></h3>
+                        <div class="pricing">
+                            <p class="price"><span>${{ product.price }}</span></p>
+                        </div>
+                        <p class="bottom-area">
+                            <a href="#" class="btn btn-sm btn-outline-primary">Add to Cart</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
