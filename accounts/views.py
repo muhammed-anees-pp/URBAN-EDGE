@@ -1,14 +1,15 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.hashers import make_password  # Add this import
+from django.core.mail import send_mail
+from random import randint
 from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from .models import User_Details
-from home.views import home
+from django.conf import settings
 
-def signup(request):
+def user_signup(request):
     if request.method == "POST":
-        # Get form data
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         username = request.POST.get("username")
@@ -16,44 +17,79 @@ def signup(request):
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
-        # Validation
+        # Validate password match
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return redirect("signup")
+            return redirect("user_signup")
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")
-            return redirect("signup")
+            return redirect("user_signup")
 
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already exists.")
-            return redirect("signup")
+            return redirect("user_signup")
 
-        # Create User instance
+        # Create User instance, set inactive until OTP verification
         user = User.objects.create(
             username=username,
             first_name=first_name,
             last_name=last_name,
             email=email,
-            password=make_password(password),  # Use make_password to hash the password
+            password=make_password(password),
+            is_active=False,
         )
 
-        # Create User_Details instance
-        User_Details.objects.create(
-            first_name=first_name,
-            last_name=last_name,
-            username=username,
-            email=email,
-            password=make_password(password),  # Hash the password for User_Details as well
-            user=user,
+        # Generate OTP
+        otp = randint(100000, 999999)
+        request.session['otp'] = otp  # Store OTP in session
+        request.session['user_id'] = user.id  # Store user ID
+
+        # Send OTP to email
+        send_mail(
+            'Your OTP Code',
+            f'Your OTP code is {otp}',
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
         )
 
-        messages.success(request, "Account created successfully! Please log in.")
-        return redirect("login")
+        messages.info(request, "Please check your email for the OTP code.")
+        return redirect("otp_verification")
+
     return render(request, "signup.html")
 
 
-def login(request):
+def otp_verification(request):
+    if request.method == "POST":
+        otp = request.POST.get("otp")
+        user_id = request.session.get("user_id")
+
+        if otp == str(request.session.get("otp")):
+            # Activate the user account
+            user = User.objects.get(id=user_id)
+            user.is_active = True
+            user.save()
+
+            # Create User_Details after OTP verification
+            user_details = User_Details.objects.create(
+                first_name=user.first_name,
+                last_name=user.last_name,
+                username=user.username,
+                email=user.email,
+                password=user.password,
+                user=user,
+            )
+
+            messages.success(request, "Account activated! You can now log in.")
+            return redirect("user_login")
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+
+    return render(request, "otp_verification.html")
+
+
+def user_login(request):
     if request.method == 'POST':
         email_or_username = request.POST.get('email')  # Capture either username or email
         password = request.POST.get('password')
@@ -77,8 +113,12 @@ def login(request):
             return redirect('home')  # Redirect to home or any other page
         else:
             messages.error(request, "Invalid username/email or password.")
-            return redirect('login')
+            return redirect('user_login')
 
     return render(request, 'login.html')
 
-otp option have to add
+
+def user_logout(request):
+    auth_logout(request)
+    messages.success(request, "You have logged out successfully.")
+    return redirect('user_login')  # Redirect to login after logout

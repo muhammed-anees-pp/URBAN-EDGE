@@ -1,3 +1,5 @@
+{% load socialaccount %} <!-- Load Allauth template tags -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -52,13 +54,19 @@
                 </form>
 
                 <div class="text-center mt-3">
-                    Already have an account? <a href="{% url 'login' %}">Log in</a>
+                    Already have an account? <a href="{% url 'user_login' %}">Log in</a>
                 </div>
 
                 <!-- Google SignUp Button -->
+                {% if 'google' in socialaccount.providers %}
                 <div class="text-center mt-3">
                     <a href="{% provider_login_url 'google' %}" class="btn btn-danger w-100">Sign Up with Google</a>
                 </div>
+                {% else %}
+                <div class="text-center mt-3">
+                    <p class="text-muted">Google SignUp is not available at the moment.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
