@@ -54,6 +54,11 @@
                 <div class="text-center mt-3">
                     Already have an account? <a href="{% url 'login' %}">Log in</a>
                 </div>
+
+                <!-- Google SignUp Button -->
+                <div class="text-center mt-3">
+                    <a href="{% provider_login_url 'google' %}" class="btn btn-danger w-100">Sign Up with Google</a>
+                </div>
             </div>
         </div>
     </div>
