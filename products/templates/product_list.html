@@ -29,7 +29,12 @@
                 <td>{{ product.stock }}</td>
                 <td>
                     <a href="{% url 'products:edit_product' product.id %}">Edit</a>
-                    <a href="{% url 'products:delete_product' product.id %}" onclick="return confirm('Are you sure?');">Delete</a>
+                    <form action="{% url 'products:delete_product' product.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Delete</button>
+                    </form>
+                    
+
                 </td>
             </tr>
             {% endfor %}

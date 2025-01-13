@@ -6,25 +6,50 @@
     <title>Home - Products</title>
 </head>
 <body>
-    <h1>Products</h1>
-    <h2>Categories</h2>
-    <ul>
-        {% for category in categories %}
-        <li><a href="{% url 'products:category_with_products' category.id %}">{{ category.name }}</a></li>
-        {% endfor %}
-    </ul>
+    <header>
+        <h1>Products</h1>
+    </header>
 
-    <h2>Products</h2>
-    <div>
-        {% for product in products %}
-        <div>
-            <h3>{{ product.name }}</h3>
-            <p>Price: {{ product.price }}</p>
-            <p>Category: {{ product.category.name }}</p>
-            <p>Size: {{ product.size|default:"Custom: " ~ product.custom_size }}</p>
-            <img src="{{ product.image1.url }}" alt="{{ product.name }}" width="100">
-        </div>
-        {% endfor %}
-    </div>
+    <main>
+        <!-- Categories Section -->
+        <section>
+            <h2>Categories</h2>
+            <ul>
+                {% for category in categories %}
+                <li>
+                    <a href="{% url 'products:category_products' category.id %}">{{ category.name }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <!-- Products Section -->
+        <section>
+            <h2>Products</h2>
+            <div>
+                {% if products %}
+                    {% for product in products %}
+                    <div style="border: 1px solid #ccc; padding: 10px; margin: 10px; display: inline-block; text-align: center;">
+                        <h3>{{ product.name }}</h3>
+                        <p>Price: ${{ product.price }}</p>
+                        <p>Category: {{ product.category.name }}</p>
+
+                        {% if product.image1 %}
+                        <img src="{{ product.image1.url }}" alt="{{ product.name }}" width="100">
+                        {% else %}
+                        <p>No image available</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No products available for this category.</p>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Your Website</p>
+    </footer>
 </body>
 </html>

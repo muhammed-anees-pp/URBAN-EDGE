@@ -88,6 +88,24 @@ def delete_product(request, product_id):
     return redirect('products:product_list')
 
 # User-side product and category list
+# def category_with_products(request, category_id=None):
+#     categories = Category.objects.filter(is_active=True)
+#     selected_category = None
+#     products = []
+
+#     if category_id:
+#         selected_category = get_object_or_404(Category, id=category_id, is_active=True)
+#         products = selected_category.products.filter(is_active=True)
+#     else:
+#         all_products = Product.objects.filter(is_active=True)
+#         products = sample(list(all_products), min(len(all_products), 6))
+
+#     return render(request, 'home_product.html', {
+#         'categories': categories,
+#         'selected_category': selected_category,
+#         'products': products
+#     })
+# User-side product and category list
 def category_with_products(request, category_id=None):
     categories = Category.objects.filter(is_active=True)
     selected_category = None
@@ -100,8 +118,12 @@ def category_with_products(request, category_id=None):
         all_products = Product.objects.filter(is_active=True)
         products = sample(list(all_products), min(len(all_products), 6))
 
+    # Add display_size attribute to each product
+    for product in products:
+        product.display_size = product.size if product.size else f"Custom: {product.custom_size}"
+
     return render(request, 'home_product.html', {
         'categories': categories,
         'selected_category': selected_category,
-        'products': products
+        'products': products,
     })
