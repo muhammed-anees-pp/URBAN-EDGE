@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product</title>
+</head>
+<body>
+    <h1>Add Product</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Name:</label>
+        <input type="text" name="name" required><br>
+
+        <label>Category:</label>
+        <select name="category" required>
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select><br>
+
+        <label>Size:</label>
+        <select name="size">
+            <option value="">Select Size</option>
+            {% for value, label in size_choices %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select><br>
+
+        <label>Custom Size:</label>
+        <input type="text" name="custom_size"><br>
+
+        <label>Price:</label>
+        <input type="number" name="price" step="0.01" required><br>
+
+        <label>Stock:</label>
+        <input type="number" name="stock" required><br>
+
+        <label>Description:</label>
+        <textarea name="description"></textarea><br>
+
+        <label>Image 1:</label>
+        <input type="file" name="image1"><br>
+        <label>Image 2:</label>
+        <input type="file" name="image2"><br>
+        <label>Image 3:</label>
+        <input type="file" name="image3"><br>
+
+        <button type="submit">Add Product</button>
+    </form>
+</body>
+</html>

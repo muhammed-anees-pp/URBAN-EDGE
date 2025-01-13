@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Products</title>
+</head>
+<body>
+    <h1>Products</h1>
+    <h2>Categories</h2>
+    <ul>
+        {% for category in categories %}
+        <li><a href="{% url 'products:category_with_products' category.id %}">{{ category.name }}</a></li>
+        {% endfor %}
+    </ul>
+
+    <h2>Products</h2>
+    <div>
+        {% for product in products %}
+        <div>
+            <h3>{{ product.name }}</h3>
+            <p>Price: {{ product.price }}</p>
+            <p>Category: {{ product.category.name }}</p>
+            <p>Size: {{ product.size|default:"Custom: " ~ product.custom_size }}</p>
+            <img src="{{ product.image1.url }}" alt="{{ product.name }}" width="100">
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

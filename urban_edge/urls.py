@@ -27,6 +27,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),  # Include allauth URLs here
     path('accounts/custom/', include('accounts.urls')),  # You can keep this for custom account views
     path('', include('category.urls')),
+    path('', include('products.urls')),
 ]
 
 # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
