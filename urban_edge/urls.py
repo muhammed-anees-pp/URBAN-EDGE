@@ -16,6 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+# from django.conf.urls.static import static
+# from django.conf import settings
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,4 +26,7 @@ urlpatterns = [
     path('', include('home.urls')),  # Your home app URLs
     path('accounts/', include('allauth.urls')),  # Include allauth URLs here
     path('accounts/custom/', include('accounts.urls')),  # You can keep this for custom account views
+    path('', include('category.urls')),
 ]
+
+# urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

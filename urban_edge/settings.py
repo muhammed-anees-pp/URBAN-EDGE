@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+import os
 import environ
 # Initialize environment variables
 env = environ.Env()
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
     'accounts',
     'home',
     'admin_side',
+    'category',
 ]
 
 MIDDLEWARE = [
@@ -68,7 +70,7 @@ ROOT_URLCONF = 'urban_edge.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -175,12 +177,16 @@ EMAIL_HOST_PASSWORD = 'ntdy rwcu hhsf wmfv'  # Replace with your email password
 
 
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",  # If static files are placed in the project root directory
-# ]
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # If static files are placed in the project root directory
+]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
