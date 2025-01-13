@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'accounts',
     'home',
+    'admin_side',
 ]
 
 MIDDLEWARE = [
@@ -136,6 +137,8 @@ AUTHENTICATION_BACKENDS = (
 )
 
 LOGIN_REDIRECT_URL = '/'  # Redirect to the home page after login
+
+LOGIN_URL = '/admin-login/'  # Redirect to custom admin login if not authenticated
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
