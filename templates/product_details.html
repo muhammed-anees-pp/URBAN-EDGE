@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} - Product Details{% endblock %}
+
+{% block content %}
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        header nav a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+        }
+
+        header nav a:hover {
+            color: #007bff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .product-details {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-images img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .product-info h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .product-info .price {
+            font-size: 1.5rem;
+            color: #28a745;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .product-info .rating {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .product-info .rating span {
+            margin-left: 10px;
+            color: #666;
+        }
+
+        .product-info .description {
+            margin-bottom: 20px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .product-info button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .product-info button:hover {
+            background-color: #0056b3;
+        }
+
+        .related-products, .customer-reviews {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .related-products h2, .customer-reviews h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .product-list, .reviews {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .product, .review {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            flex: 0 0 300px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .product img {
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+       
+
+
+
+        .product-title {
+            font-size: 32px;
+            margin: 10px 0;
+          }
+
+          .quantity-add {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .quantity-btn {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .quantity {
+            padding: 0 10px;
+        }
+        .add-to-cart {
+            background-color: #3e8e41;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .add-to-cart:hover {
+            background-color: #2e6e31;
+        }
+        .wishlist-link {
+            text-decoration: none;
+            color: #3b5998;
+            font-weight: bold;
+        }
+        .product-images {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .main-image {
+            width: 100%;
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        .thumbnail-images {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .thumbnail-images img {
+            width: 80px;
+            height: auto;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="product-details">
+            
+            <div class="product-info">
+                <h1 class="product-title">{{product.name}}</h1>
+                <p class="price">{{ product.price }}</p>
+                <div class="rating">
+                    ⭐⭐⭐⭐ <span>(4.1/5, 156 reviews)</span>
+                </div>
+                <p class="description">{{ product.description }}</p>
+                <!-- Available Sizes and Stock -->
+                <h3>Available Sizes</h3>
+                <ul>
+                    {% for size in sizes %}
+                        <h5>{{ size.size }} - Stock: {{ size.stock }}</h5>
+                    {% empty %}
+                        <li>No sizes available.</li>
+                    {% endfor %}
+                </ul>
+        
+                <div class="quantity-add">
+                    <button class="quantity-btn">-</button>
+                    <span class="quantity">1</span>
+                    <button class="quantity-btn">+</button>
+                    <button class="add-to-cart">Add to Cart</button>
+                  </div>
+                  <a href="#" class="wishlist-link">Add to Wishlist</a>
+            </div>
+
+            <section class="product-images">
+                <img src="{{ product.image1.url }}" alt="{{ product.name }}" class="main-image">
+                <div class="thumbnail-images">
+                    {% if product.image2 %}
+                        <img src="{{ product.image2.url }}" alt="{{ product.name }} View 2">
+                    {% endif %}
+                    {% if product.image3 %}
+                        <img src="{{ product.image3.url }}" alt="{{ product.name }} View 3">
+                    {% endif %}
+                    {% if product.image4 %}
+                        <img src="{{ product.image4.url }}" alt="{{ product.name }} Dimensions">
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+
+
+        <section class="related-products">
+            <h2>Related Products</h2>
+            <div class="product-list">
+                <div class="product">
+                    {% for related_product in related_products %}
+                        <div class="product">
+                        {% if related_product.image1 %}
+                        <img src="{{ related_product.image1.url }}" alt="{{ related_product.name }}">
+                         {% endif %}
+                        <p>{{ related_product.name }}</p>
+                        <p>{{ related_product.price }}</p>
+                </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="customer-reviews">
+            <h2>Customer Reviews</h2>
+            <div class="reviews">
+                <div class="review">
+                    <p><strong>Salik</strong> (Jan 01, 2025)</p>
+                    <p>Good product, having good quality</p>
+                    <p>⭐ 4/5</p>
+                </div>
+                <div class="review">
+                    <p><strong>Midlaj</strong> (Jan 08, 2025)</p>
+                    <p>Good product</p>
+                    <p>⭐ 3/5</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+{% endblock %}
+

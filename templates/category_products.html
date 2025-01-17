@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.category_name }} - Products{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="text-align: center; margin-bottom: 20px;">{{ category.category_name }}</h1>
+    <div class="products-grid">
+        {% for product in products %}
+        <a href="{% url 'product_details' product.id %}" class="product-card">
+            <img src="{{ product.image1.url }}" alt="{{ product.name }}" />
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description|truncatewords:10 }}</p>
+            <p><strong>${{ product.price }}</strong></p>
+        </a>
+        {% empty %}
+        <p style="text-align: center;">No products found under this category.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .products-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .product-card {
+        text-decoration: none;
+        color: inherit;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        text-align: center;
+        padding: 10px;
+        width: 250px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .product-card img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .product-card h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}

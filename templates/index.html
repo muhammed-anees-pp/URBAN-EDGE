@@ -1,148 +1,52 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Urban Row</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="icon" href="{% static 'assets/img/logosm.png' %}">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet">
+{% block title %}Home Page{% endblock %}
 
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'style/home.css' %}">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% block content %}
+<body>
+  
 
-    <!-- Owl Carousel CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
-</head>
-<body class="goto-here">
-
-<!-- Header Section -->
-<div class="py-1 bg-black">
-    <div class="container">
-        <div class="row no-gutters d-flex align-items-start align-items-center">
-            <div class="col-lg-12 d-block">
-                <div class="row d-flex">
-                    <div class="col-md pr-4 d-flex topper align-items-center">
-                        <div class="icon mr-2 d-flex justify-content-center align-items-center">
-                            <span class="fas fa-phone-alt"></span>
-                        </div>
-                        <span class="text">+ 1235 2355 98</span>
-                    </div>
-                    <div class="col-md pr-4 d-flex topper align-items-center">
-                        <div class="icon mr-2 d-flex justify-content-center align-items-center">
-                            <span class="fas fa-envelope"></span>
-                        </div>
-                        <span class="text">urbanrow@email.com</span>
-                    </div>
-                    <div class="col-md-5 pr-4 d-flex topper align-items-center text-lg-right">
-                        <span class="text">3-5 Business days delivery & Free Returns</span>
-                    </div>
-                </div>
-            </div>
+    <section class="hero">
+        <div class="hero-content">
+            <p>NEW ARRIVAL</p>
+            <h1>LATEST<br>SHOE COLLECTION</h1>
+            <p>A small cool painted Dublin lines by their place and supplies it with the necessary regelialia. It is a paradisematic country.</p>
+            <a href="#" class="cta-button">Discover Now</a>
         </div>
+    </section>    
+    
+
+  <section class="features">
+    <div class="feature-item">
+      <img src="{% static 'assets/img/shipping.png' %}" alt="Free Shipping" />
+      <h3>Free Shipping</h3>
+      <p>Shop with us and enjoy free shipping across the country. Get your favourites delivered right to your doorstep.</p>
+    </div>
+    <div class="feature-item">
+      <img src="{% static 'assets/img/customer.png' %}" alt="Support" />
+      <h3>Support Customer</h3>
+      <p>Our customer support team is here for you 24/7 to assist with any queries or concerns. Shop confidently.</p>
+    </div>
+    <div class="feature-item">
+      <img src="{% static 'assets/img/payment.png' %}" alt="Secure Payment" />
+      <h3>Secure Payments</h3>
+      <p>Shop safely with our secure payment options. Your transactions are protected for a worry-free shopping experience.</p>
+    </div>
+  </section>
+
+  <div class="container" id="categories">
+    <h1 style="text-align: center; margin-bottom: 20px;">Categories</h1>
+    <div class="categories-grid">
+        {% for category in categories %}
+        <a href="{% url 'category_products' category.id %}" class="category-card">
+            <img src="{{ category.image.url }}" alt="{{ category.category_name }}" />
+            <h3>{{ category.category_name }}</h3>
+        </a>
+        {% endfor %}
     </div>
 </div>
 
-<!-- Navigation Bar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light"> 
-    <a class="navbar-brand" href="#">
-        <img src="{% static 'assets/img/logosm.png' %}" alt="URBAN EDGE" class="navbar-logo" />
-    </a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav mx-auto">
-            <li class="nav-item mx-4"><a class="nav-link" href="/">Home</a></li>
-            <li class="nav-item mx-4"><a class="nav-link" href="/shop">Shop</a></li>
-            <li class="nav-item mx-4"><a class="nav-link" href="#about">About</a></li>
-            <li class="nav-item mx-4"><a class="nav-link" href="#contact">Contact</a></li>
-            <li class="nav-item mx-4"><a class="nav-link" href="#tools">Tools</a></li>
-        </ul>
-        <div class="navbar-icons ml-auto pr-5">
-            {% if user.is_authenticated %}
-            <div class="dropdown">
-                <a href="#" class="dropdown custom-link" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {{ user.username }}
-                </a>
-                <div class="dropdown-content" aria-labelledby="userDropdown">
-                    <a class="dropdown-item" href="/userProfile">Profile</a>
-                    <form action="/logout" method="post">
-                        {% csrf_token %}
-                        <button class="dropdown-item">Logout</button>
-                    </form>
-                </div>
-            </div>
-            {% else %}
-            <a href="/login" class="btn btn-primary">Login</a>
-            {% endif %}
-            <img src="{% static 'images/akar-icons_search.png' %}" alt="Search" class="mr-4" />
-            <img src="{% static 'images/akar-icons_heart.png' %}" alt="Wishlist" class="mr-4" />
-            <img src="{% static 'images/ant-design_shopping-cart-outlined.png' %}" alt="Cart" />
-        </div>
-    </div>
-</nav>
-
-<!-- Hero Section -->
-<section id="home-section" class="hero">
-    <div class="home-slider owl-carousel">
-        <div class="slider-item js-fullheight" style="background-image: url('{% static "images/gabriel-benois-sVIBH6dMIlI-unsplash.jpg" %}');">
-            <div class="overlay"></div>
-            <div class="container">
-                <div class="row slider-text align-items-center justify-content-center">
-                    <div class="col-md-6 text-center">
-                        <h1 class="mb-4">Shirt Collection 2019</h1>
-                        <p>A small river named Duden flows by their place and supplies it with the necessary regelialia.</p>
-                        <p><a href="/shop" class="btn btn-primary">Discover Now</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Add more slides here -->
-    </div>
-</section>
-
-<!-- Footer -->
-<footer class="ftco-footer ftco-section" style="background-color: #333;">
-    <div class="container">
-        <div class="row mb-5">
-            <div class="col-md-3 mb-4">
-                <h2 class="ftco-heading-2" style="color: #fff;">Urban Row</h2>
-                <p style="color: #ccc;">The latest in fashion, from the streets to your feet.</p>
-            </div>
-            <!-- Add more footer widgets -->
-        </div>
-        <div class="row">
-            <div class="col-md-12 text-center">
-                <p style="color: #ccc;">
-                    &copy; <script>document.write(new Date().getFullYear());</script> Urban Row | All rights reserved
-                </p>
-            </div>
-        </div>
-    </div>
-</footer>
-
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-<script>
-$(document).ready(function(){
-    $(".home-slider").owlCarousel({
-        items: 1,
-        loop: true,
-        autoplay: true,
-        autoplayTimeout: 5000,
-        nav: true,
-        dots: true,
-    });
-});
-</script>
 </body>
-</html>
+{% endblock %}
