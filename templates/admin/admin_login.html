@@ -12,9 +12,80 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- endinject -->
     <!-- Layout styles -->
-    <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
-    <!-- End layout styles -->
-    <!-- <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}" /> -->
+    <style>
+      /* Background Image */
+      body {
+        background: url("{% static 'admin/images/login-bg.jpg' %}") no-repeat center center fixed;
+        background-size: cover;
+      }
+
+      .container-scroller {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .card-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .form-group label {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .form-control {
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        box-shadow: none;
+        transition: all 0.3s ease;
+        padding: 10px 15px;
+        font-size: 16px;
+      }
+
+      .form-control:focus {
+        border-color: #4caf50;
+        box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+      }
+
+      .enter-btn {
+        background-color: #4caf50;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        padding: 10px;
+        width: 100%;
+        transition: background-color 0.3s;
+      }
+
+      .enter-btn:hover {
+        background-color: #45a049;
+      }
+
+      .p_input {
+        margin-bottom: 20px;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .card {
+          width: 90%;
+          padding: 20px;
+        }
+      }
+    </style>
   </head>
   <body>
     <div class="container-scroller">
@@ -27,12 +98,12 @@
                 <form method="post">
                   {% csrf_token %}
                   <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" class="form-control p_input" name="username">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" class="form-control p_input" name="username">
                   </div>
                   <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" class="form-control p_input" name="password">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-control p_input" name="password">
                   </div>
                   <div class="text-center">
                     <button type="submit" class="btn btn-primary btn-block enter-btn">Login</button>
@@ -41,23 +112,18 @@
               </div>
             </div>
           </div>
-          <!-- content-wrapper ends -->
         </div>
-        <!-- row ends -->
       </div>
-      <!-- page-body-wrapper ends -->
     </div>
-    <!-- container-scroller -->
-    <!-- plugins:js -->
+
+    <!-- Plugins and JS -->
     <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
-    <!-- endinject -->
-    <!-- inject:js -->
     <script src="{% static 'admin/js/off-canvas.js' %}"></script>
     <script src="{% static 'admin/js/hoverable-collapse.js' %}"></script>
     <script src="{% static 'admin/js/misc.js' %}"></script>
     <script src="{% static 'admin/js/settings.js' %}"></script>
     <script src="{% static 'admin/js/todolist.js' %}"></script>
-    <!-- endinject -->
+
     {% if error %}
     <script>
       document.addEventListener('DOMContentLoaded', function () {
