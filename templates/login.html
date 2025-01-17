@@ -1,101 +1,230 @@
-{% extends 'base.html' %}
-{%load static%}
-{% block title %}Login{% endblock %}
-{% block content %} 
-<style>
- .google-btn {
-        display: inline-flex;
-        align-items: center;
-        background-color: white;
-        border: 1px solid #dadce0;
-        border-radius: 4px;
-        padding: 1px;
-        height: 40px;
-        cursor: pointer;
-        text-decoration: none;
-        transition: background-color .3s, box-shadow .3s;
-    }
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login Page</title>
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --background: #F9FAFB;
+            --white: #FFFFFF;
+        }
 
-    .google-btn:hover {
-        box-shadow: 0 1px 3px rgba(66, 133, 244, .3);
-        background-color: #f8f9fa;
-    }
-    
-    .google-btn:active {
-        background-color: #f1f3f4;
-    }
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: var(--background);
+            height: 100vh;
+        }
 
-    .google-icon-wrapper {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+        .container {
+            display: flex;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-    .google-icon {
-        width: 18px;
-        height: 18px;
-    }
+        .card {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
 
-    .btn-text {
-        padding: 0 16px;
-        font-size: 14px;
-        font-weight: 500;
-        font-family: 'Roboto', sans-serif;
-        color: #3c4043;
-        letter-spacing: .25px;
-    }
-  </style>
-      <!--=============== LOGIN-REGISTER ===============-->
-      <section class="login-register section--lg">
-        <div class="login-register__container container grid">
-          <div class="login">
-            <h3 class="section__title">Login</h3>
-            <form class="form grid"  method="post">
-              {% csrf_token %}
-              <input
-                type="text"
-                placeholder="username"
-                class="form__input"
-                name="username"
-              />
-              <input
-                type="password"
-                placeholder="Your Password"
-                class="form__input"
-                name="password"
-              />
-              <div class="form__btn">
-                <button  type="submit" class="btn">Login</button>
-              </div>
-              <div class="social-login">
-                {% csrf_token %}
-                <a href="{% url 'social:begin' 'google-oauth2' %}" class="google-btn">
-                    <div class="google-icon-wrapper">
-                        <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                            <path fill="none" d="M0 0h48v48H0z"/>
-                        </svg>
-                    </div>
-                    <span class="btn-text">Sign in with Google</span>
-                </a>
+        /* Left Side */
+        .card-image {
+            flex: 1;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Right Side */
+        .card-body {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .form-header {
+            margin-bottom: 20px;
+        }
+
+        .form-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .form-header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 4px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-container {
+            text-align: center; /* Center aligns the button */
+        }
+
+        .btn-primary {
+            padding: 10px 30px; /* Adjusted padding for a prominent look */
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #4338CA;
+        }
+
+        .divider {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .divider span {
+            padding: 0 10px;
+        }
+
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 10px;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-google img {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+        }
+
+        .btn-google:hover {
+            background: #f8f9fa;
+        }
+
+        .signup-link {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .signup-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <!-- Left Side -->
+            <div class="card-image">
+                <img src="{% static 'assets/img/logo.png' %}" alt="Website Preview">
             </div>
-              <a href="{% url 'register' %}">Don't have an account?Register</a>
-              {% if messages %}
-              {% for message in messages %}
-                  <div class="alert alert-danger">{{ message }}</div>
-              {% endfor %}
-          {% endif %}
-              </form>
-              
-          </div>
-          
-        </div>
-      </section>
-      <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
 
-{% endblock %}
+            <!-- Right Side -->
+            <div class="card-body">
+                <div class="form-container">
+                    <div class="form-header">
+                        <h1>Welcome Back</h1>
+                        <p>Sign in to access your account</p>
+                    </div>
+                    <form action="{% url 'userlogin' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="username" class="form-control" placeholder="Username" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" name="password" class="form-control" placeholder="Password" required>
+                        </div>
+                        <div class="btn-container">
+                            <button type="submit" class="btn-primary">Login</button>
+                        </div>
+                    </form>
+
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn-google">
+                        <!-- <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo"> -->
+                        Sign in with Google
+                    </a>
+
+                    <a href="{% url 'register' %}" class="signup-link">Don't have an account? Sign up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
