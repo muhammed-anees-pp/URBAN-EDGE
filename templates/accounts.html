@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{%load static%}
+{% block title %}Accounts{% endblock %}
+{% block content %} 
+     
+<style>
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+  } 
+
+  .modal__content {
+    background-color: #fff;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    position: relative;
+    border-radius: 8px;
+  }
+
+  .modal__close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 25px;
+    cursor: pointer;
+  }
+</style>
+    <!--=============== MAIN ===============-->
+    <main class="main">
+      <!--=============== BREADCRUMB ===============-->
+      <section class="breadcrumb">
+        <ul class="breadcrumb__list flex container">
+          <li><a href="index.html" class="breadcrumb__link">Home</a></li>
+          <li><span class="breadcrumb__link">></span></li>
+          <li><span class="breadcrumb__link">Account</span></li>
+        </ul>
+      </section>
+
+      <!--=============== ACCOUNTS ===============-->
+      <section class="accounts section--lg">
+        <div class="accounts__container container grid">
+          <div class="account__tabs">
+            <p class="account__tab active-tab" data-target="#dashboard">
+              <i class="fi fi-rs-settings-sliders"></i> Dashboard
+            </p>
+            <p class="account__tab" data-target="#orders">
+              <i class="fi fi-rs-shopping-bag"></i> Orders
+            </p>
+            <p class="account__tab" data-target="#update-profile">
+              <i class="fi fi-rs-user"></i> Update Profile
+            </p>
+            <p class="account__tab" data-target="#address">
+              <i class="fi fi-rs-marker"></i> My Address
+            </p>
+            <p class="account__tab" data-target="#change-password">
+              <i class="fi fi-rs-settings-sliders"></i> Change Password
+            </p>
+            <p class="account__tab"><i class="fi fi-rs-exit"></i> Logout</p>
+          </div>
+          <div class="tabs__content">
+            <div class="tab__content active-tab" content id="dashboard">
+              <h3 class="tab__header">Hello {{user.username}}</h3>
+              <div class="tab__body">
+                <p class="tab__description">
+                  From your account dashboard. you can easily check & view your
+                  recent order, manage your shipping and billing addresses and
+                  edit your password and account details
+                </p>
+              </div>
+            </div>
+            <div class="tab__content" content id="orders">
+              <h3 class="tab__header">Your Orders</h3>
+              <div class="tab__body">
+                <table class="placed__order-table">
+                  <thead>
+                    <tr>
+                      <th>Orders</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Totals</th>
+                      <th>Order details</th>
+                      <th>Cancel Order</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for order in orders %}
+                    <tr>
+                      <td>#{{order.id}}</td>
+                      <td>{{ order.created_at|date:"M d, Y" }}</td>
+                      <td>{{order.status}}</td>
+                      <td>{{order.total_price}}</td>
+                      <td><a href="{% url 'view_order_items' order.id %}" class="view__order">View</a></td>
+                      {% if order.status != 'Canceled' %}
+                      <td><a href="{% url 'cancel_order' order.id %}" class="view__order">Cancel</a></td>
+                      {% else %}
+                      <td><a href="{% url 'cancel_order' order.id %}" class="view__order">Cancelled</a></td>
+                      {% endif %}
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="tab__content" content id="update-profile">
+              <h3 class="tab__header">Update Profile</h3>
+              <div class="tab__body">
+                <form class="form grid" method="POST" action="{% url 'update_username' %}">
+                  {% csrf_token %}
+                  <input
+                    type="text"
+                    name="username"
+                    placeholder="Username"
+                    class="form__input"
+                    value="{{ user.username }}"  
+                  />
+                  <div class="form__btn">
+                    <button type="submit" class="btn btn--md">Save</button>
+                  </div>
+                  {% if messages %}
+                  {% for message in messages %}
+                      <p class="alert {{ message.tags }}">{{ message }}</p>
+                  {% endfor %}
+              {% endif %}
+                </form>
+              </div>
+            </div>
+            <div>
+              
+            </div>
+            <div class="tab__content" content id="address">
+              <h3 class="tab__header">Addresses
+                <button class="btn-info" id="openModalBtn" style="margin-left: 600px; color: blue;">Add Address</button>
+              </h3>
+              {% for address in addresses %}
+              <div class="tab__body">
+                <address class="address">
+                  {{ address.name }}<br />
+                  {{ address.address }}<br />
+                  {{ address.postcode }}
+                </address>
+                <p class="city">{{ address.city }}</p>
+                <p class="state">{{ address.state }}</p>
+                <button class="edit" onclick="openEditModal('{{ address.id }}', '{{ address.name }}', '{{ address.address }}', '{{ address.postcode }}', '{{ address.city }}', '{{ address.state }}','{{ address.phone }}')">Edit</button>
+                <form method="POST" action="{% url 'delete_address' address.id %}">
+                  {% csrf_token %}
+                  <button type="submit">Delete Address</button>
+              </form>
+              </div>
+           
+              {% endfor %}
+              {% if messages %}
+              {% for message in messages %}
+                  <p class="alert {{ message.tags }}">{{ message }}</p>
+              {% endfor %}
+          {% endif %}
+
+  <!--=============== MODAL FOR ADDING ADDRESS ===============-->
+  <div id="modal" class="modal">
+    <div class="modal__content">
+      <span class="modal__close" id="closeModalBtn">&times;</span>
+      <h3 class="modal__header">Add New Address</h3>
+      <form method="POST" action="{% url 'add_address' %}" class="form grid">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Name" class="form__input" required />
+        <input type="text" name="address" placeholder="Address" class="form__input" required />
+        <input type="text" id="postcode" name="postcode" placeholder="Postcode" class="form__input" required oninput="fetchLocationDetails()" />
+        <input type="text" id="city" name="city" placeholder="City" class="form__input" required />
+        <input type="text" id="state" name="state" placeholder="State" class="form__input" required />
+        <input type="text" id="country" name="country" placeholder="Country" class="form__input" required />
+        <input type="text" name="phone" placeholder="Phone" class="form__input" required />
+        <input type="email" name="email" placeholder="Email" class="form__input" required />
+        <button type="submit" class="btn btn--md">Add Address</button>
+    </form>
+    {% if messages %}
+                  {% for message in messages %}
+                      <p class="alert {{ message.tags }}">{{ message }}</p>
+                  {% endfor %}
+              {% endif %}
+    </div>
+  </div>
+
+<!-- Edit Address Modal -->
+<div id="editModal" class="modal">
+  <div class="modal__content">
+    <span class="modal__close" id="closeEditModalBtn">&times;</span>
+    <h3 class="modal__header">Edit Address</h3>
+    <form method="POST" action="{% url 'edit_address' %}" class="form grid">
+      {% csrf_token %}
+      <input type="hidden" id="editId" name="id" />
+      <input type="text" id="editName" name="name" placeholder="Name" class="form__input" required />
+      <input type="text" id="editAddress" name="address" placeholder="Address" class="form__input" required />
+      <input type="text" id="editPostcode" name="postcode" placeholder="Postcode" class="form__input" required oninput="fetchLocationDetails()"/>
+      <input type="text" id="editCity" name="city" placeholder="City" class="form__input" required />
+      <input type="text" id="editState" name="state" placeholder="State" class="form__input" required />
+      <input type="text" id="editCountry" name="country" placeholder="Country" class="form__input" required />
+      <input type="text" id="editPhone" name="phone" placeholder="Phone" class="form__input" required />
+      <button type="submit" class="btn btn--md">Update Address</button>
+    </form>
+ 
+  </div>
+  {% if messages %}
+  {% for message in messages %}
+      <p class="alert {{ message.tags }}">{{ message }}</p>
+  {% endfor %}
+{% endif %}
+</div>
+
+
+            </div>
+            <div class="tab__content" content id="change-password">
+              <h3 class="tab__header">Change Password</h3>
+              <div class="tab__body">
+                <form class="form grid" action="{% url 'update_password' %}" method="post">
+                  {% csrf_token %}
+                  <input
+                    type="password"
+                    placeholder="Current Password"
+                    class="form__input"
+                    name="current_password"
+                    id="currentPassword"
+                  />
+                  <input
+                    type="password"
+                    placeholder="New Password"
+                    class="form__input"
+                    name="new_password"
+                    id="newPassword"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    class="form__input"
+                    name="confirm_password"
+                    id="confirmPassword"
+                  />
+                  <div class="form__btn">
+                    <button type="submit" class="btn btn--md">Save</button>
+                  </div>
+                  <div class="show-password">
+                    <input type="checkbox" id="togglePassword" />
+                    <label for="togglePassword">Show Passwords</label>
+                  </div>
+                </form>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!--=============== JAVASCRIPT FOR MODAL ===============-->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("modal");
+    const openModalBtn = document.getElementById("openModalBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    openModalBtn.addEventListener("click", () => {
+      modal.style.display = "block";
+    });
+
+    closeModalBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    window.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  });
+</script>
+
+<script>
+  function fetchLocationDetails() {
+      const postcode = document.getElementById('postcode').value;
+      if (postcode.length >= 6) {
+          fetch(`https://api.postalpincode.in/pincode/${postcode}`)
+              .then(response => response.json())
+              .then(data => {
+                  if (data[0].Status === "Success") {
+                      const postOffice = data[0].PostOffice[0];
+                      document.getElementById('city').value = postOffice.District;
+                      document.getElementById('state').value = postOffice.State;
+                      document.getElementById('country').value = "India";
+                  } else {
+                      alert("Invalid PIN code or data not found.");
+                  }
+              })
+              .catch(error => console.error('Error fetching location data:', error));
+      }
+  }
+  </script>
+
+<script>
+  function openEditModal(id, name, address, postcode, city, state,phone) {
+    const modal = document.getElementById('editModal');
+    document.getElementById('editId').value = id;
+    console.log(id)
+    document.getElementById('editName').value = name;
+    document.getElementById('editAddress').value = address;
+    document.getElementById('editPostcode').value = postcode;
+    document.getElementById('editCity').value = city;
+    document.getElementById('editState').value = state;
+    document.getElementById('editCountry').value = 'India';
+    document.getElementById('editPhone').value = phone;
+    modal.style.display = 'block';
+  }
+
+  document.getElementById('closeEditModalBtn').addEventListener('click', () => {
+    document.getElementById('editModal').style.display = 'none';
+  });
+
+  window.addEventListener('click', (event) => {
+    const modal = document.getElementById('editModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+</script>
+
+<script>
+  document.getElementById('togglePassword').addEventListener('change', function() {
+    // Get all password input fields
+    const passwordFields = [
+      document.getElementById('currentPassword'),
+      document.getElementById('newPassword'),
+      document.getElementById('confirmPassword')
+    ];
+
+    // Toggle input type between 'password' and 'text'
+    passwordFields.forEach(field => {
+      field.type = this.checked ? 'text' : 'password';
+    });
+  });
+</script>
+{% endblock %}

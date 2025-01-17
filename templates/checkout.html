@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+{%load static%}
+{% block title %}cart{% endblock %}
+{% block content %} 
+<style>
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal__content {
+  background-color: var(--container-color);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+  margin: 2rem auto;
+  position: relative;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+.modal__close {
+  position: absolute;
+  right: 1.5rem;
+  top: 1.5rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+.modal__title {
+  font-size: var(--h3-font-size);
+  margin-bottom: 2rem;
+}
+
+.modal__form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.form__group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form__label {
+  font-size: var(--small-font-size);
+  font-weight: var(--weight-500);
+}
+
+.form__input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-size: var(--small-font-size);
+  transition: border-color 0.3s;
+}
+
+.form__input:focus {
+  border-color: var(--first-color);
+  outline: none;
+}
+
+@media screen and (max-width: 768px) {
+  .form__row {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal__content {
+    padding: 1.5rem;
+  }
+}
+
+
+
+    .billing__details {
+    padding: 2rem;
+    background-color: white;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color-alt);
+}
+  
+  
+  .saved__addresses {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .address__card {
+    position: relative;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .address__card:hover {
+    border-color: var(--first-color);
+  }
+  
+  .address__input {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+  
+  .address__label {
+    display: block;
+    cursor: pointer;
+  }
+  
+  .address__name {
+    font-size: var(--normal-font-size);
+    font-weight: var(--weight-600);
+    margin-bottom: 0.5rem;
+  }
+  
+  .address__details,
+  .address__phone {
+    font-size: var(--small-font-size);
+    color: var(--text-color);
+    line-height: 1.5;
+  }
+  
+  .address__phone {
+    margin-top: 0.5rem;
+  }
+  
+  .no__address {
+    text-align: center;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+  }
+  
+  .add__address {
+    width: 100%;
+    margin-top: 1rem;
+  }
+  </style>
+    <!--=============== MAIN ===============-->
+    <main class="main">
+        <!-- Edit Address Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal__content">
+      <span class="modal__close" id="closeEditModalBtn">&times;</span>
+      <h3 class="modal__header">Edit Address</h3>
+      <form method="POST" action="{% url 'edit_address' %}" class="form grid">
+        {% csrf_token %}
+        <input type="hidden" id="editId" name="id" />
+        <input type="text" id="editName" name="name" placeholder="Name" class="form__input" required />
+        <input type="text" id="editAddress" name="address" placeholder="Address" class="form__input" required />
+        <input type="text" id="editPostcode" name="postcode" placeholder="Postcode" class="form__input" required oninput="fetchLocationDetails()"/>
+        <input type="text" id="editCity" name="city" placeholder="City" class="form__input" required />
+        <input type="text" id="editState" name="state" placeholder="State" class="form__input" required />
+        <input type="text" id="editCountry" name="country" placeholder="Country" class="form__input" required />
+        <input type="text" id="editPhone" name="phone" placeholder="Phone" class="form__input" required />
+        <button type="submit" class="btn btn--md">Update Address</button>
+      </form>
+   
+    </div>
+    {% if messages %}
+    {% for message in messages %}
+        <p class="alert {{ message.tags }}">{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+  </div>
+
+
+  <div id="modal" class="modal">
+    <div class="modal__content">
+      <span class="modal__close" id="closeModalBtn">&times;</span>
+      <h3 class="modal__header">Add New Address</h3>
+      <form method="POST" action="{% url 'add_address' %}" class="form grid">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Name" class="form__input" required />
+        <input type="text" name="address" placeholder="Address" class="form__input" required />
+        <input type="text" id="postcode" name="postcode" placeholder="Postcode" class="form__input" required oninput="fetchLocationDetails()" />
+        <input type="text" id="city" name="city" placeholder="City" class="form__input" required />
+        <input type="text" id="state" name="state" placeholder="State" class="form__input" required />
+        <input type="text" id="country" name="country" placeholder="Country" class="form__input" required />
+        <input type="text" name="phone" placeholder="Phone" class="form__input" required />
+        <input type="email" name="email" placeholder="Email" class="form__input" required />
+        <button type="submit" class="btn btn--md">Add Address</button>
+    </form>
+    {% if messages %}
+                  {% for message in messages %}
+                      <p class="alert {{ message.tags }}">{{ message }}</p>
+                  {% endfor %}
+              {% endif %}
+    </div>
+  </div>
+      <!--=============== BREADCRUMB ===============-->
+      <section class="breadcrumb">
+        <ul class="breadcrumb__list flex container">
+          <li><a href="index.html" class="breadcrumb__link">Home</a></li>
+          <li><span class="breadcrumb__link">></span></li>
+          <li><span class="breadcrumb__link">Shop</span></li>
+          <li><span class="breadcrumb__link">></span></li>
+          <li><span class="breadcrumb__link">Checkout</span></li>
+        </ul>
+      </section>
+
+      <!--=============== CHECKOUT ===============-->
+
+        <section class="checkout section--lg">
+          <div class="checkout__container container grid">
+            <div class="checkout__group">
+           
+           <!--=============== select address goes heres ===============-->
+           <div class="billing__details">
+            {% if addresses %}
+            <div class="saved__addresses">
+              {% for address in addresses %}
+                <div class="address__card">
+                  <input type="radio" name="selected_address" id="address_{{ address.id }}" value="{{ address.id }}" {% if forloop.first %}checked{% endif %} class="address__input">
+                  <label for="address_{{ address.id }}" class="address__label">
+                      <div class="address__content">
+                        <h4 class="address__name">{{ address.name }}</h4>
+                        <p class="address__details">
+                          {{ address.address }}
+                          <br>
+                          {{ address.city }}, {{ address.state }} {{ address.pincode }}
+                          <br>
+                          {{ address.country }}
+                        </p>
+                        <p class="address__phone">Phone: {{ address.phone }}</p>
+                      </div>
+                      <input type="hidden" name="selected_address" value="{{ selected_address_id }}">
+  
+                    </label>
+                    <button class="edit" onclick="openEditModal('{{ address.id }}', '{{ address.name }}', '{{ address.address }}', '{{ address.postcode }}', '{{ address.city }}', '{{ address.state }}','{{ address.phone }}')">Edit</button>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="no__address">No saved addresses found. Please add a new address.</p>
+            {% endif %}
+            {% if messages %}
+            {% for message in messages %}
+                <p class="alert {{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+              <button class="btn" id="openModalBtn">Add New Address</button>
+          </div>
+          
+
+  
+  
+          <!-- Address Modal -->
+
+            </div>
+            <div class="checkout__group">
+              <h3 class="section__title">Cart Totals</h3>
+              <table class="order__table">
+                <thead>
+                  <tr>
+                    <th colspan="2">Products</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+  
+                <tbody>
+                  {% for item in cart_items %}
+                  <tr>
+                    <td>
+                      <img src="{{ item.product.image1.url }}" alt="" class="order__img" />
+                    </td>
+                    <td>
+                      <h3 class="table__title">{{ item.product.name }}</h3>
+                      <p class="table__quantity">x {{ item.quantity }}</p>
+                    </td>
+                    <td><span class="table__price">₹{{ item.subtotal }}</span></td>
+                  </tr>
+                {% endfor %}
+                  </tr>
+                  <tr>
+                    <td><span class="order__subtitle">Shipping</span></td>
+                    <td colspan="2">
+                      <span class="table__price">{% if delivery_charge == 0 %}Free Shipping{% else %}₹40{% endif %} </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="order__subtitle">Total</span></td>
+                    <td colspan="2">
+                      <span class="order__grand-total">{{total}}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="payment__methods">
+                <h3 class="checkout__title payment__title">Payment</h3>
+                <div class="payment__option flex">
+                  <input type="radio"name="payment_method" value="COD" id="cod"class="payment__input"/>
+                  <label for="l2" class="payment__label">Cash on Delivery</label>
+                </div>
+                <div class="payment__option flex">
+                  <input type="radio" name="payment_method" id="l3" value="razorpay" class="payment__input"
+                  />
+                  <label for="l3" class="payment__label">Razorpay</label>
+                </div>
+              </div>
+              <form method="POST" action="{% url 'place_order' %}">
+                {% csrf_token %}
+                <input type="hidden" name="selected_address" value="{{ selected_address_id }}">
+                <input type="hidden" name="payment_method" value="{{ payment_method }}">
+                <!-- Place Order Button -->
+            <button id="placeOrderBtn" class="btn btn--md" type="button">Place Order</button>
+
+              </form>
+            </div>
+          
+          </div>
+          
+        </section>
+      
+   
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("modal");
+        const openModalBtn = document.getElementById("openModalBtn");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+    
+        openModalBtn.addEventListener("click", () => {
+          modal.style.display = "block";
+        });
+    
+        closeModalBtn.addEventListener("click", () => {
+          modal.style.display = "none";
+        });
+    
+        window.addEventListener("click", (event) => {
+          if (event.target === modal) {
+            modal.style.display = "none";
+          }
+        });
+      });
+    </script>
+
+<script>
+  function fetchLocationDetails() {
+      const postcode = document.getElementById('postcode').value;
+      if (postcode.length >= 6) {
+          fetch(`https://api.postalpincode.in/pincode/${postcode}`)
+              .then(response => response.json())
+              .then(data => {
+                  if (data[0].Status === "Success") {
+                      const postOffice = data[0].PostOffice[0];
+                      document.getElementById('city').value = postOffice.District;
+                      document.getElementById('state').value = postOffice.State;
+                      document.getElementById('country').value = "India";
+                  } else {
+                      alert("Invalid PIN code or data not found.");
+                  }
+              })
+              .catch(error => console.error('Error fetching location data:', error));
+      }
+  }
+  </script>
+
+<script>
+  function openEditModal(id, name, address, postcode, city, state,phone) {
+    const modal = document.getElementById('editModal');
+    document.getElementById('editId').value = id;
+    console.log(id)
+    document.getElementById('editName').value = name;
+    document.getElementById('editAddress').value = address;
+    document.getElementById('editPostcode').value = postcode;
+    document.getElementById('editCity').value = city;
+    document.getElementById('editState').value = state;
+    document.getElementById('editCountry').value = 'India';
+    document.getElementById('editPhone').value = phone;
+    modal.style.display = 'block';
+  }
+
+  document.getElementById('closeEditModalBtn').addEventListener('click', () => {
+    document.getElementById('editModal').style.display = 'none';
+  });
+
+  window.addEventListener('click', (event) => {
+    const modal = document.getElementById('editModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  document.getElementById("placeOrderBtn").addEventListener("click", function (event) {
+    event.preventDefault();
+
+    const selectedAddress = document.querySelector('input[name="selected_address"]:checked');
+    const selectedAddressId = selectedAddress ? selectedAddress.value : null;
+
+    const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked');
+    const paymentMethod = selectedPaymentMethod ? selectedPaymentMethod.value : null;
+
+    if (selectedAddressId && paymentMethod) {
+      // Get CSRF token from cookie
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      const csrftoken = getCookie('csrftoken');
+
+      axios.post("{% url 'place_order' %}", {
+        address_id: selectedAddressId,
+        payment_method: paymentMethod,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken,
+        }
+      })
+      .then(function (response) {
+      
+        if (response.data.success) {
+  
+
+          window.location.href = 'success'; 
+        } else {
+          alert(response.data.error || "Something went wrong");
+        }
+      })
+      .catch(function (error) {
+        if (error.response) {
+          alert(error.response.data.error || "An error occurred while placing the order.");
+        } else {
+          alert("Network error occurred. Please try again.");
+        }
+      });
+    } else {
+      alert("Please select both address and payment method.");
+    }
+  });
+</script>
+
+<script type="text/javascript">
+  window.CSRF_TOKEN = "{{ csrf_token }}"; // make the token available to JavaScript
+</script>
+
+{% endblock %}

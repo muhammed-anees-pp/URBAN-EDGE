@@ -1,0 +1,391 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Dashboard</title>
+    <!-- Your existing CSS -->
+    <link rel="stylesheet" href="{% static 'admin/vendors/mdi/css/materialdesignicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/jvectormap/jquery-jvectormap.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/flag-icon-css/css/flag-icon.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/owl-carousel-2/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/owl-carousel-2/owl.theme.default.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
+    <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}" />
+    
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        .cropper-container {
+            margin: 10px 0;
+            max-width: 100%;
+            height: 400px;
+        }
+        .preview-image {
+            max-width: 200px;
+            margin-top: 10px;
+        }
+        .crop-button {
+            margin-top: 10px;
+        }
+        #image-cropper-container {
+            max-width: 100%;
+            margin: 15px 0;
+        }
+        .cropper-view-box,
+        .cropper-face {
+            border-radius: 0;
+        }
+    </style>
+</head>
+<body>
+<body>
+    <div class="container-scroller">
+        {% include 'admin/sidebar.html' %}
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            {% include 'admin/navbar.html' %}
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <!-- Create New Product Button -->
+                    <div class="mb-4">
+                        <button class="btn btn-success" data-toggle="modal" data-target="#createProductModal">
+                            + Create New Product
+                        </button>
+                    </div>
+                     <!-- Messages Block -->
+                     <!-- {% if messages %}
+                     <div class="alert-container">
+                         {% for message in messages %}
+                             <div class="alert 
+                                 {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                                 {{ message }}
+                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                     <span aria-hidden="true">&times;</span>
+                                 </button>
+                             </div>
+                         {% endfor %}
+                     </div>
+                 {% endif %} -->
+                    <!-- Content Block -->
+                    {% block content %}
+                    <div class="row">
+                        <div class="col-12 grid-margin stretch-card">
+                            <div class="card corona-gradient-card">
+                                <div class="card-body py-0 px-0 px-sm-3">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {%if messages%}
+                    {% for message in messages %}
+                    <div class="alert 
+                                {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                        {% endif %}
+                    <div class="row">
+                        <div class="col-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Product Details</h4>
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>
+                                                        <div class="form-check form-check-muted m-0">
+                                                            <label class="form-check-label">
+                                                                <input type="checkbox" class="form-check-input">
+                                                            </label>
+                                                        </div>
+                                                    </th>
+                                                    <th>Id</th>
+                                                    <th>Product Name</th>
+                                                    <th>Category</th>
+                                                    <th>Price</th>
+                                                    <th>Color</th>
+                                                    <th>Image 1</th>
+                                                    <th>Image 2</th>
+                                                    <th>Image 3</th>
+                                                    <th>Offer</th>
+                                                    <th>Add Stock</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <!-- Add this right before the table -->
+                                        {% if products %}
+                                        <p>Number of products: {{ products|length }}</p>
+                                        {% else %}
+                                        <p>No products available</p>
+                                        {% endif %}
+                                            <tbody>
+                                                {% if products %}
+                                                    {% for product in products %}
+                                                    <tr>
+                                                        <td>
+                                                            <div class="form-check form-check-muted m-0">
+                                                                <label class="form-check-label">
+                                                                    <input type="checkbox" class="form-check-input">
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td>{{ product.id }}</td>
+                                                        <td>{{ product.name }}</td>  <!-- Changed from product_name -->
+                                                        <td>{{ product.category.category_name }}</td>
+                                                        <td>{{ product.price }}</td>
+                                                        <td>{{ product.color }}</td>
+                                                        <td>
+                                                            {% if product.image1 %}
+                                                                <img src="{{ product.image1.url }}" alt="Image 13"  style="width: 70px; height: 70px;">
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if product.image2 %}
+                                                                <img src="{{ product.image2.url }}" alt="Image 2" style="width: 70px; height: 70px;">
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if product.image3 %}
+                                                                <img src="{{ product.image3.url }}" alt="Image 3"  style="width: 70px; height: 70px;">
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>{{ product.offer }}</td>
+                                                        <td><a href="{% url 'variant' product.id  %}" class="btn btn-outline-danger">Add</a></td>
+                                                        <td>
+                                                            <a href="{% url 'edit_product' product.id  %}" class="btn btn-success">Edit</a>
+                                                            <a href="{% url 'list_unlist' product.id %}" 
+                                                               class="btn {% if product.is_listed %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}">
+                                                                {% if product.is_listed %}Unlist{% else %}Relist{% endif %}
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <tr>
+                                                        <td colspan="11" class="text-center">No products found</td>
+                                                    </tr>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endblock %}
+                </div>
+                <!-- content-wrapper ends -->
+
+                <!-- Create New Product Modal -->
+                <div class="modal fade" id="createProductModal" tabindex="-1" aria-labelledby="createProductModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="createProductModalLabel">Create New Product</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                {% if messages %}
+                                <div class="container mt-3">
+                                    {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <!-- Form for creating a product -->
+                                <form id="createProductForm" method="POST" enctype="multipart/form-data" action="{% url 'create_product' %}">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="name">Product Name</label>
+                                        <input type="text" class="form-control" id="name" name="product_name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="description">Description</label>
+                                        <textarea class="form-control" id="description" name="description" required></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="category">Category</label>
+                                        <select class="form-control" id="category" name="category" required>
+                                            <option value="" disabled selected>Select Category</option>
+                                            {% if categories %}
+                                            {% for category in categories %}
+                                            <option value="{{ category.id }}">{{ category.category_name }}</option>
+                                            {% endfor %}
+                                            {% else %}
+                                            <option value="" disabled>No categories available</option>
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="price">Price</label>
+                                        <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="color">Color</label>
+                                        <input type="text" class="form-control" id="color" name="color" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="offer">Offer</label>
+                                        <input type="number" class="form-control" id="offer" name="offer" step="0.01" min="0" max="10000">
+                                    </div>
+                                    {% for num in "123" %}
+                                    <div class="form-group">
+                                        <label for="image{{ num }}">Image {{ num }}</label>
+                                        <input type="file" class="form-control-file" id="image{{ num }}" name="image{{ num }}" accept="image/*">
+                                        <img id="preview{{ num }}" src="" alt="Preview" class="preview-image" style="display: none;">
+                                    </div>
+                                {% endfor %}
+                    
+                                <button type="submit" class="btn btn-primary">Create Product</button>
+                            </form>
+                    
+                            <!-- JavaScript Libraries -->
+                            <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+                            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+                    
+                            <!-- Cropping and Form Handling Script -->
+                            <script>
+                                $(document).ready(function () {
+    // Reset the modal fields when it is shown
+    $('#createProductModal').on('show.bs.modal', function () {
+        // Reset form fields
+        $('#createProductForm')[0].reset();
+        
+        // Hide all preview images
+        for (let i = 1; i <= 3; i++) {
+            $('#preview' + i).attr('src', '').hide();
+        }
+    });
+});
+                                document.addEventListener("DOMContentLoaded", function () {
+                                    let cropper;
+                                    const imageInputs = {
+                                        image1: { input: document.getElementById('image1'), preview: document.getElementById('preview1') },
+                                        image2: { input: document.getElementById('image2'), preview: document.getElementById('preview2') },
+                                        image3: { input: document.getElementById('image3'), preview: document.getElementById('preview3') }
+                                    };
+                                    let currentCropTarget;
+                    
+                                    function initCropper(imageUrl, preview) {
+                                        if (cropper) cropper.destroy();
+                    
+                                        const image = document.createElement('img');
+                                        image.src = imageUrl;
+                                        image.style.maxWidth = '100%';
+                    
+                                        const cropperContainer = document.createElement('div');
+                                        cropperContainer.className = 'cropper-wrapper';
+                                        cropperContainer.appendChild(image);
+                    
+                                        document.body.appendChild(cropperContainer);
+                    
+                                        cropper = new Cropper(image, {
+                                            aspectRatio: 1,
+                                            viewMode: 2,
+                                            dragMode: 'move',
+                                            autoCropArea: 1,
+                                        });
+                    
+                                        Swal.fire({
+                                            title: 'Crop your image',
+                                            html: cropperContainer,
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Crop',
+                                            preConfirm: () => {
+                                                const croppedCanvas = cropper.getCroppedCanvas({
+                                                    width: 800,
+                                                    height: 800,
+                                                    imageSmoothingEnabled: true,
+                                                    imageSmoothingQuality: 'high'
+                                                });
+                    
+                                                return new Promise((resolve) => {
+                                                    croppedCanvas.toBlob((blob) => {
+                                                        const file = new File([blob], 'cropped_image.jpg', { type: 'image/jpeg' });
+                                                        const dataTransfer = new DataTransfer();
+                                                        dataTransfer.items.add(file);
+                                                        currentCropTarget.input.files = dataTransfer.files;
+                    
+                                                        preview.src = croppedCanvas.toDataURL();
+                                                        preview.style.display = 'block';
+                    
+                                                        resolve();
+                                                    }, 'image/jpeg', 0.9);
+                                                });
+                                            }
+                                        }).then(() => {
+                                            if (cropper) cropper.destroy();
+                                            cropperContainer.remove();
+                                        });
+                                    }
+                    
+                                    for (const key in imageInputs) {
+                                        const { input, preview } = imageInputs[key];
+                    
+                                        input.addEventListener('change', function() {
+                                            if (this.files && this.files[0]) {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => {
+                                                    currentCropTarget = imageInputs[key];
+                                                    initCropper(e.target.result, preview);
+                                                };
+                                                reader.readAsDataURL(this.files[0]);
+                                            }
+                                        });
+                                    }
+                    
+                                    // Form Submission
+                                    // const form = document.getElementById('createProductForm');
+                                    // form.addEventListener('submit', async function(e) {
+                                    //     e.preventDefault();
+                    
+                                    //     const formData = new FormData(this);
+                    
+                                    //     try {
+                                    //         const response = await fetch(this.action, {
+                                    //             method: 'POST',
+                                    //             body: formData,
+                                    //         });
+                    
+                                    //         if (response.ok) {
+                                    //             Swal.fire({
+                                    //                 icon: 'success',
+                                    //                 title: 'Success',
+                                    //                 text: 'Product created successfully'
+                                    //             }).then(() => window.location.reload());
+                                    //         } else {
+                                    //             throw new Error('Failed to create product');
+                                    //         }
+                                    //     } catch (error) {
+                                    //         Swal.fire({
+                                    //             icon: 'error',
+                                    //             title: 'Error',
+                                    //             text: 'Failed to create product. Please try again.'
+                                    //         });
+                                    //     }
+                                    // });
+                                });
+                                
+                            </script>
+                        </div>
+                    </body>
+                    </html>

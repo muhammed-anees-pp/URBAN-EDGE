@@ -1,0 +1,588 @@
+{% extends 'base.html' %}
+{%load static%}
+{% block title %}Details{% endblock %}
+{% block content %} 
+<style>
+  *{
+            margin: 0;
+        }
+        .popup{
+            min-width: 300px;
+            min-height: 80px;
+            position: absolute;
+            top: 10px;
+            right: 0;
+            background-color: rgb(255, 255, 255);
+            font-family: sans-serif;
+            font-size: 13px;
+            font-weight: 900;
+            color: hsl(176, 71%, 54%);
+            border-radius: 4px;
+            display: none;
+            flex-direction: column;
+            padding-top: 5px;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        }
+        .popup h3{
+            margin: 10px 10px;
+        }
+        .popup hr{
+            width: 100%;
+            height: 4px;
+            background-color: hsla(176, 51%, 49%, 0.562);
+            border-radius: 10px;
+            border: none;
+            
+        }
+        #countdown {
+            position: absolute;
+            bottom: 0;
+        }
+        .active{
+            
+            animation: sajjad 5s ease infinite;
+        }
+        .description{
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .check{
+            width: 40px;
+            height: 40px;
+            background-color: hsl(176, 88%, 27%);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            margin-left: 10px;
+            margin-bottom: 7px;
+        }
+        @keyframes sajjad{
+            0%{
+                width: 100%;
+            }
+            100%{
+                width: 0;
+            }
+        }
+</style>
+<!--=============== alert ===============-->
+    <div class="popup" id="popup">
+      <div class="description">
+          <div class="check" id="check">
+              <svg xmlns="http://www.w3.org/2000/svg" height="34px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
+          </div>
+          <h3 id="text"></h3>
+      </div>
+
+      <hr id="countdown">
+    </div>
+    <!--=============== MAIN ===============-->
+    <main class="main">
+      <!--=============== BREADCRUMB ===============-->
+      <section class="breadcrumb">
+        <ul class="breadcrumb__list flex container">
+          <li><a href="index.html" class="breadcrumb__link">Home</a></li>
+          <li><span class="breadcrumb__link"></span>></li>
+          <li><span class="breadcrumb__link">{{product.category.category_name}}</span></li>
+          <li><span class="breadcrumb__link"></span>></li>
+          <li><span class="breadcrumb__link">{{product.name}}</span></li>
+        </ul>
+      </section>
+
+      <!--=============== DETAILS ===============-->
+      <section class="details section--lg">
+        <div class="details__container container grid">
+       <div class="details__group">
+  <img src="{{product.image2.url}}" id="zoom-image" class="details__img product__img" data-zoom-image="" />
+  <div class="details__small-images grid">
+    <img src="{{product.image2.url}}" alt="" class="details__small-img" onclick="updateMainImage('{{product.image2.url}}')" />
+    <img src="{{product.image1.url}}" alt="" class="details__small-img" onclick="updateMainImage('{{product.image1.url}}')" />
+    <img src="{{product.image3.url}}" alt="" class="details__small-img" onclick="updateMainImage('{{product.image3.url}}')" />
+  </div>
+</div>
+          <div class="details__group">
+            <h3 class="details__title">{{product.name}}</h3>
+            <div class="details__price flex">
+              {% if product.offer %}
+              <span class="new__price">₹{{product.offer}}</span>
+              <span class="old__price">₹{{product.price}}</span>
+              {% else %}
+              <span class="new__price">₹{{product.price}}</span>
+              {% endif %}
+              <!-- <span class="save__price">25% Off</span> -->
+            </div>
+            <p class="short__description">
+            {{product.description}}
+            </p>
+            <ul class="products__list">
+              <li class="list__item flex">
+                <i class="fi-rs-crown"></i> 1 Year Warranty
+              </li>
+              <li class="list__item flex">
+                <i class="fi-rs-refresh"></i> 7 Days Return Policy
+              </li>
+              <li class="list__item flex">
+                <i class="fi-rs-credit-card"></i> Cash on Delivery available
+              </li>
+            </ul>
+            <!-- <div class="details__color flex">
+              <span class="details__color-title">Color</span>
+              <ul class="color__list">
+                <li>
+                  <a
+                    href="#"
+                    class="color__link"
+                    style="background-color: hsl(37, 100%, 65%)"
+                  ></a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="color__link"
+                    style="background-color: hsl(353, 100%, 65%)"
+                  ></a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="color__link"
+                    style="background-color: hsl(49, 100%, 60%)"
+                  ></a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="color__link"
+                    style="background-color: hsl(304, 100%, 78%)"
+                  ></a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="color__link"
+                    style="background-color: hsl(126, 61%, 52%)"
+                  ></a>
+                </li>
+              </ul>
+            </div> -->
+            <div class="details__size flex">
+              {% if sizes %}
+                <span class="details__size-title">Available Size</span>
+                <ul class="size__list">
+                  {% for size in sizes %}
+                    <li class="size__link" onclick="selectSize(this, '{{size.size}}', {{size.stock}})"
+                        data-stock="{{size.stock}}">
+                      {{ size.size }}
+                    </li>
+                  {% endfor %}
+                </ul>
+                <!-- Add this div for stock display -->
+                
+              {% else %}
+                <h4 style="color: red;">Out of Stock</h4>
+              {% endif %}
+            </div>  
+            <div id="stock-display" style="color: #666;margin-bottom: 20px;">
+              <span>Available Stock: </span>
+              <span id="current-stock">Select a size</span>
+            </div>
+            <div class="details__action">
+              {% if sizes %}
+              
+              <a href="#" class="btn btn--sm" onclick="addToCart('{{product.id}}')">Add To Card</a>
+              {% endif %}
+              <a href="#" class="details__action-btn">
+                <i class="fi fi-rs-heart"></i>
+              </a>
+              
+            </div>
+       
+            <ul class="details__meta">
+              <li class="meta__list flex">
+              </li>
+              <!-- <li class="meta__list flex">
+                <span>Availability:</span> {{ size.stock }}Items in Stock
+              </li> -->
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!--=============== DETAILS TAB ===============-->
+      <section class="details__tab container">
+        <div class="detail__tabs">
+          <span class="detail__tab" data-target="#reviews">Reviews(3)</span>
+        </div>
+        <!-- <div class="details__tabs-content">
+          <div class="details__tab-content active-tab" content id="info">
+            <table class="info__table">
+              <tr>
+                <th>Stand Up</th>
+                <td>35" L x 24"W x 37-45"H(front to back wheel)</td>
+              </tr>
+              <tr>
+                <th>Folded (w/o wheels)</th>
+                <td>32.5"L x 18.5"W x 16.5"H</td>
+              </tr>
+              <tr>
+                <th>Folded (w/o wheels)</th>
+                <td>32.5"L x 24"W x 18.5"H</td>
+              </tr>
+              <tr>
+                <th>Door Pass THrough</th>
+                <td>24</td>
+              </tr>
+              <tr>
+                <th>Frame</th>
+                <td>Aluminum</td>
+              </tr>
+              <tr>
+                <th>Weight (w/o wheels)</th>
+                <td>20 LBS</td>
+              </tr>
+              <tr>
+                <th>Weight Capacity</th>
+                <td>60 LBS</td>
+              </tr>
+              <tr>
+                <th>Width</th>
+                <td>24</td>
+              </tr>
+              <tr>
+                <th>Handle Height (ground to handle)</th>
+                <td>37-45</td>
+              </tr>
+              <tr>
+                <th>Wheels</th>
+                <td>12" air / wide track slick tread</td>
+              </tr>
+              <tr>
+                <th>Seat back height</th>
+                <td>21.5</td>
+              </tr>
+              <tr>
+                <th>Head Room(inside canopy)</th>
+                <td>25"</td>
+              </tr>
+              <tr>
+                <th>Color</th>
+                <td>Black, Blue, Red, White</td>
+              </tr>
+              <tr>
+                <th>Size</th>
+                <td>M, S</td>
+              </tr>
+            </table>
+          </div>-->
+           <div class="details__tab-content active-tab" content id="reviews">
+            <div class="reviews__container grid">
+              <div class="review__single">
+                <div>
+                  <img
+                    src="./assets/img/avatar-1.jpg"
+                    alt=""
+                    class="review__img"
+                  />
+                  <h4 class="review__title">Jacky Chan</h4>
+                </div>
+                <div class="review__data">
+                  <div class="review__rating">
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                  </div>
+                  <p class="review__description">
+                    Thank you, very fast shipping from Poland only 3days.
+                  </p>
+                  <span class="review__date">December 4, 2022 at 3:12 pm</span>
+                </div>
+              </div>
+              <div class="review__single">
+                <div>
+                  <img
+                    src="./assets/img/avatar-2.jpg"
+                    alt=""
+                    class="review__img"
+                  />
+                  <h4 class="review__title">Meriem Js</h4>
+                </div>
+                <div class="review__data">
+                  <div class="review__rating">
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                  </div>
+                  <p class="review__description">
+                    Great low price and works well
+                  </p>
+                  <span class="review__date">August 23, 2022 at 19:45 pm</span>
+                </div>
+              </div>
+              <div class="review__single">
+                <div>
+                  <img
+                    src="./assets/img/avatar-3.jpg"
+                    alt=""
+                    class="review__img"
+                  />
+                  <h4 class="review__title">Moh Benz</h4>
+                </div>
+                <div class="review__data">
+                  <div class="review__rating">
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                    <i class="fi fi-rs-star"></i>
+                  </div>
+                  <p class="review__description">
+                    Authentic and beautiful, Love these ways more than ever
+                    expected, They are great earphones.
+                  </p>
+                  <span class="review__date">March 2, 2021 at 10:01 am</span>
+                </div>
+              </div>
+            </div>
+            <!-- <div class="review__form">
+              <h4 class="review__form-title">Add a review</h4>
+              <div class="rate__product">
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+              </div>
+              <form action="" class="form grid">
+                <textarea
+                  class="form__input textarea"
+                  placeholder="Write Comment"
+                ></textarea>
+                <div class="form__group grid">
+                  <input type="text" placeholder="Name" class="form__input">
+                  <input type="email" placeholder="Email" class="form__input">
+                </div>
+                <div class="form__btn">
+                  <button class="btn">Submit Review</button>
+                </div>
+              </form>
+            </div> -->
+          </div>
+        </div>
+      </section>
+
+      <!--=============== PRODUCTS ===============-->
+      <section class="products container section--lg">
+        <h3 class="section__title"><span>Related</span> Products</h3>
+        <div class="products__container grid">
+          {% for product in related_products %}
+          <div class="product__item">
+            <div class="product__banner">
+              <a href="details.html" class="product__images">
+                <img
+                  src="{{product.image1.url}}"
+                  alt=""
+                  class="product__img default"
+                />
+                <img
+                  src="assets/img/product-1-2.jpg"
+                  alt=""
+                  class="product__img hover"
+                />
+              </a>
+              <div class="product__actions">
+                <a href="#" class="action__btn" aria-label="Quick View">
+                  <i class="fi fi-rs-eye"></i>
+                </a>
+                <a
+                  href="#"
+                  class="action__btn"
+                  aria-label="Add to Wishlist"
+                >
+                  <i class="fi fi-rs-heart"></i>
+                </a>
+                <a href="#" class="action__btn" aria-label="Compare">
+                  <i class="fi fi-rs-shuffle"></i>
+                </a>
+              </div>
+              <div class="product__badge light-pink">Hot</div>
+            </div>
+            <div class="product__content">
+              <span class="product__category">Clothing</span>
+              <a href="details.html">
+                <h3 class="product__title">Colorful Pattern Shirts</h3>
+              </a>
+              <div class="product__rating">
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+              </div>
+              <div class="product__price flex">
+                <span class="new__price">$238.85</span>
+                <span class="old__price">$245.8</span>
+              </div>
+              <a
+                href="#"
+                class="action__btn cart__btn"
+                aria-label="Add To Cart"
+              >
+                <i class="fi fi-rs-shopping-bag-add"></i>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+    </main>
+<!-- Include jQuery if not already included -->
+ <!-- Add this in your HTML head or before your script -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Include Elevate Zoom Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+
+
+<!-- Add this in your script to initialize the zoom effect -->
+<script>
+ // Initialize zoom on document ready
+$(document).ready(function() {
+  initializeZoom();
+});
+
+// Function to initialize zoom on the main image
+function initializeZoom() {
+  $('#zoom-image').elevateZoom({
+    zoomType: "window",
+    lensShape: "square",
+    lensSize: 200,
+    scrollZoom: true,
+    responsive: true
+  });
+}
+
+// Function to update main image and reinitialize zoom
+function updateMainImage(imageUrl) {
+  console.log(imageUrl)
+  // Remove existing zoom container
+  $('.zoomContainer').remove();
+  
+  // Update main image source and data-zoom-image attribute
+  const mainImage = $('#zoom-image');
+  mainImage.attr('src', imageUrl);
+  // mainImage.attr('data-zoom-image', imageUrl);
+  
+  // Destroy existing zoom instance
+  mainImage.removeData('elevateZoom');
+  
+  // Reinitialize zoom with new image
+  mainImage.elevateZoom({
+    zoomType: "window",
+    lensShape: "square",
+    lensSize: 200,
+    scrollZoom: true,
+    responsive: true
+  });
+}
+
+// Image gallery functionality
+function imgGallery() {
+  const mainImg = document.querySelector(".details__img");
+  const smallImg = document.querySelectorAll(".details__small-img");
+
+  smallImg.forEach((img) => {
+    img.addEventListener("click", function() {
+      console.log("hjhg",this.src)
+      updateMainImage(this.src);
+    });
+  });
+}
+
+imgGallery();
+</script>
+<script>
+ let sizes;
+let currentStock;
+
+function selectSize(element, size, stock) {
+    console.log(size, "size");
+    sizes = size;
+    currentStock = stock;
+    
+    // Remove 'size-active' class from all size links
+    document.querySelectorAll('.size__link').forEach(function(link) {
+        link.classList.remove('size-active');
+    });
+    
+    // Add 'size-active' class to the selected size
+    element.classList.add('size-active');
+    
+    // Update stock display
+    document.getElementById('current-stock').textContent = stock + " items";
+}
+
+  function addToCart(productId) {
+    console.log(sizes, "sizessss");
+    
+    if (sizes) {
+        fetch("{% url 'add_to_cart' %}", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ product_id: productId, size: sizes, quantity: 1 })
+        })
+        .then((res) => res.json())
+        .then((data)=>{
+
+          if(data.success){
+            GenerateAlert(data.message,true)
+
+          }
+          else{
+            GenerateAlert(data.message,false)
+          }
+        })
+}
+else{
+  GenerateAlert("Please select a Size")
+}
+  }
+
+  let countdown = document.getElementById("countdown");
+    let popup = document.getElementById("popup");
+    let text = document.getElementById("text");
+    let state = false
+    function GenerateAlert(data, success){
+        
+        const audio = new Audio("{% static 'assets/audio/notification.wav' %}") // retrieving audio instance
+        audio.play() // playing audio
+        !success 
+        ? document.getElementById("check").innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>`
+        : null;
+        countdown.classList.add("active");
+        popup.style.display = "flex";0
+        text.innerHTML = data
+        // setting the notification off after 4seconds
+        setTimeout(()=>{
+            countdown.classList.remove("active")
+            popup.style.display = "none"
+        },4000)
+
+    }
+
+  
+</script>
+
+    {% endblock %}

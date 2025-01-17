@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{%load static%}
+{% block title %}Accounts{% endblock %}
+{% block content %} 
+
+
+<div class="tab__content" content id="orders"></div>
+    <h3 class="tab__header">Order Details</h3>
+    <div class="tab__body">
+      <h3>Order ID: {{ order.id }}</h3>
+<p>Order Date: {{ order.created_at|date:"M d, Y" }}</p>
+<p>Status: {{ order.get_status_display }}</p>
+<p>Total: ₹{{ order.total_price }}</p>
+<p>Address : {{ order.address.address }}
+</p>
+      <table class="placed__order-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Size</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+          <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.size_variant.size }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>₹{{ item.price }}</td>
+            <td>₹{{ item.total_price }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<p><a href="{% url 'account' %}">Back to your account</a></p>
+
+
+
+
+  {% endblock %}

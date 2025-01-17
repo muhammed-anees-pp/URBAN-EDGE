@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Order Management</title>
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="{% static 'admin/vendors/mdi/css/materialdesignicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
+    <!-- endinject -->
+    <!-- Plugin css for this page -->
+    <link rel="stylesheet" href="{% static 'admin/vendors/jvectormap/jquery-jvectormap.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/flag-icon-css/css/flag-icon.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/owl-carousel-2/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/owl-carousel-2/owl.theme.default.min.css' %}">
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
+    <!-- End layout styles -->
+    <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}" />
+    <!-- Include SweetAlert CSS and JavaScript -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <!-- Bootstrap 5 JavaScript and Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  </head>
+  <body>
+    <div class="container-scroller">
+      {% include 'admin/sidebar.html' %}
+      <!-- partial -->
+      <div class="container-fluid page-body-wrapper">
+        {% include 'admin/navbar.html' %}
+        <!-- partial -->
+        <div class="main-panel">
+          <div class="content-wrapper">
+            <!-- Content Block -->
+            {% block content %}
+            <div class="row">
+              <div class="col-12 grid-margin">
+                <div class="card">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <h4 class="card-title">Order Details</h4>
+                    
+                      <!-- <div class="d-flex align-items-center"> -->
+                          <!-- Report Download Buttons -->
+                          <!-- <div class="btn-group" role="group">
+                              <a href="" class="btn btn-outline-primary">
+                                  <i class="mdi mdi-file-pdf"></i> Download PDF
+                              </a>
+                              <a href="" class="btn btn-outline-success">
+                                  <i class="mdi mdi-file-excel"></i> Download Excel
+                              </a>
+                          </div> -->
+                  
+                          <!-- Filter Dropdown -->
+                          <div class="dropdown me-2">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="mdi mdi-filter"></i> Filter
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                                <li><a class="dropdown-item" href="?filter=daily">Today</a></li>
+                                <li><a class="dropdown-item" href="?filter=weekly">Weekly</a></li>
+                                <li><a class="dropdown-item" href="?filter=yearly">Yearly</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#customDateModal">Custom Date</a></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Custom Date Filter Modal -->
+                        <div class="modal fade" id="customDateModal" tabindex="-1" aria-labelledby="customDateModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="GET" action="">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="customDateModalLabel">Custom Date Filter</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="startDate" class="form-label">Start Date</label>
+                                                <input type="date" class="form-control" id="startDate" name="start_date" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="endDate" class="form-label">End Date</label>
+                                                <input type="date" class="form-control" id="endDate" name="end_date" required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-primary">Apply Filter</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                      </div>
+                  </div>
+                  
+                    <div class="table-responsive">
+                      <table class="table">
+                        <thead>
+                          <tr>
+                            <th>Order ID</th>
+                            <th>Name</th>
+                            <th>Date of Order</th>
+     
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <!-- Loop through orders -->
+                          {% for order in orders %}
+                          <tr>
+                          <td>{{ order.id  }}</td>
+                            <td>{{ order.address.name }}</td>
+                            <td>{{ order.created_at }}</td>
+      
+                           <td>
+<a href="{% url 'order-view' order.id %}" class="btn btn-info">View More</a>
+</td>
+
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endblock %}
+          </div>
+          <!-- content-wrapper ends -->
+        </div>
+        <!-- main-panel ends -->
+      </div>
+      <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
+    <!-- endinject -->
+    <!-- Plugin js for this page -->
+    <script src="{% static 'admin/vendors/chart.js/Chart.min.js' %}"></script>
+    <script src="{% static 'admin/vendors/progressbar.js/progressbar.min.js' %}"></script>
+    <script src="{% static 'admin/vendors/jvectormap/jquery-jvectormap.min.js' %}"></script>
+    <script src="{% static 'admin/vendors/jvectormap/jquery-jvectormap-world-mill-en.js' %}"></script>
+    <script src="{% static 'admin/vendors/owl-carousel-2/owl.carousel.min.js' %}"></script>
+    <!-- End plugin js for this page -->
+    <!-- inject:js -->
+    <script src="{% static 'admin/js/off-canvas.js' %}"></script>
+    <script src="{% static 'admin/js/hoverable-collapse.js' %}"></script>
+    <script src="{% static 'admin/js/misc.js' %}"></script>
+    <script src="{% static 'admin/js/settings.js' %}"></script>
+    <script src="{% static 'admin/js/todolist.js' %}"></script>
+    <!-- endinject -->
+    <!-- Custom js for this page -->
+    <script src="{% static 'admin/js/dashboard.js' %}"></script>
+    <!-- End custom js for this page -->
+    {% if errors %}
+    <script>
+        Swal.fire({
+            title: 'Error!',
+            html: `{% for field, error_list in errors.items %}
+                    {{ error_list|join:', ' }}<br>
+                   {% endfor %}`,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                clearFormAndHideModal('createCategoryModal', 'createCategoryForm');
+            }
+        });
+    </script>
+    {% endif %}
+  </body>
+</html>

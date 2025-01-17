@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+{%load static%}
+{% block title %}Shop{% endblock %}
+{% block content %} 
+
+<style>
+  .shop__container {
+    position: relative;
+  }
+
+  .filter__toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--first-color);
+    color: var(--body-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .filter__toggle:hover {
+    background-color: var(--first-color-alt);
+  }
+
+  .shop__sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 300px;
+    height: 100%;
+    background-color: var(--container-color);
+    padding: 2rem;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: 0.5s;
+    overflow-y: auto;
+  }
+
+  .shop__sidebar.show {
+    left: 0;
+  }
+
+  .sidebar__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    color: var(--title-color);
+    cursor: pointer;
+  }
+
+  .sidebar__container {
+    padding-top: 2rem;
+  }
+
+  .sidebar__title {
+    font-size: var(--normal-font-size);
+    font-weight: var(--font-medium);
+    margin-bottom: 1rem;
+  }
+
+  .sidebar__item {
+    margin-bottom: 2rem;
+  }
+
+  .sidebar__item:last-child {
+    margin-bottom: 0;
+  }
+
+  .sidebar__list {
+    row-gap: 0.75rem;
+  }
+
+  .sidebar__link {
+    display: flex;
+    align-items: center;
+    column-gap: 0.5rem;
+    color: var(--title-color);
+    font-size: var(--small-font-size);
+    transition: 0.3s;
+  }
+
+  .sidebar__link:hover,
+  .sidebar__link.active {
+    color: var(--first-color);
+  }
+
+  .price-range__form {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+  }
+
+  .price-range__group {
+    display: flex;
+    align-items: center;
+    column-gap: 0.5rem;
+  }
+
+  .price-range__input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    font-size: var(--small-font-size);
+  }
+
+  .price-range__btn {
+    background-color: var(--first-color);
+    color: var(--body-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    font-size: var(--small-font-size);
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .price-range__btn:hover {
+    background-color: var(--first-color-alt);
+  }
+
+  /* Overlay */
+  .sidebar__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+
+  .sidebar__overlay.show {
+    display: block;
+  }
+
+  @media screen and (max-width: 768px) {
+    .shop__sidebar {
+      width: 100%;
+      max-width: 350px;
+    }
+  }
+</style>
+
+
+    <!--=============== MAIN ===============-->
+    <main class="main">
+      <!--=============== BREADCRUMB ===============-->
+      <section class="breadcrumb">
+        <ul class="breadcrumb__list flex container">
+          <li><a href="index.html" class="breadcrumb__link">Home</a></li>
+          <li><span class="breadcrumb__link"></span>></li>
+          <li><span class="breadcrumb__link">Shop</span></li>
+        </ul>
+      </section>
+
+      <!--=============== PRODUCTS ===============-->
+
+      <section class="products container section--lg">
+        <div class="shop__container">
+          <!-- Filter Toggle Button -->
+          <button class="filter__toggle" id="filterToggle">
+            <i class="fi fi-rs-filter"></i> Filter
+          </button>
+    
+          <!-- Sidebar Filter -->
+          <div class="shop__sidebar" id="shopSidebar">
+            <div class="sidebar__container">
+              <button class="sidebar__close" id="sidebarClose">
+                <i class="fi fi-rs-cross"></i>
+              </button>
+              
+              <div class="sidebar__item">
+                <h3 class="sidebar__title">Sort By</h3>
+                <ul class="sidebar__list">
+                  <li>
+                    <a href="?sort=name_asc" class="sidebar__link {% if request.GET.sort == 'name_asc' %}active{% endif %}">
+                      <i class="fi fi-rs-sort-alpha-up"></i> Name (A-Z)
+                    </a>
+                  </li>
+                  <li>
+                    <a href="?sort=name_desc" class="sidebar__link {% if request.GET.sort == 'name_desc' %}active{% endif %}">
+                      <i class="fi fi-rs-sort-alpha-down"></i> Name (Z-A)
+                    </a>
+                  </li>
+                  <li>
+                    <a href="?sort=price_asc" class="sidebar__link {% if request.GET.sort == 'price_asc' %}active{% endif %}">
+                      <i class="fi fi-rs-sort-numeric-up"></i> Price (Low to High)
+                    </a>
+                  </li>
+                  <li>
+                    <a href="?sort=price_desc" class="sidebar__link {% if request.GET.sort == 'price_desc' %}active{% endif %}">
+                      <i class="fi fi-rs-sort-numeric-down"></i> Price (High to Low)
+                    </a>
+                  </li>
+                </ul>
+              </div>
+    
+              <div class="sidebar__item">
+                <h3 class="sidebar__title">Price Range</h3>
+                <form action="" method="GET" class="price-range__form">
+                  <div class="price-range__group">
+                    <input type="number" name="min_price" placeholder="Min" value="{{ request.GET.min_price }}" class="price-range__input">
+                    <span>-</span>
+                    <input type="number" name="max_price" placeholder="Max" value="{{ request.GET.max_price }}" class="price-range__input">
+                  </div>
+                  <button type="submit" class="price-range__btn">Apply</button>
+                </form>
+              </div>
+            </div>
+          </div>
+    
+          <!-- Products Grid -->
+          <div class="products__wrapper">
+            <p class="total__products">We found <span>{{ products_count }}</span> items for you!</p>
+            <div class="products__container grid">
+          {% for product in products %}
+          <div class="product__item">
+            <div class="product__banner">
+              <a href="{% url 'product_details' product.id %}" class="product__images">
+                <img src="{{ product.image1.url }}" alt="" class="product__img default" />
+                <img src="{{ product.image2.url }}" alt="" class="product__img hover" />
+              </a>
+              <div class="product__actions">
+                <a href="#" class="action__btn" aria-label="Quick View"><i class="fi fi-rs-eye"></i></a>
+                <a href="#" class="action__btn" aria-label="Add to Wishlist"><i class="fi fi-rs-heart"></i></a>
+                <a href="#" class="action__btn" aria-label="Compare"><i class="fi fi-rs-shuffle"></i></a>
+              </div>
+              <div class="product__badge light-pink">Hot</div>
+            </div>
+            <div class="product__content">
+              <span class="product__category">{{ product.category }}</span>
+              <a href="{% url 'product_details' product.id %}"><h3 class="product__title">{{ product.name }}</h3></a>
+              <div class="product__rating">
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+              </div>
+              <div class="product__price flex">
+                {% if product.offer %}
+                <span class="new__price">₹{{ product.offer }}</span>
+                <span class="old__price">₹{{ product.price }}</span>
+                {% else %}
+                <span class="new__price">₹{{ product.price }}</span>
+                {% endif %}
+              </div>
+              <a href="#" class="action__btn cart__btn" aria-label="Add To Cart"><i class="fi fi-rs-shopping-bag-add"></i></a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      
+        <!-- Pagination Section -->
+        <ul class="pagination">
+          {% if products.has_previous %}
+          <li><a href="?page=1" class="pagination__link icon">&laquo;</a></li>
+          <li><a href="?page={{ products.previous_page_number }}" class="pagination__link">&lsaquo;</a></li>
+          {% endif %}
+      
+          {% for page_num in products.paginator.page_range %}
+            {% if products.number == page_num %}
+              <li><span class="pagination__link active">{{ page_num }}</span></li>
+            {% elif page_num > products.number|add:'-3' and page_num < products.number|add:'3' %}
+              <li><a href="?page={{ page_num }}" class="pagination__link">{{ page_num }}</a></li>
+            {% endif %}
+          {% endfor %}
+      
+          {% if products.has_next %}
+          <li><a href="?page={{ products.next_page_number }}" class="pagination__link">&rsaquo;</a></li>
+          <li><a href="?page={{ products.paginator.num_pages }}" class="pagination__link icon">&raquo;</a></li>
+          {% endif %}
+        </ul>
+      </section>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const filterToggle = document.getElementById('filterToggle');
+          const shopSidebar = document.getElementById('shopSidebar');
+          const sidebarClose = document.getElementById('sidebarClose');
+          
+          // Create overlay element
+          const overlay = document.createElement('div');
+          overlay.className = 'sidebar__overlay';
+          document.body.appendChild(overlay);
+      
+          // Toggle sidebar
+          filterToggle.addEventListener('click', function() {
+            shopSidebar.classList.add('show');
+            overlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+          });
+      
+          // Close sidebar
+          function closeSidebar() {
+            shopSidebar.classList.remove('show');
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+          }
+      
+          sidebarClose.addEventListener('click', closeSidebar);
+          overlay.addEventListener('click', closeSidebar);
+      
+          // Close sidebar on window resize if it's open
+          window.addEventListener('resize', function() {
+            if (shopSidebar.classList.contains('show')) {
+              closeSidebar();
+            }
+          });
+        });
+      </script>
+      {% endblock %}

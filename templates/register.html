@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<style>
+    .google-btn {
+           display: inline-flex;
+           align-items: center;
+           background-color: white;
+           border: 1px solid #dadce0;
+           border-radius: 4px;
+           padding: 1px;
+           height: 40px;
+           cursor: pointer;
+           text-decoration: none;
+           transition: background-color .3s, box-shadow .3s;
+       }
+   
+       .google-btn:hover {
+           box-shadow: 0 1px 3px rgba(66, 133, 244, .3);
+           background-color: #f8f9fa;
+       }
+       
+       .google-btn:active {
+           background-color: #f1f3f4;
+       }
+   
+       .google-icon-wrapper {
+           width: 40px;
+           height: 40px;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+       }
+   
+       .google-icon {
+           width: 18px;
+           height: 18px;
+       }
+   
+       .btn-text {
+           padding: 0 16px;
+           font-size: 14px;
+           font-weight: 500;
+           font-family: 'Roboto', sans-serif;
+           color: #3c4043;
+           letter-spacing: .25px;
+       }
+     </style>
+<section class="login-register section--lg">
+    <div class="login-register__container container grid">
+        <div class="register">
+            <h3 class="section__title">Create an Account</h3>
+
+            {% if errors.general %}
+            <p class="error-message">{{ errors.general }}</p>
+            {% endif %}
+
+            <form class="form grid" method="POST" id="registrationForm" novalidate action="{% url 'register' %}">
+                {% csrf_token %}
+                
+                <div class="form__group">
+                    <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        placeholder="Username"
+                        class="form__input {% if errors.username %}input-error{% endif %}"
+                        value="{{ username|default:'' }}"
+                        required
+                    />
+                    {% if errors.username %}
+                    <p class="error-message" id="username-error">{{ errors.username }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="form__group">
+                    <input
+                        type="text"
+                        name="first_name"
+                        id="first_name"
+                        placeholder="First Name"
+                        class="form__input {% if errors.first_name %}input-error{% endif %}"
+                        value="{{ first_name|default:'' }}"
+                        required
+                    />
+                    {% if errors.first_name %}
+                    <p class="error-message" id="first_name-error">{{ errors.first_name }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="form__group">
+                    <input
+                        type="text"
+                        name="last_name"
+                        id="last_name"
+                        placeholder="Last Name"
+                        class="form__input {% if errors.last_name %}input-error{% endif %}"
+                        value="{{ last_name|default:'' }}"
+                        required
+                    />
+                    {% if errors.last_name %}
+                    <p class="error-message" id="last_name-error">{{ errors.last_name }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="form__group">
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        placeholder="Your Email"
+                        class="form__input {% if errors.email %}input-error{% endif %}"
+                        value="{{ email|default:'' }}"
+                        required
+                    />
+                    {% if errors.email %}
+                    <p class="error-message" id="email-error">{{ errors.email }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="form__group">
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder="Your Password"
+                        class="form__input {% if errors.password %}input-error{% endif %}"
+                        required
+                    />
+                    {% if errors.password %}
+                    <p class="error-message" id="password-error">{{ errors.password }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="form__group">
+                    <input
+                        type="password"
+                        name="confirm_password"
+                        id="confirm_password"
+                        placeholder="Confirm Password"
+                        class="form__input {% if errors.confirm_password %}input-error{% endif %}"
+                        required
+                    />
+                    {% if errors.confirm_password %}
+                    <p class="error-message" id="confirm_password-error">{{ errors.confirm_password }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Password requirements -->
+                <div class="password-requirements">
+                    <p>Password must contain:</p>
+                    <ul>
+                        <li id="length-check">At least 8 characters</li>
+                        <li id="uppercase-check">One uppercase letter</li>
+                        <li id="lowercase-check">One lowercase letter</li>
+                        <li id="number-check">One number</li>
+                        <li id="special-check">One special character</li>
+                    </ul>
+                </div>
+
+                <div class="form__btn" action="{% url 'register' %}">
+                    <button type="submit" class="btn">Submit & Register</button>
+                </div>
+            </form>
+            <div class="social-login">
+                {% csrf_token %}
+                <a href="{% url 'social:begin' 'google-oauth2' %}" class="google-btn">
+                    <div class="google-icon-wrapper">
+                        <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                            <path fill="none" d="M0 0h48v48H0z"/>
+                        </svg>
+                    </div>
+                    <span class="btn-text">Sign in with Google</span>
+                </a>
+            </div>
+            <div class="login-link">
+                <a href="{% url 'userlogin' %}">Have an account? Login</a>
+            </div>
+        </div>
+    </div>
+</section>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+<style>
+    .error-message {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .input-error {
+        border-color: #dc2626 !important;
+    }
+
+    .password-requirements {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+    }
+
+    .password-requirements ul {
+        list-style-type: none;
+        padding-left: 1rem;
+        margin-top: 0.25rem;
+    }
+
+    .password-requirements li {
+        margin-bottom: 0.25rem;
+    }
+
+    .password-requirements li.valid {
+        color: #059669;
+    }
+
+    .form__group {
+        width: 100%;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registrationForm');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    // Real-time password validation
+    function validatePassword(value) {
+        const checks = {
+            'length-check': value.length >= 8,
+            'uppercase-check': /[A-Z]/.test(value),
+            'lowercase-check': /[a-z]/.test(value),
+            'number-check': /\d/.test(value),
+            'special-check': /[!@#$%^&*(),.?":{}|<>]/.test(value)
+        };
+
+        Object.entries(checks).forEach(([id, valid]) => {
+            const element = document.getElementById(id);
+            if (valid) {
+                element.classList.add('valid');
+            } else {
+                element.classList.remove('valid');
+            }
+        });
+
+        return Object.values(checks).every(Boolean);
+    }
+
+    password.addEventListener('input', function() {
+        validatePassword(this.value);
+        if (confirmPassword.value) {
+            validateConfirmPassword();
+        }
+    });
+
+    function validateConfirmPassword() {
+        const errorElement = document.getElementById('confirm_password-error');
+        if (!errorElement) return true;
+        
+        if (password.value !== confirmPassword.value) {
+            errorElement.textContent = "Passwords do not match";
+            errorElement.style.display = 'block';
+            return false;
+        } else {
+            errorElement.style.display = 'none';
+            return true;
+        }
+    }
+
+    confirmPassword.addEventListener('input', validateConfirmPassword);
+
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        let firstError = null;
+
+        // Clear previous errors
+        document.querySelectorAll('.error-message').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // Validate fields
+        const username = document.getElementById('username').value;
+        const firstName = document.getElementById('first_name').value;
+        const lastName = document.getElementById('last_name').value;
+        const email = document.getElementById('email').value;
+
+        if (username.length < 3) {
+            showError('username', "Username must be at least 3 characters");
+            isValid = false;
+            firstError = firstError || document.getElementById('username');
+        }
+        if (firstName.length < 2) {
+            showError('first_name', "First Name must be at least 2 characters");
+            isValid = false;
+            firstError = firstError || document.getElementById('first_name');
+        }
+        if (lastName.length < 2) {
+            showError('last_name', "Last Name must be at least 2 characters");
+            isValid = false;
+            firstError = firstError || document.getElementById('last_name');
+        }
+        if (!validatePassword(password.value)) {
+            showError('password', "Password does not meet requirements");
+            isValid = false;
+            firstError = firstError || password;
+        }
+        if (password.value !== confirmPassword.value) {
+            showError('confirm_password', "Passwords do not match");
+            isValid = false;
+            firstError = firstError || confirmPassword;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            if (firstError) {
+                firstError.focus();
+            }
+        }
+    });
+
+    function showError(fieldId, message) {
+        const errorElement = document.getElementById(`${fieldId}-error`);
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,8 +1,20 @@
+# from django.urls import path
+# from . import views
+
+# urlpatterns = [
+#     path('admin-login/', views.admin_login, name='admin_login'),  # Admin login page
+#     path('dashboard/', views.dashboard, name='dashboard'),  # Dashboard page
+#     path('logout/', views.admin_logout, name='admin_logout'),  # Logout
+# ]
+
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('admin-login/', views.admin_login, name='admin_login'),  # Admin login page
-    path('dashboard/', views.dashboard, name='dashboard'),  # Dashboard page
-    path('logout/', views.admin_logout, name='admin_logout'),  # Logout
-]
+   path('login/', views.admin_login, name='admin_login'),
+    path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('users/',views.user_manage,name='users'),
+    path('users/block/<int:user_id>/', views.block_user, name='block_user'),
+    path('users/unblock/<int:user_id>/', views.unblock_user, name='unblock_user'),
+    path('logout/', views.admin_logout, name='logout'),
+    ]

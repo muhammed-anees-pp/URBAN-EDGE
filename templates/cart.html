@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+{%load static%}
+{% block title %}cart{% endblock %}
+{% block content %} 
+<style>
+  *{
+            margin: 0;
+        }
+        .popup{
+            min-width: 300px;
+            min-height: 80px;
+            position: absolute;
+            top: 10px;
+            right: 0;
+            background-color: rgb(255, 255, 255);
+            font-family: sans-serif;
+            font-size: 13px;
+            font-weight: 900;
+            color: hsl(176, 71%, 54%);
+            border-radius: 4px;
+            display: none;
+            flex-direction: column;
+            padding-top: 5px;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        }
+        .popup h3{
+            margin: 10px 10px;
+        }
+        .popup hr{
+            width: 100%;
+            height: 4px;
+            background-color: hsla(176, 51%, 49%, 0.562);
+            border-radius: 10px;
+            border: none;
+            
+        }
+        #countdown {
+            position: absolute;
+            bottom: 0;
+        }
+        .active{
+            
+            animation: sajjad 5s ease infinite;
+        }
+        .description{
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .check{
+            width: 40px;
+            height: 40px;
+            background-color: hsl(176, 88%, 27%);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            margin-left: 10px;
+            margin-bottom: 7px;
+        }
+        @keyframes sajjad{
+            0%{
+                width: 100%;
+            }
+            100%{
+                width: 0;
+            }
+        }
+</style>
+<!--=============== alert ===============-->
+    <div class="popup" id="popup">
+      <div class="description">
+          <div class="check" id="check">
+              <svg xmlns="http://www.w3.org/2000/svg" height="34px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
+          </div>
+          <h3 id="text"></h3>
+      </div>
+
+      <hr id="countdown">
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!--=============== MAIN ===============-->
+    <main class="main">
+      <!--=============== BREADCRUMB ===============-->
+      <section class="breadcrumb">
+        <ul class="breadcrumb__list flex container">
+          <li><a href="index.html" class="breadcrumb__link">Home</a></li>
+          <li><span class="breadcrumb__link"></span>></li>
+          <li><span class="breadcrumb__link">Shop</span></li>
+          <li><span class="breadcrumb__link"></span>></li>
+          <li><span class="breadcrumb__link">Cart</span></li>
+        </ul>
+      </section>
+
+      <!--=============== CART ===============-->
+      {% if user.is_authenticated %}
+      <section class="cart section--lg container">
+        {% if items %}
+        <div class="table__container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th>Remove</th>
+              </tr>
+            </thead>
+            <tbody>
+              <form action="{% url 'cart' %}" method="post">
+                {% csrf_token %}
+                {% for item in items %}
+                <tr>
+                  <td>
+                    <img src="{{ item.product.image1.url }}" alt="" class="table__img" />
+                  </td>
+                  <td>
+                    <h3 class="table__title">{{ item.product.name }}</h3>
+                  </td>
+                  <td>{{ item.size }}</td>
+                  <td>
+                    <span class="price-total table__price">
+                      ₹{% if item.product.offer %}{{ item.product.offer }}{% else %}{{ item.product.price }}{% endif %}
+                    </span>
+                  </td>
+                  <td>
+                    <input type="number" value="{{ item.quantity|default:0 }}" class="quantity quantity-toggler" 
+                    min="0" max="{{ item.stock }}" name="quantity_{{ item.id }}" 
+                    data-stock="{{ item.stock }}" onchange="validateQuantity(this)" />
+             
+                  </td>
+                  <td>
+                    <span class="subtotal quantity-togller">
+                      ₹{% if item.product.offer %}{{ item.product.offer }}{% else %}{{ item.product.price }}{% endif %}
+                    </span>
+                  </td>
+                  <td>
+                    <i class="fi fi-rs-trash table__trash" data-id="{{ item.id }}">
+                      <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+                    </i>
+                  </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      
+        <div class="cart__actions">
+          <a href="{% url 'place_order' %}" class="btn flex btn__md">
+            <i class="fi-rs-shuffle"></i> Proceed to Checkout
+          </a>
+          <button class="btn flex btn__md" type="submit">
+            <i class="fi-rs-shopping-bag"></i> Update Cart
+          </button>
+        </div>
+        </form>
+<!--       
+        <div class="divider">
+          <i class="fi fi-rs-fingerprint"></i>
+        </div> -->
+      
+        {% else %}
+        <div class="cart__empty-message">
+          <h2>Your cart is empty!</h2>
+          <p>Add some items to checkout.</p>
+        </div>
+        {% endif %}
+      </section>
+      
+      {% else %}
+      <h1>Login to View the Cart</h1>
+      {% endif %}
+      
+
+      <!--=============== NEWSLETTER ===============-->
+      <section class="newsletter section">
+        <div class="newsletter__container container grid">
+          <h3 class="newsletter__title flex">
+            <img
+              src="./assets/img/icon-email.svg"
+              alt=""
+              class="newsletter__icon"
+            />
+            Sign in to Newsletter
+          </h3>
+          <p class="newsletter__description">
+            ...and receive $25 coupon for first shopping.
+          </p>
+          <form action="" class="newsletter__form">
+            <input
+              type="text"
+              placeholder="Enter Your Email"
+              class="newsletter__input"
+            />
+            <button type="submit" class="newsletter__btn">Subscribe</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+
+    <!--=============== FOOTER ===============-->
+    <footer class="footer container">
+      <div class="footer__container grid">
+        <div class="footer__content">
+          <a href="index.html" class="footer__logo">
+            <img src="./assets/img/logo.svg" alt="" class="footer__logo-img" />
+          </a>
+          <h4 class="footer__subtitle">Contact</h4>
+          <p class="footer__description">
+            <span>Address:</span> 13 Tlemcen Road, Street 32, Beb-Wahren
+          </p>
+          <p class="footer__description">
+            <span>Phone:</span> +01 2222 365 /(+91) 01 2345 6789
+          </p>
+          <p class="footer__description">
+            <span>Hours:</span> 10:00 - 18:00, Mon - Sat
+          </p>
+          <div class="footer__social">
+            <h4 class="footer__subtitle">Follow Me</h4>
+            <div class="footer__links flex">
+              <a href="#">
+                <img
+                  src="./assets/img/icon-facebook.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+              <a href="#">
+                <img
+                  src="./assets/img/icon-twitter.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+              <a href="#">
+                <img
+                  src="./assets/img/icon-instagram.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+              <a href="#">
+                <img
+                  src="./assets/img/icon-pinterest.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+              <a href="#">
+                <img
+                  src="./assets/img/icon-youtube.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="footer__content">
+          <h3 class="footer__title">Address</h3>
+          <ul class="footer__links">
+            <li><a href="#" class="footer__link">About Us</a></li>
+            <li><a href="#" class="footer__link">Delivery Information</a></li>
+            <li><a href="#" class="footer__link">Privacy Policy</a></li>
+            <li><a href="#" class="footer__link">Terms & Conditions</a></li>
+            <li><a href="#" class="footer__link">Contact Us</a></li>
+            <li><a href="#" class="footer__link">Support Center</a></li>
+          </ul>
+        </div>
+        <div class="footer__content">
+          <h3 class="footer__title">My Account</h3>
+          <ul class="footer__links">
+            <li><a href="#" class="footer__link">Sign In</a></li>
+            <li><a href="#" class="footer__link">View Cart</a></li>
+            <li><a href="#" class="footer__link">My Wishlist</a></li>
+            <li><a href="#" class="footer__link">Track My Order</a></li>
+            <li><a href="#" class="footer__link">Help</a></li>
+            <li><a href="#" class="footer__link">Order</a></li>
+          </ul>
+        </div>
+        <div class="footer__content">
+          <h3 class="footer__title">Secured Payed Gateways</h3>
+          <img
+            src="./assets/img/payment-method.png"
+            alt=""
+            class="payment__img"
+          />
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="copyright">&copy; 2024 Evara. All right reserved</p>
+        <span class="designer">Designer by Crypticalcoder</span>
+      </div>
+    </footer>
+
+    <!--=============== SWIPER JS ===============-->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <!--=============== MAIN JS ===============-->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+  </body>
+</html>
+    <script>
+   const togglers = document.querySelectorAll('.quantity-togller');
+
+togglers.forEach((toggler) => {
+  toggler.addEventListener('input', function () {
+    let value = parseInt(this.value);
+    const maxStock = parseInt(this.getAttribute('max'));
+    const minStock = parseInt(this.getAttribute('min'));
+
+
+    if (isNaN(value) || value < minStock) {
+      value = minStock; 
+      this.value = minStock;
+    } else if (value > maxStock) {
+      value = maxStock; 
+      this.value = maxStock;
+    }
+
+    const parentTr = this.closest("tr");
+    let price = Math.floor(parentTr.querySelector('.price-total.table__price').innerText.slice(1));
+    const result = price * value;
+    parentTr.querySelector('.subtotal').innerText = `₹${result}`;
+  });
+});
+
+// Get the CSRF token from the hidden input field
+const csrfToken = document.getElementById('csrf-token').value;
+// Set the CSRF token in Axios default headers
+axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+
+
+document.querySelectorAll('.table__trash').forEach(function(icon) {
+    icon.addEventListener('click', function() {
+        const itemId = this.dataset.id;
+   
+
+        if (!itemId) {
+            alert('Item ID not found!');
+            return;
+        }
+
+        axios.post('/cart/remove-item/', {
+            itemId: itemId
+        })
+        .then(response => {
+          console.log("responseWorking")
+            if (response.data.success) {
+              console.log("if case working    ")
+              GenerateAlert(response.data.message,true)
+                this.closest('tr').remove();
+            } else {
+              GenerateAlert(data.message,false)
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error.message);
+            alert('An error occurred while trying to remove the item.');
+        });
+    });
+});
+
+
+
+
+let countdown = document.getElementById("countdown");
+    let popup = document.getElementById("popup");
+    let text = document.getElementById("text");
+    let state = false
+    function GenerateAlert(data, success){
+        console.log("fuction working")
+        const audio = new Audio("{% static 'assets/audio/notification.wav' %}") 
+        audio.play() 
+        !success 
+        ? document.getElementById("check").innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>`
+        : null;
+        countdown.classList.add("active");
+        popup.style.display = "flex";0
+        text.innerHTML = data
+        // setting the notification off after 4seconds
+        setTimeout(()=>{
+            countdown.classList.remove("active")
+            popup.style.display = "none"
+        },4000)
+
+    }
+
+      
+    </script>
+
+<script>
+  function validateQuantity(input) {
+    const selectedQuantity = parseInt(input.value);
+    const availableStock = parseInt(input.getAttribute('data-stock'));
+  
+    if (selectedQuantity < 1) {
+      alert('Quantity cannot be less than 1.');
+      input.value = 1; // Set to minimum valid quantity
+    } else if (selectedQuantity > availableStock) {
+      alert('Selected quantity exceeds available stock!');
+      input.value = availableStock; // Set to max available stock
+    }
+  }
+  
+  // Prevent checkout if any item quantity is invalid
+  function validateCartBeforeCheckout() {
+    const quantityInputs = document.querySelectorAll('.quantity');
+  
+    for (let input of quantityInputs) {
+      const quantity = parseInt(input.value);
+      if (quantity < 1) {
+        alert('All items in the cart must have a quantity of at least 1 to proceed.');
+        return false; // Stop checkout
+      }
+    }
+  
+    // All quantities are valid; proceed with checkout
+    return true;
+  }
+  </script>
+  
+  
+{% endblock %}
+
