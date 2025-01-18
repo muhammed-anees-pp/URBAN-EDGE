@@ -10,6 +10,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.http import JsonResponse
 import re
+from django.views.decorators.cache import never_cache
 
 def generate_otp():
     return random.randint(100000, 999999)
@@ -64,6 +65,8 @@ def validate_name(name):
     return True, ""
 
 def register(request):
+    if request.user.is_authenticated:
+        return redirect('Authentication:userlogin')
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         first_name = request.POST.get('first_name', '').strip()
@@ -260,6 +263,7 @@ def resend_otp(request, email):
         'message': 'Invalid request method.'
     })
 
+@never_cache
 def user_login(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -293,6 +297,7 @@ def user_login(request):
     return render(request, 'login.html')
 
 
+@never_cache
 def user_logout(request):
     logout(request)
     return redirect('home')

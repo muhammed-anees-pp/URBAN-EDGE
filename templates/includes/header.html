@@ -1,18 +1,107 @@
 <div class="announcement-bar">
-    3-5 BUSINESS DAYS DELIVERY & FREE RETURNS
-  </div>
+  3-5 BUSINESS DAYS DELIVERY & FREE RETURNS
+</div>
 
-  <header>
-    <div class="logo">URBAN EDGE</div>
-    <nav class="nav-links">
+<header>
+  <div class="logo">URBAN EDGE</div>
+  <nav class="nav-links">
       <a href="#">Home</a>
-      <a href="#categories">Shop</a>
+      
+      <!-- Shop Dropdown -->
+      <div class="dropdown">
+          <a href="#categories" class="dropdown-toggle">Categories</a>
+          <div class="dropdown-menu">
+              {% for category in categories %}
+              <a href="{% url 'category_products' category.id %}" class="dropdown-item">
+                  {{ category.category_name }}
+              </a>
+              {% empty %}
+              <p class="dropdown-item">No categories available.</p>
+              {% endfor %}
+          </div>
+      </div>
+      
       <a href="#">About</a>
       <a href="#">Contact</a>
       <a href="#">Cart</a>
       <a href="#">Wishlist</a>
-      <a href="#">Logout</a>
+      {% if user.is_authenticated %}
+      <a href="{% url 'userlogout' %}">Logout</a>
       <a href="#">Profile</a>
-      <a href="#">Login</a>
-    </nav>
-  </header>
+      {% else %}
+      <a href="{% url 'userlogin' %}">Login</a>
+      {% endif %}
+  </nav>
+</header>
+
+<style>
+  /* General Header Styling */
+  header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #ffffff;
+      border-bottom: 1px solid #ddd;
+  }
+
+  .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #333;
+  }
+
+  .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px; /* Space between each link */
+  }
+
+  .nav-links a,
+  .dropdown .dropdown-toggle {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      padding: 10px 15px;
+      display: inline-block;
+  }
+
+  .nav-links a:hover,
+  .dropdown .dropdown-toggle:hover {
+      color: #007bff;
+  }
+
+  /* Dropdown Styling */
+  .dropdown {
+      position: relative;
+  }
+
+  .dropdown-menu {
+      display: none;
+      position: absolute;
+      background-color: white;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      padding: 10px;
+      z-index: 1000;
+      min-width: 150px;
+      top: 100%; /* Position it below the "Shop" link */
+      left: 0;
+  }
+
+  .dropdown-menu .dropdown-item {
+      display: block;
+      padding: 8px 12px;
+      color: #555;
+      text-decoration: none;
+      font-size: 0.9rem;
+  }
+
+  .dropdown-menu .dropdown-item:hover {
+      background-color: #f4f4f4;
+  }
+
+  .dropdown:hover .dropdown-menu {
+      display: block;
+  }
+</style>

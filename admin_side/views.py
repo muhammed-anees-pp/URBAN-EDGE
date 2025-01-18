@@ -4,13 +4,14 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.contrib import messages
+from django.views.decorators.cache import never_cache
 
 
 
 def is_admin(user):
     return user.is_staff
 
-
+@never_cache
 def admin_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
