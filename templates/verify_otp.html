@@ -27,6 +27,10 @@
         .btn {
             height: 50px;
         }
+        .message {
+            text-align: center;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -60,6 +64,8 @@
                                 <button type="submit" class="btn btn-primary w-100 mt-3">Verify</button>
                             </div>
                         </form>
+
+                        <div id="message" class="message"></div> <!-- Message Display -->
                     </div>
                 </div>
             </div>
@@ -69,11 +75,12 @@
     <script>
         const resendOtpBtn = document.getElementById('resendOtpBtn');  // Resend OTP button
         const countdownDisplay = document.getElementById('countdown');  // Countdown display element
+        const messageDisplay = document.getElementById('message');  // Message display element
         let countdownInterval = null;  // For storing the timer interval
-        const COOLDOWN_TIME = 30;  // Cooldown period in seconds
+        const COOLDOWN_TIME = 60;  // Updated cooldown period to 60 seconds
         let userEmail = '{{ email }}';  // Django email template context (passed from backend)
 
-        // Disable the resend button and start countdown
+        // Timer to start cooldown after OTP sent
         function startCooldown() {
             let remainingTime = COOLDOWN_TIME;
 
@@ -109,7 +116,7 @@
             event.preventDefault();
 
             // Send an AJAX request to the server to resend the OTP
-            fetch(`/user/otp/resend/${userEmail}/`, {
+            fetch('/account/otp/resend/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,16 +125,15 @@
             })
             .then(response => response.json())
             .then(data => {
+                messageDisplay.innerText = data.message;  // Display the message on the page
+
                 if (data.success) {
-                    alert(data.message);
                     startCooldown();  // Start the cooldown timer when OTP is successfully resent
-                } else {
-                    alert(data.message);  // Show error if resend fails
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert("An error occurred while resending OTP.");
+                messageDisplay.innerText = "An error occurred while resending OTP.";  // Display error message
             });
         });
 

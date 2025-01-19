@@ -1,21 +1,21 @@
+from datetime import datetime, timedelta, timezone  # Use timezone from the datetime module for UTC
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import OTP
+from django.utils import timezone as django_timezone  # Use Django's timezone utility for time zone aware datetimes
 import random
-from home import views
-from django.contrib.auth import authenticate, login, logout
-from django.utils import timezone
-from datetime import timedelta
-from django.http import JsonResponse
 import re
-from django.views.decorators.cache import never_cache
+from django.contrib.auth import authenticate, login, logout
+from django.http import JsonResponse
+from django.utils.timezone import make_aware
 
 def generate_otp():
-    return random.randint(100000, 999999)
+    """Generate a random 4-digit OTP."""
+    return random.randint(1000, 9999)
 
 def send_otp_email(email, otp):
+    """Send OTP to the user's email."""
     subject = 'Your OTP Code'
     message = f'Your OTP code is: {otp}'
     try:
@@ -26,10 +26,7 @@ def send_otp_email(email, otp):
         return False
 
 def validate_password(password):
-    """
-    Validate password strength
-    Returns (is_valid, error_message)
-    """
+    """Validate password strength."""
     if len(password) < 8:
         return False, "Password must be at least 8 characters long."
     if not re.search(r"[A-Z]", password):
@@ -42,262 +39,266 @@ def validate_password(password):
         return False, "Password must contain at least one special character."
     return True, ""
 
-def validate_username(username):
-    """
-    Validate username format
-    Returns (is_valid, error_message)
-    """
-    if len(username) < 3:
-        return False, "Username must be at least 3 characters long."
-    if not re.match(r"^[a-zA-Z0-9_]+$", username):
-        return False, "Username can only contain letters, numbers, and underscores."
-    return True, ""
-
-def validate_name(name):
-    """
-    Validate first/last name format
-    Returns (is_valid, error_message)
-    """
-    if not name or len(name) < 2:
-        return False, "Name must be at least 2 characters long."
-    if not re.match(r"^[a-zA-Z\s-]+$", name):
-        return False, "Name can only contain letters, spaces, and hyphens."
-    return True, ""
-
-def register(request):
-    if request.user.is_authenticated:
-        return redirect('Authentication:userlogin')
-    if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        email = request.POST.get('email', '').strip()
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-
-        # Validate all fields
-        errors = {}
-
-        # Username validation
-        username_valid, username_error = validate_username(username)
-        if not username_valid:
-            errors['username'] = username_error
-        elif User.objects.filter(username=username).exists():
-            errors['username'] = "Username already taken."
-
-        # Name validation
-        first_name_valid, first_name_error = validate_name(first_name)
-        if not first_name_valid:
-            errors['first_name'] = first_name_error
-
-        last_name_valid, last_name_error = validate_name(last_name)
-        if not last_name_valid:
-            errors['last_name'] = last_name_error
-
-        # Email validation
-        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
-            errors['email'] = "Please enter a valid email address."
-        elif User.objects.filter(email=email).exists():
-            errors['email'] = "Email already registered."
-
-        # Password validation
-        password_valid, password_error = validate_password(password)
-        if not password_valid:
-            errors['password'] = password_error
-        elif password != confirm_password:
-            errors['confirm_password'] = "Passwords do not match."
-
-        if errors:
-            return render(request, 'register.html', {
-                'errors': errors,
-                'username': username,
-                'first_name': first_name,
-                'last_name': last_name,
-                'email': email
-            })
-
-        # If validation passes, proceed with registration
-        try:
-            otp = generate_otp()
-            expires_at = timezone.now() + timedelta(minutes=5)
-            
-            # Create or update OTP
-            OTP.objects.update_or_create(
-                email=email,
-                defaults={'otp': otp, 'expires_at': expires_at}
-            )
-
-            # Send OTP email
-            if not send_otp_email(email, otp):
-                errors['email'] = "Failed to send OTP email. Please try again."
-                return render(request, 'register.html', {
-                    'errors': errors,
-                    'username': username,
-                    'first_name': first_name,
-                    'last_name': last_name,
-                    'email': email
-                })
-
-            # Store user information in session
-            request.session['registration_data'] = {
-                'username': username,
-                'first_name': first_name,
-                'last_name': last_name,
-                'email': email,
-                'password': password
-            }
-
-            return redirect('verify_otp', email=email)
-
-        except Exception as e:
-            errors['general'] = "An error occurred. Please try again."
-            return render(request, 'register.html', {
-                'errors': errors,
-                'username': username,
-                'first_name': first_name,
-                'last_name': last_name,
-                'email': email
-            })
-
-    return render(request, 'register.html')
-
-def verify_otp(request, email):
-    if not request.session.get('registration_data'):
-        return redirect('register')
-
-    if request.method == 'POST':
-        entered_otp = request.POST.get('otp')
-
-        try:
-            otp_instance = OTP.objects.get(email=email)
-            
-            if otp_instance.is_expired():
-                return render(request, 'verify_otp.html', {
-                    'email': email,
-                    'error': 'OTP has expired. Please request a new one.'
-                })
-
-            if str(otp_instance.otp) == entered_otp:
-                # Get registration data from session
-                registration_data = request.session['registration_data']
-                
-                # Create user
-                user = User.objects.create_user(
-                    username=registration_data['username'],
-                    email=registration_data['email'],
-                    password=registration_data['password'],
-                    first_name=registration_data['first_name'],
-                    last_name=registration_data['last_name']
-                )
-
-                # Clean up
-                del request.session['registration_data']
-                otp_instance.delete()
-
-                # Log the user in
-                user.backend = 'django.contrib.auth.backends.ModelBackend'
-                login(request, user)
-                
-                return redirect('home')
-            else:
-                return render(request, 'otp.html', {
-                    'email': email,
-                    'error': 'Invalid OTP. Please try again.'
-                })
-
-        except OTP.DoesNotExist:
-            return render(request, 'otp.html', {
-                'email': email,
-                'error': 'OTP not found. Please register again.'
-            })
-
-    return render(request, 'otp.html', {'email': email})
-
-def resend_otp(request, email):
-    if request.method == 'POST':
-        try:
-            # Check if OTP exists and handle cooldown
-            try:
-                otp_instance = OTP.objects.get(email=email)
-                time_elapsed = timezone.now() - otp_instance.updated_at
-                
-                if time_elapsed < timedelta(seconds=30):
-                    seconds_remaining = 30 - time_elapsed.seconds
-                    return JsonResponse({
-                        'success': False,
-                        'message': f'Please wait {seconds_remaining} seconds before requesting a new OTP.'
-                    })
-            except OTP.DoesNotExist:
-                pass
-
-            # Generate and save new OTP
-            otp = generate_otp()
-            expires_at = timezone.now() + timedelta(minutes=5)
-            
-            OTP.objects.update_or_create(
-                email=email,
-                defaults={'otp': otp, 'expires_at': expires_at}
-            )
-
-            # Send OTP
-            if send_otp_email(email, otp):
-                return JsonResponse({
-                    'success': True,
-                    'message': 'New OTP sent successfully!'
-                })
-            else:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Failed to send OTP. Please try again.'
-                })
-
-        except Exception as e:
-            print(f"Error in resend_otp: {e}")
-            return JsonResponse({
-                'success': False,
-                'message': 'An error occurred. Please try again.'
-            })
-
-    return JsonResponse({
-        'success': False,
-        'message': 'Invalid request method.'
-    })
-
-@never_cache
 def user_login(request):
+    """Login user."""
     if request.user.is_authenticated:
         return redirect('home')
-        
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        
+
         if not username or not password:
-            return render(request, 'login.html', {
-                'error': 'Please enter both username and password.'
-            })
+            messages.error(request, 'Please enter both username and password.')
+            return redirect('userlogin')
 
-        # Check if the user exists
-        try:
-            user = User.objects.get(username=username)
-            if not user.is_active:
-                messages.error(request, "You are blocked.")
-                return render(request, 'login.html')
-        except User.DoesNotExist:
-            user = None
-
-        # Authenticate the user
         user = authenticate(request, username=username, password=password)
-        if user is not None:
+        if user:
             login(request, user)
-            return redirect('home')  # Redirect to home after successful login
+            messages.success(request, 'Successfully logged in.')
+            return redirect('home')
         else:
-            messages.error(request, "Invalid username or password.")
+            messages.error(request, 'Invalid username or password.')
+            return redirect('userlogin')
 
     return render(request, 'login.html')
 
-
-@never_cache
 def user_logout(request):
+    """Logout user."""
     logout(request)
+    messages.success(request, 'Successfully logged out.')
     return redirect('home')
+
+def register(request):
+    """User registration with OTP"""
+    if request.user.is_authenticated:
+        return redirect('userlogin')
+
+    if request.method == 'POST':
+        username = request.POST.get('username').strip()
+        first_name = request.POST.get('first_name').strip()
+        last_name = request.POST.get('last_name').strip()
+        email = request.POST.get('email').strip()
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        errors = {}
+
+        if password != confirm_password:
+            errors['password'] = "Passwords do not match."
+
+        if errors:
+            return render(request, 'register.html', {'errors': errors})
+
+        otp = generate_otp()
+        expires_at = django_timezone.now() + timedelta(minutes=1)
+
+        # Store OTP and user information in session
+        request.session['otp'] = otp
+        request.session['otp_expires_at'] = int(expires_at.timestamp())  # Convert datetime to timestamp
+        request.session['username'] = username  # Store username in session
+        request.session['email'] = email  # Store email in session
+        request.session['password'] = password  # Store password in session
+
+        if not send_otp_email(email, otp):
+            errors['email'] = "Failed to send OTP email. Please try again."
+            return render(request, 'register.html', {'errors': errors})
+
+        return redirect('verify_otp')
+
+    return render(request, 'register.html')
+
+
+def verify_otp(request):
+    """Verify OTP"""
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp')
+        
+        otp = request.session.get('otp')
+        otp_expires_at = request.session.get('otp_expires_at')
+
+        if not otp:
+            return render(request, 'verify_otp.html', {'error': 'OTP not found.'})
+
+        try:
+            # Convert expiry timestamp back to a timezone-aware datetime
+            otp_expires_at = datetime.fromtimestamp(otp_expires_at, tz=timezone.utc)
+        except ValueError:
+            return render(request, 'verify_otp.html', {'error': 'Invalid OTP expiration format.'})
+
+        # Check OTP expiry
+        if django_timezone.now() > otp_expires_at:
+            return render(request, 'verify_otp.html', {'error': 'OTP has expired.'})
+
+        if str(otp) == entered_otp:
+            # Proceed with registration (create user, etc.)
+            username = request.session['username']
+            email = request.session['email']
+            password = request.session['password']
+            
+            user = User.objects.create_user(username=username, email=email, password=password)
+            del request.session['otp']  # Clear OTP from session
+            del request.session['otp_expires_at']  # Clear expiration
+            del request.session['username']  # Clear username from session
+            del request.session['email']  # Clear email from session
+            del request.session['password']  # Clear password from session
+            
+            login(request, user)
+            return redirect('home')
+        else:
+            return render(request, 'verify_otp.html', {'error': 'Invalid OTP. Please try again.'})
+
+    return render(request, 'verify_otp.html')
+
+
+
+# def resend_otp(request):
+#     """Resend OTP functionality"""
+#     if request.method == 'POST':
+#         otp = request.session.get('otp')
+#         otp_expires_at = request.session.get('otp_expires_at')
+
+#         # Check if the OTP is still valid
+#         if otp and django_timezone.now() < django_timezone.make_aware(datetime.fromtimestamp(otp_expires_at)):
+#             # Calculate time remaining for the OTP to expire
+#             time_remaining = (django_timezone.make_aware(datetime.fromtimestamp(otp_expires_at)) - django_timezone.now()).seconds
+#             return JsonResponse({'success': False, 'message': f"Please wait {time_remaining} seconds before requesting a new OTP."})
+
+#         # Send new OTP if expired or not present
+#         new_otp = generate_otp()
+#         expires_at = django_timezone.now() + timedelta(minutes=1)
+#         request.session['otp'] = new_otp
+#         request.session['otp_expires_at'] = int(expires_at.timestamp())  # Store as timestamp
+
+#         if send_otp_email(request.session['email'], new_otp):
+#             return JsonResponse({'success': True, 'message': 'New OTP sent successfully!'})
+#         else:
+#             return JsonResponse({'success': False, 'message': 'Failed to send OTP. Please try again.'})
+
+def resend_otp(request):
+    """Resend OTP functionality"""
+    if request.method == 'POST':
+        otp = request.session.get('otp')
+        otp_expires_at = request.session.get('otp_expires_at')
+
+        # Check if the OTP is still valid
+        if otp and django_timezone.now() < django_timezone.make_aware(datetime.fromtimestamp(otp_expires_at)):
+            # Calculate time remaining for the OTP to expire
+            time_remaining = (django_timezone.make_aware(datetime.fromtimestamp(otp_expires_at)) - django_timezone.now()).seconds
+            return JsonResponse({'success': False, 'message': f"Please wait {time_remaining} seconds before requesting a new OTP."})
+
+        # Send new OTP if expired or not present
+        new_otp = generate_otp()
+        expires_at = django_timezone.now() + timedelta(minutes=1)
+        request.session['otp'] = new_otp
+        request.session['otp_expires_at'] = int(expires_at.timestamp())  # Store as timestamp
+
+        if send_otp_email(request.session['email'], new_otp):
+            return JsonResponse({'success': True, 'message': 'New OTP sent successfully!'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Failed to send OTP. Please try again.'})
+
+
+def forgot_password(request):
+    """Handle forgot password logic."""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            otp = generate_otp()
+            expires_at = django_timezone.now() + timedelta(minutes=1)
+
+            # Store OTP and expiry as timestamps in session
+            request.session['password_reset_otp'] = otp
+            request.session['password_reset_expires_at'] = int(expires_at.timestamp())  # Store as timestamp
+            request.session['reset_email'] = email  # Store email in session
+
+            if send_otp_email(email, otp):
+                messages.success(request, 'OTP sent successfully to your email.')
+                return redirect('verify_forgot_password_otp')
+            else:
+                messages.error(request, 'Failed to send OTP. Please try again.')
+        except User.DoesNotExist:
+            messages.error(request, 'Email not found.')
+            return redirect('forgot_password')
+
+    return render(request, 'forgot_password.html')
+
+def verify_forgot_password_otp(request):
+    """Verify OTP for password reset."""
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp')
+
+        otp = request.session.get('password_reset_otp')
+        otp_expires_at = request.session.get('password_reset_expires_at')
+
+        if not otp or not otp_expires_at:
+            messages.error(request, 'OTP not found or expired.')
+            return redirect('forgot_password')
+
+        try:
+            # Convert expiry timestamp back to a timezone-aware datetime
+            otp_expires_at = datetime.fromtimestamp(otp_expires_at, tz=timezone.utc)  # Correct timezone usage
+        except ValueError:
+            messages.error(request, 'Invalid OTP expiration format.')
+            return redirect('forgot_password')
+
+        if django_timezone.now() > otp_expires_at:
+            messages.error(request, 'OTP has expired.')
+            return redirect('forgot_password')
+
+        if str(otp) == entered_otp:
+            messages.success(request, 'OTP verified successfully.')
+            return redirect('reset_password')
+        else:
+            messages.error(request, 'Invalid OTP.')
+            return redirect('verify_forgot_password_otp')
+
+    return render(request, 'verify_forgot_password_otp.html')
+
+def resend_forgot_password_otp(request):
+    """Resend OTP for forgot password."""
+    if request.method == 'POST':
+        otp_expires_at = request.session.get('password_reset_expires_at')
+
+        if otp_expires_at:
+            otp_expires_at = datetime.fromtimestamp(otp_expires_at, tz=timezone.utc)
+            if django_timezone.now() < otp_expires_at:
+                time_remaining = (otp_expires_at - django_timezone.now()).seconds
+                messages.error(request, f'Please wait {time_remaining} seconds before requesting a new OTP.')
+                return redirect('verify_forgot_password_otp')
+
+        otp = generate_otp()
+        expires_at = django_timezone.now() + timedelta(minutes=1)
+        request.session['password_reset_otp'] = otp
+        request.session['password_reset_expires_at'] = int(expires_at.timestamp())  # Store as timestamp
+
+        email = request.session.get('reset_email')
+        if email and send_otp_email(email, otp):
+            messages.success(request, 'A new OTP has been sent to your email.')
+        else:
+            messages.error(request, 'Failed to send OTP. Please try again.')
+        return redirect('verify_forgot_password_otp')
+
+def reset_password(request):
+    """Reset password after OTP verification."""
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return redirect('reset_password')
+
+        email = request.session.get('reset_email')
+        try:
+            user = User.objects.get(email=email)
+            user.set_password(new_password)
+            user.save()
+            messages.success(request, 'Password reset successfully. Please log in.')
+            return redirect('userlogin')
+        except User.DoesNotExist:
+            messages.error(request, 'User not found. Please try again.')
+            return redirect('forgot_password')
+
+    return render(request, 'reset_password.html')

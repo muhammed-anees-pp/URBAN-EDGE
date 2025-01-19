@@ -247,12 +247,12 @@
                         <span>or</span>
                     </div>
 
-                    <a href="#" class="btn-google">
+                    <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn-google">
+                        <!-- <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo"> -->
                         Sign in with Google
                     </a>
 
                     <a href="{% url 'register' %}" class="signup-link">Don't have an account? Sign up</a>
-                    <a href="{% url 'forgot_password' %}" class="forgot-password-link">Forgot password?</a>
                 </div>
             </div>
         </div>
