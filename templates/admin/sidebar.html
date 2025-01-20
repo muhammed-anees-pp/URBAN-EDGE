@@ -1,41 +1,144 @@
-<!-- partial:partials/_sidebar.html -->
-<nav class="sidebar sidebar-offcanvas" id="sidebar">
-    <div class="sidebar-brand-wrapper d-none d-lg-flex align-items-center justify-content-center fixed-top">
+<!-- Sidebar Component -->
+<nav class="sidebar">
+    <div class="logo">URBAN EDGE</div>
+    <div class="nav-links">
+        <a href="{% url 'admin_dashboard' %}" class="nav-item {% if request.path == '/admin_dashboard/' %}active{% endif %}">
+            <i class="mdi mdi-speedometer" style="color: #4caf50;"></i> 
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'users' %}" class="nav-item {% if request.path == '/users/' %}active{% endif %}">
+            <i class="mdi mdi-laptop" style="color: #ff9800;"></i>
+            <span>Users</span>
+        </a>
+        <a href="{% url 'category_management' %}" class="nav-item {% if request.path == '/category_management/' %}active{% endif %}">
+            <i class="mdi mdi-table-large" style="color: #9c27b0;"></i>
+            <span>Categories</span>
+        </a>
+        <a href="{% url 'product_management' %}" class="nav-item {% if request.path == '/product_management/' %}active{% endif %}">
+            <i class="mdi mdi-laptop" style="color: #03a9f4;"></i>
+            <span>Products</span>
+        </a>
+        <a href="#" class="nav-item {% if request.path == '/offers/' %}active{% endif %}">
+            <i class="lucide-gift" style="color: #e91e63;"></i>
+            <span>Offers</span>
+        </a>
+        <a href="#" class="nav-item {% if request.path == '/coupons/' %}active{% endif %}">
+            <i class="lucide-ticket" style="color: #ff5722;"></i>
+            <span>Coupon</span>
+        </a>
+        <a href="#" class="nav-item {% if request.path == '/settings/' %}active{% endif %}">
+            <i class="lucide-settings" style="color: #607d8b;"></i>
+            <span>Settings</span>
+        </a>
     </div>
-    <ul class="nav">
-          <!-- Dashboard with dropdown -->
-        <li class="nav-item menu-items">
-            <a class="nav-link" href="{% url 'admin_dashboard' %}">
-                <span class="menu-icon">
-                    <i class="mdi mdi-speedometer"></i>
-                </span>
-                <span class="menu-title">Dashboard</span>
-            </a>
-        </li>
-
-        <li class="nav-item menu-items">
-            <a class="nav-link" href="{% url 'users' %}">
-                <span class="menu-icon">
-                    <i class="mdi mdi-laptop"></i>
-                </span>
-                <span class="menu-title">Users</span>
-            </a>
-        </li>
-        <li class="nav-item menu-items">
-            <a class="nav-link" href="{% url 'product_management' %}">
-                <span class="menu-icon">
-                    <i class="mdi mdi-laptop"></i>
-                </span>
-                <span class="menu-title">Product</span>
-            </a>
-        </li>
-        <li class="nav-item menu-items">
-            <a class="nav-link" href="{% url 'category_management' %}">
-                <span class="menu-icon">
-                    <i class="mdi mdi-table-large"></i>
-                </span>
-                <span class="menu-title">Category</span>
-            </a>
-        </li>
-    </ul>
+    <a href="{% url 'logout' %}" class="nav-item logout">
+        <i class="lucide-log-out" style="color: #ff4d4d;"></i>
+        <span>Logout</span>
+    </a>
 </nav>
+
+<!-- Styles for Sidebar -->
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    .sidebar {
+        width: 240px;
+        height: 100vh;
+        background: #1e2227;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .logo {
+        color: #ffffff;
+        font-size: 22px;
+        font-weight: bold;
+        padding: 12px;
+        margin-bottom: 20px;
+        letter-spacing: 0.5px;
+    }
+
+    .nav-links {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-grow: 1;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        color: #8a8d91;
+        text-decoration: none !important;  /* Force remove underline */
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .nav-item i {
+        margin-right: 12px;
+        font-size: 18px;
+        min-width: 24px;  /* Ensure consistent icon width */
+    }
+
+    .nav-item span {
+        font-size: 14px;
+    }
+
+    .nav-item:hover {
+        background: #2d3035;
+        color: #ffffff;
+        transform: translateX(4px);
+    }
+
+    .nav-item.active {
+        background: #2d3035;
+        color: #ffffff;
+        border-left: 2px solid #3699ff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-item:active {
+        transform: translateX(2px);
+        background: #363a41;
+    }
+
+    .nav-item.logout {
+        margin-top: 20px;
+        color: #ff4d4d;
+    }
+
+    .nav-item.logout:hover {
+        background: rgba(255, 77, 77, 0.1);
+        color: #ff6b6b;
+    }
+
+    /* Add smooth transitions for icon */
+    .nav-item i {
+        transition: transform 0.2s ease;
+    }
+
+    .nav-item:hover i {
+        transform: scale(1.1);
+    }
+
+    /* Remove any possible underline states */
+    .nav-item:focus,
+    .nav-item:visited {
+        text-decoration: none !important;
+        outline: none;
+    }
+</style>
+
+<!-- Add Lucide Icons CDN -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
