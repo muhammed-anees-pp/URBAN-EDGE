@@ -5,8 +5,40 @@ from django.utils import timezone
 from admin_side.views import is_admin
 from django.contrib.auth.decorators import user_passes_test
 
+# @user_passes_test(is_admin)
+# def category_management(request):
+#     if request.method == 'POST':
+#         category_name = request.POST.get('category_name')
+#         category_image = request.FILES.get('image')
+
+#         if not category_name:
+#             error_message = "Category name is required!"
+#         elif Category.objects.filter(category_name__iexact=category_name).exists():
+#             error_message = "Category already exists!"
+#         else:
+#             Category.objects.create(
+#                 category_name=category_name,
+#                 created_at=timezone.now(),
+#                 image=category_image
+#             )
+#             messages.success(request, "Category created successfully!")
+#             return redirect('category_management')
+
+#         # Return the modal with the error message
+#         categories = Category.objects.all()
+#         return render(request, 'admin/category.html', {
+#             'categories': categories,
+#             'form_data': {'category_name': category_name},
+#             'error_message': error_message
+#         })
+
+#     categories = Category.objects.all()
+#     return render(request, 'admin/category.html', {'categories': categories})
+
 @user_passes_test(is_admin)
 def category_management(request):
+    search_query = request.GET.get('search', '')  # Get the search query from the GET request
+
     if request.method == 'POST':
         category_name = request.POST.get('category_name')
         category_image = request.FILES.get('image')
@@ -32,8 +64,14 @@ def category_management(request):
             'error_message': error_message
         })
 
-    categories = Category.objects.all()
-    return render(request, 'admin/category.html', {'categories': categories})
+    # Search categories based on the search query
+    if search_query:
+        categories = Category.objects.filter(category_name__icontains=search_query)  # Case-insensitive search
+    else:
+        categories = Category.objects.all()  # No search query, display all categories
+
+    return render(request, 'admin/category.html', {'categories': categories, 'search_query': search_query})
+
 
 @user_passes_test(is_admin)
 def edit_category(request, category_id):
