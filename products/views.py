@@ -1,19 +1,17 @@
-from django.shortcuts import render, redirect,get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Product, SizeVariant
 from category.models import Category
-from decimal import Decimal
 from decimal import Decimal, InvalidOperation
-from admin_side.views import is_admin 
+from admin_side.views import is_admin
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import F
-import re
 
 @user_passes_test(is_admin)
 def product_list(request):
     products = Product.objects.all()
     categories = Category.objects.all()
-    return render(request, 'admin/product.html', {
+    return render(request, 'admin/product_list.html', {
         'products': products,
         'categories': categories
     })
@@ -23,33 +21,43 @@ def create_product(request):
     if request.method == "POST":
         try:
             # Get form data
-            name = request.POST.get('product_name')
-            description = request.POST.get('description')
-            category_id = request.POST.get('category')
-            color = request.POST.get('color')
-            price_str = request.POST.get('price')
-            offer_str = request.POST.get('offer')
+            name = request.POST.get('product_name', '')
+            description = request.POST.get('description', '')
+            category_id = request.POST.get('category', '')
+            color = request.POST.get('color', '')
+            price_str = request.POST.get('price', '')
+            offer_str = request.POST.get('offer', '')
+
+            # Preserve form data to re-populate fields
+            form_data = {
+                'product_name': name,
+                'description': description,
+                'category': category_id,
+                'color': color,
+                'price': price_str,
+                'offer': offer_str,
+            }
 
             # Validate name and description
             if not name:
                 messages.error(request, "Product name is required")
-                return redirect('create_product')
+                return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
             if Product.objects.filter(name__iexact=name).exists():
-                 messages.error(request, "product already exists!")
-                 return redirect('create_product')
+                messages.error(request, "Product already exists!")
+                return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
             if not description or len(description) < 10:
                 messages.error(request, "Description must be at least 10 characters long.")
-                return redirect('create_product')
+                return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
 
             # Ensure valid price
             try:
                 price = Decimal(price_str) if price_str else None
                 if price is None or price <= 0:
                     messages.error(request, "Please provide a valid price greater than 0.")
-                    return redirect('create_product')
+                    return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
             except InvalidOperation:
                 messages.error(request, "Price must be a valid decimal number.")
-                return redirect('create_product')
+                return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
 
             # Ensure valid offer, if provided
             offer = None
@@ -58,22 +66,22 @@ def create_product(request):
                     offer = Decimal(offer_str)
                     if offer < 0 or offer >= price:
                         messages.error(request, "Offer must be a positive decimal and less than the price.")
-                        return redirect('create_product')
+                        return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
                 except InvalidOperation:
                     messages.error(request, "Offer must be a valid decimal number.")
-                    return redirect('create_product')
+                    return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
 
             # Validate category selection
             if not category_id:
                 messages.error(request, "Please select a category.")
-                return redirect('create_product')
+                return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
 
             # Check if the selected category exists
             try:
                 category = Category.objects.get(id=category_id)
             except Category.DoesNotExist:
                 messages.error(request, "Selected category does not exist.")
-                return redirect('create_product')
+                return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
 
             # Handle image uploads and validate file types
             image1 = request.FILES.get('image1')
@@ -83,13 +91,13 @@ def create_product(request):
             # Check if at least one image is uploaded
             if not image1:
                 messages.error(request, "Please upload at least the first image.")
-                return redirect('create_product')
+                return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
 
             # Image format validation
             for image in [image1, image2, image3]:
-                if image and not image.name.lower().endswith(('.png', '.jpg', '.jpeg','.webp')):
-                    messages.error(request, "Only PNG, JPG, and JPEG image files are allowed.")
-                    return redirect('create_product')
+                if image and not image.name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                    messages.error(request, "Only PNG, JPG, JPEG, and WEBP image files are allowed.")
+                    return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
 
             # Create the product instance if all validations pass
             product = Product(
@@ -110,13 +118,13 @@ def create_product(request):
 
         except Exception as e:
             messages.error(request, f"Error creating product: {str(e)}")
-            return redirect('create_product')
+            return render(request, 'admin/add_product.html', {'categories': Category.objects.all(), 'form_data': form_data})
 
     # GET request - show the form
     categories = Category.objects.filter(is_listed=True)
-    return render(request, 'admin/product.html', {'categories': categories})
+    return render(request, 'admin/add_product.html', {'categories': categories})
 
-    
+
 @user_passes_test(is_admin)
 def toggle_product_listing(request, product_id):
     try:
@@ -129,79 +137,103 @@ def toggle_product_listing(request, product_id):
         messages.error(request, "Product not found")
     return redirect('product_management')
 
-
 @user_passes_test(is_admin)
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
     if request.method == "POST":
+        # Collect form data to retain values
+        form_data = {
+            'product_name': request.POST.get('product_name', product.name),
+            'description': request.POST.get('description', product.description),
+            'color': request.POST.get('color', product.color),
+            'category': request.POST.get('category', product.category.id if product.category else ''),
+            'price': request.POST.get('price', product.price),
+            'offer': request.POST.get('offer', product.offer),
+        }
+        errors = []
+
         try:
-            # Validate and update name
-            name = request.POST.get('product_name', product.name)
+            # Validate name
+            name = form_data['product_name']
             if not name:
-                messages.error(request, "Product name is required")
-                return redirect('edit_product', product_id=product.id)
-            if Product.objects.filter(name__iexact=name).exists():
-                messages.error(request, "product already exists!")
-                return redirect('create_product')
-            product.name = name
+                errors.append("Product name is required.")
+            elif Product.objects.filter(name__iexact=name).exclude(id=product.id).exists():
+                errors.append("Product with this name already exists.")
 
-            # Validate and update description
-            description = request.POST.get('description', product.description)
+            # Validate description
+            description = form_data['description']
             if not description:
-                messages.error(request, "Description is required")
-                return redirect('edit_product', product_id=product.id)
-            product.description = description
+                errors.append("Description is required.")
 
-            # Update category if provided
-            color = request.POST.get('color', product.color)
-            category_id = request.POST.get('category')
-            if category_id:
-                try:
-                    category = Category.objects.get(id=category_id)
-                    product.category = category
-                except Category.DoesNotExist:
-                    messages.error(request, "Selected category does not exist.")
-                    return redirect('edit_product', product_id=product.id)
-
-            # Validate and update price
+            # Validate price
             try:
-                price = Decimal(request.POST.get('price') or "0.00")
+                price = Decimal(form_data['price'])
                 if price <= 0:
-                    messages.error(request, "Price must be greater than zero.")
-                    return redirect('edit_product', product_id=product.id)
-                product.price = price
-            except InvalidOperation:
-                messages.error(request, "Price must be a valid decimal number.")
-                return redirect('edit_product', product_id=product.id)
+                    errors.append("Price must be greater than zero.")
+            except (InvalidOperation, ValueError):
+                errors.append("Price must be a valid decimal number.")
 
-            # Validate and update offer
-            offer_str = request.POST.get('offer')
+            # Validate offer
+            offer = None
+            offer_str = form_data['offer']
             if offer_str:
                 try:
                     offer = Decimal(offer_str)
-                    if offer < 0 or offer >= product.price:
-                        messages.error(request, "Offer must be a positive decimal and less than the price.")
-                        return redirect('edit_product', product_id=product.id)
-                    product.offer = offer
-                except InvalidOperation:
-                    messages.error(request, "Offer must be a valid decimal number.")
-                    return redirect('edit_product', product_id=product.id)
-                
+                    if offer < 0 or offer >= price:
+                        errors.append("Offer must be a positive decimal and less than the price.")
+                except (InvalidOperation, ValueError):
+                    errors.append("Offer must be a valid decimal number.")
+
+            # Validate category
+            category_id = form_data['category']
+            category = None
+            if not category_id:
+                errors.append("Please select a category.")
+            else:
+                try:
+                    category = Category.objects.get(id=category_id)
+                except Category.DoesNotExist:
+                    errors.append("Selected category does not exist.")
+
+            # If errors exist, re-render the form with the existing data and errors
+            if errors:
+                categories = Category.objects.filter(is_listed=True)
+                return render(request, 'admin/edit_product.html', {
+                    'product': product,
+                    'categories': categories,
+                    'form_data': form_data,
+                    'errors': errors,
+                })
+
+            # Update the product instance
+            product.name = name
+            product.description = description
+            product.color = form_data['color']
+            product.price = price
+            product.offer = offer
+            product.category = category
             product.save()
 
             messages.success(request, "Product updated successfully.")
             return redirect('product_management')
 
         except Exception as e:
-            messages.error(request, f"Error updating product: {str(e)}")
-            return redirect('edit_product', product_id=product.id)
+            errors.append(f"Error updating product: {str(e)}")
+            categories = Category.objects.filter(is_listed=True)
+            return render(request, 'admin/edit_product.html', {
+                'product': product,
+                'categories': categories,
+                'form_data': form_data,
+                'errors': errors,
+            })
 
     categories = Category.objects.filter(is_listed=True)
     return render(request, 'admin/edit_product.html', {
         'product': product,
-        'categories': categories
+        'categories': categories,
     })
+
 
 @user_passes_test(is_admin)
 def variant_list(request, product_id):

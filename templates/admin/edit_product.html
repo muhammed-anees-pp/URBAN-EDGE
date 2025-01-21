@@ -47,49 +47,42 @@
                     
                                     <form id="editProductForm" method="POST" enctype="multipart/form-data" action="{% url 'edit_product' product.id %}">
                                         {% csrf_token %}
+                                        
                                         <div class="form-group">
                                             <label for="product_name">Product Name</label>
-                                            <input type="text" id="product_name" name="product_name" value="{{ product.name }}" class="form-control">
+                                            <input type="text" id="product_name" name="product_name" value="{{ form_data.product_name|default:product.name }}" class="form-control">
                                         </div>
                                         <div class="form-group">
                                             <label for="description">Description</label>
-                                            <textarea id="description" name="description" class="form-control">{{ product.description }}</textarea>
+                                            <textarea id="description" name="description" class="form-control">{{ form_data.description|default:product.description }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="description">Color</label>
-                                            <textarea id="description" name="description" class="form-control">{{ product.color }}</textarea>
+                                            <label for="color">Color</label>
+                                            <input type="text" id="color" name="color" value="{{ form_data.color|default:product.color }}" class="form-control">
                                         </div>
                                         <div class="form-group">
                                             <label for="category">Category</label>
                                             <select id="category" name="category" class="form-control">
-                                                <!-- Assuming you have categories in a variable called categories -->
+                                                <option value="" disabled {% if not form_data.category %}selected{% endif %}>Select Category</option>
                                                 {% for cat in categories %}
-                                                    <option value="{{ cat.id }}" {% if cat.id == product.category.id %}selected{% endif %}>{{ cat.category_name }}</option>
+                                                <option value="{{ cat.id }}" {% if form_data.category == cat.id|stringformat:"s" or product.category.id == cat.id %}selected{% endif %}>
+                                                    {{ cat.category_name }}
+                                                </option>
                                                 {% endfor %}
                                             </select>
                                         </div>
-                                        
                                         <div class="form-group">
                                             <label for="price">Price</label>
-                                            <input type="number" id="price" name="price" step="0.01" value="{{ product.price }}" class="form-control">
+                                            <input type="number" id="price" name="price" step="0.01" value="{{ form_data.price|default:product.price }}" class="form-control">
                                         </div>
                                         <div class="form-group">
                                             <label for="offer">Offer</label>
-                                            <input type="text" id="offer" name="offer" value="{{ product.offer }}" class="form-control">
+                                            <input type="number" id="offer" name="offer" step="0.01" min="0" max="10000" value="{{ form_data.offer|default:product.offer }}" class="form-control">
                                         </div>
-                                        {% if errors %}
-                                        <div class="alert alert-danger">
-                                            <ul>
-                                                {% for error in errors %}
-                                                    <li>{{ error }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    {% endif %}
                                         <button type="submit" class="btn btn-success">Update Product</button>
                                         <a href="{% url 'product_management' %}" class="btn btn-secondary">Back to Product List</a>
-
                                     </form>
+                                    
                                    
                                     
                                 </div>

@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Add Product</title>
+    <link rel="stylesheet" href="{% static 'admin/vendors/mdi/css/materialdesignicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}">
+    <style>
+        .preview-image {
+            max-width: 200px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-scroller">
+        {% include 'admin/sidebar.html' %}
+        <div class="container-fluid page-body-wrapper">
+            {% include 'admin/navbar.html' %}
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    {% if messages %}
+                    <div class="alert-container">
+                        {% for message in messages %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Add New Product</h4>
+                                    <form id="createProductForm" method="POST" enctype="multipart/form-data" action="{% url 'create_product' %}">
+                                        {% csrf_token %}
+                                        <div class="form-group">
+                                            <label for="name">Product Name</label>
+                                            <input type="text" class="form-control" id="name" name="product_name" value="{{ form_data.product_name|default:'' }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="description">Description</label>
+                                            <textarea class="form-control" id="description" name="description" required>{{ form_data.description|default:'' }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="category">Category</label>
+                                            <select class="form-control" id="category" name="category" required>
+                                                <option value="" disabled {% if not form_data.category %}selected{% endif %}>Select Category</option>
+                                                {% for category in categories %}
+                                                <option value="{{ category.id }}" {% if form_data.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.category_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="price">Price</label>
+                                            <input type="number" class="form-control" id="price" name="price" step="0.01" value="{{ form_data.price|default:'' }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="color">Color</label>
+                                            <input type="text" class="form-control" id="color" name="color" value="{{ form_data.color|default:'' }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="offer">Offer</label>
+                                            <input type="number" class="form-control" id="offer" name="offer" step="0.01" min="0" max="10000" value="{{ form_data.offer|default:'' }}">
+                                        </div>
+                                        {% for num in "123" %}
+                                        <div class="form-group">
+                                            <label for="image{{ num }}">Image {{ num }}</label>
+                                            <input type="file" class="form-control-file crop-input" id="image{{ num }}" name="image{{ num }}" accept="image/*">
+                                            <img id="preview{{ num }}" src="" alt="Preview" class="preview-image" style="display: none;">
+                                        </div>
+                                        {% endfor %}
+                                        <button type="submit" class="btn btn-primary">Create Product</button>
+                                        <a href="{% url 'product_management' %}" class="btn btn-secondary">Cancel</a>
+                                    </form>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let cropper;
+            const imageInputs = {
+                image1: { input: document.getElementById('image1'), preview: document.getElementById('preview1') },
+                image2: { input: document.getElementById('image2'), preview: document.getElementById('preview2') },
+                image3: { input: document.getElementById('image3'), preview: document.getElementById('preview3') }
+            };
+            let currentCropTarget;
+
+            function initCropper(imageUrl, preview) {
+                if (cropper) cropper.destroy();
+
+                const image = document.createElement('img');
+                image.src = imageUrl;
+                image.style.maxWidth = '100%';
+
+                const cropperContainer = document.createElement('div');
+                cropperContainer.className = 'cropper-wrapper';
+                cropperContainer.appendChild(image);
+
+                document.body.appendChild(cropperContainer);
+
+                cropper = new Cropper(image, {
+                    aspectRatio: 1,
+                    viewMode: 2,
+                    dragMode: 'move',
+                    autoCropArea: 1,
+                });
+
+                Swal.fire({
+                    title: 'Crop your image',
+                    html: cropperContainer,
+                    showCancelButton: true,
+                    confirmButtonText: 'Crop',
+                    preConfirm: () => {
+                        const croppedCanvas = cropper.getCroppedCanvas({
+                            width: 800,
+                            height: 800,
+                            imageSmoothingEnabled: true,
+                            imageSmoothingQuality: 'high'
+                        });
+
+                        return new Promise((resolve) => {
+                            croppedCanvas.toBlob((blob) => {
+                                const file = new File([blob], 'cropped_image.jpg', { type: 'image/jpeg' });
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(file);
+                                currentCropTarget.input.files = dataTransfer.files;
+
+                                preview.src = croppedCanvas.toDataURL();
+                                preview.style.display = 'block';
+
+                                resolve();
+                            }, 'image/jpeg', 0.9);
+                        });
+                    }
+                }).then(() => {
+                    if (cropper) cropper.destroy();
+                    cropperContainer.remove();
+                });
+            }
+
+            for (const key in imageInputs) {
+                const { input, preview } = imageInputs[key];
+
+                input.addEventListener('change', function () {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            currentCropTarget = imageInputs[key];
+                            initCropper(e.target.result, preview);
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
