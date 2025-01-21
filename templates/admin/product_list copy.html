@@ -14,7 +14,6 @@
     <div class="container-scroller">
         {% include 'admin/sidebar.html' %}
         <div class="container-fluid page-body-wrapper">
-            {% include 'admin/navbar.html' %}
             <div class="main-panel">
                 <div class="content-wrapper">
                     {% if messages %}
@@ -51,9 +50,7 @@
                                                     <th>Category</th>
                                                     <th>Price</th>
                                                     <th>Color</th>
-                                                    <th>Image 1</th>
-                                                    <th>Image 2</th>
-                                                    <th>Image 3</th>
+                                                    <th>Images</th>
                                                     <th>Offer</th>
                                                     <th>Add Stock</th>
                                                     <th>Action</th>
@@ -82,19 +79,11 @@
                                                     <td>{{ product.price }}</td>
                                                     <td>{{ product.color }}</td>
                                                     <td>
-                                                        {% if product.image1 %}
-                                                        <img src="{{ product.image1.url }}" alt="Image 1" style="width: 70px; height: 70px;">
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        {% if product.image2 %}
-                                                        <img src="{{ product.image2.url }}" alt="Image 2" style="width: 70px; height: 70px;">
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        {% if product.image3 %}
-                                                        <img src="{{ product.image3.url }}" alt="Image 3" style="width: 70px; height: 70px;">
-                                                        {% endif %}
+                                                        {% for image in product.images.all %}
+                                                            <img src="{{ image.image.url }}" alt="Product Image" style="width: 70px; height: 70px; margin-right: 5px;">
+                                                        {% empty %}
+                                                            <p>No images available</p>
+                                                        {% endfor %}
                                                     </td>
                                                     <td>{{ product.offer }}</td>
                                                     <td>

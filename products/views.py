@@ -11,14 +11,32 @@ import uuid
 from django.core.files.base import ContentFile
 from decimal import Decimal, InvalidOperation
 
+# @user_passes_test(is_admin)
+# def product_list(request):
+#     products = Product.objects.all()
+#     categories = Category.objects.all()
+#     return render(request, 'admin/product_list.html', {
+#         'products': products,
+#         'categories': categories
+#     })
+
 @user_passes_test(is_admin)
 def product_list(request):
+    query = request.GET.get('q', '')  # Get the search query from the URL parameters
     products = Product.objects.all()
+
+    if query:  # If there is a search query
+        products = products.filter(
+            name__icontains=query  # Search for product names that contain the query (case-insensitive)
+        )
+
     categories = Category.objects.all()
     return render(request, 'admin/product_list.html', {
         'products': products,
-        'categories': categories
+        'categories': categories,
+        'query': query,  # Pass the query back to the template to preserve it in the search bar
     })
+
 
 
 @user_passes_test(is_admin)
