@@ -1,7 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -18,10 +17,9 @@
             height: 200px;
             object-fit: cover;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 10px;
         }
-
         .image-preview-container {
             display: inline-block;
             margin: 10px;
@@ -31,21 +29,13 @@
             background: #fff;
             text-align: center;
             position: relative;
-            background-color: #ffffff;
-            z-index: 1;
         }
-
-        .form-control[readonly] {
-            background-color: #f8f9fa;
-        }
-
         .image-actions {
             display: flex;
             gap: 8px;
             justify-content: center;
             margin-top: 10px;
         }
-
         .btn-action {
             padding: 8px 16px;
             color: white;
@@ -54,23 +44,18 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
-
         .btn-crop {
             background: #4B49AC;
         }
-
         .btn-crop:hover {
             background: #3c3a8c;
         }
-
         .btn-delete {
             background: #dc3545;
         }
-
         .btn-delete:hover {
             background: #c82333;
         }
-
         .btn-add {
             background: #28a745;
             color: white;
@@ -79,32 +64,27 @@
             border: none;
             cursor: pointer;
         }
-
         .btn-add:hover {
             background: #218838;
         }
-
         #imagePreviews {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             margin-top: 20px;
         }
-
         .cropper-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0,0,0,0.8);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 99999;
-            /* Increased z-index */
+            z-index: 9999;
         }
-
         .cropper-container {
             background: white;
             padding: 20px;
@@ -112,44 +92,34 @@
             width: 90%;
             max-width: 800px;
             height: 90vh;
-            max-height: 80vh;
-            /* Reduced height */
+            max-height: 600px;
             display: flex;
             flex-direction: column;
-            position: relative;
-            top: 50%;
-            transform: translateY(-50%);
         }
-
         .cropper-content {
             flex: 1;
             position: relative;
             overflow: hidden;
         }
-
         .cropper-content img {
             max-width: 100%;
             max-height: calc(100vh - 200px);
         }
-
         .cropper-actions {
             margin-top: 15px;
             display: flex;
             gap: 10px;
             justify-content: center;
         }
-
         .hidden {
             display: none !important;
         }
-
         .preview-container {
             margin-top: 20px;
             text-align: center;
         }
     </style>
 </head>
-
 <body>
     <div class="container-scroller">
         {% include 'admin/sidebar.html' %}
@@ -160,8 +130,7 @@
                     {% if messages %}
                     <div class="alert-container">
                         {% for message in messages %}
-                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show"
-                            role="alert">
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
                             {{ message }}
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
@@ -170,54 +139,44 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-
+                    
                     <div class="row">
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title">Add New Product</h4>
-                                    <form id="createProductForm" method="POST" enctype="multipart/form-data"
-                                        action="{% url 'create_product' %}" onsubmit="return validateForm()">
+                                    <form id="createProductForm" method="POST" enctype="multipart/form-data" action="{% url 'create_product' %}" onsubmit="return validateForm()">
                                         {% csrf_token %}
                                         <div class="form-group">
                                             <label for="name">Product Name</label>
-                                            <input type="text" class="form-control" id="name" name="product_name"
-                                                required value="{{ form_data.product_name }}">
+                                            <input type="text" class="form-control" id="name" name="product_name" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="description">Description</label>
-                                            <textarea class="form-control" id="description" name="description" rows="4"
-                                                required>{{ form_data.description }}</textarea>
+                                            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
                                         </div>
                                         <div class="form-group">
                                             <label for="category">Category</label>
                                             <select class="form-control" id="category" name="category" required>
-                                                <option value="" disabled {% if not form_data.category %}selected{%endif %}>Select Category</option>
+                                                <option value="" disabled selected>Select Category</option>
                                                 {% for category in categories %}
-                                                <option value="{{ category.id }}" {% if
-                                                    form_data.category==category.id|stringformat:"s" %}selected{% endif
-                                                    %}>
-                                                    {{ category.category_name }}
-                                                </option>
+                                                <option value="{{ category.id }}">{{ category.category_name }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
                                         <div class="form-group">
                                             <label for="price">Price</label>
-                                            <input type="number" class="form-control" id="price" name="price"
-                                                step="0.01" min="0" required value="{{ form_data.price }}">
+                                            <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="color">Color</label>
-                                            <input type="text" class="form-control" id="color" name="color" required
-                                                value="{{ form_data.color }}">
+                                            <input type="text" class="form-control" id="color" name="color" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="offer">Offer</label>
-                                            <input type="number" class="form-control" id="offer" name="offer"
-                                                step="0.01" min="0" value="{{ form_data.offer }}">
+                                            <input type="number" class="form-control" id="offer" name="offer" step="0.01" min="0">
                                         </div>
-
+    
                                         <div class="form-group">
                                             <label>Product Images</label>
                                             <div class="image-upload-container">
@@ -228,11 +187,10 @@
                                             </div>
                                             <div id="imagePreviews"></div>
                                         </div>
-
+    
                                         <div class="mt-4">
                                             <button type="submit" class="btn btn-primary me-2">Create Product</button>
-                                            <a href="{% url 'product_management' %}"
-                                                class="btn btn-secondary">Cancel</a>
+                                            <a href="{% url 'product_management' %}" class="btn btn-secondary">Cancel</a>
                                         </div>
                                     </form>
                                 </div>
@@ -270,17 +228,17 @@
             const cropperImage = document.getElementById('cropperImage');
             let cropper = null;
             let currentImageContainer = null;
-    
+
             // Handle Add Image button click
             addImageBtn.addEventListener('click', function() {
                 imageInput.click();
             });
-    
+
             // Handle image selection
             imageInput.addEventListener('change', function(event) {
                 const file = event.target.files[0];
                 if (!file) return;
-    
+
                 if (!file.type.startsWith('image/')) {
                     Swal.fire({
                         title: 'Invalid File',
@@ -289,7 +247,7 @@
                     });
                     return;
                 }
-    
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     addImagePreview(e.target.result, file.name);
@@ -297,7 +255,7 @@
                 reader.readAsDataURL(file);
                 imageInput.value = ''; // Reset input for next selection
             });
-    
+
             function addImagePreview(src, fileName) {
                 const previewContainer = document.createElement('div');
                 previewContainer.classList.add('image-preview-container');
@@ -306,54 +264,54 @@
                 img.src = src;
                 img.classList.add('preview-image');
                 previewContainer.appendChild(img);
-    
+
                 const actionsDiv = document.createElement('div');
                 actionsDiv.classList.add('image-actions');
-    
+
                 const cropBtn = document.createElement('button');
                 cropBtn.textContent = 'Crop';
                 cropBtn.classList.add('btn-action', 'btn-crop');
                 cropBtn.type = 'button';
                 actionsDiv.appendChild(cropBtn);
-    
+
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Delete';
                 deleteBtn.classList.add('btn-action', 'btn-delete');
                 deleteBtn.type = 'button';
                 actionsDiv.appendChild(deleteBtn);
-    
+
                 previewContainer.appendChild(actionsDiv);
                 imagePreviews.appendChild(previewContainer);
-    
+
                 // Create hidden input for the image
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
                 hiddenInput.name = 'product_images[]';
                 hiddenInput.value = src;
                 previewContainer.appendChild(hiddenInput);
-    
+
                 // Event listeners
                 cropBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     openCropper(img.src, previewContainer);
                 });
-    
+
                 deleteBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     previewContainer.remove();
                 });
             }
-    
+
             function openCropper(imageUrl, container) {
                 cropperModal.style.display = 'flex';
                 cropperImage.src = imageUrl;
                 currentImageContainer = container;
-    
+
                 // Destroy existing cropper if it exists
                 if (cropper) {
                     cropper.destroy();
                 }
-    
+
                 // Initialize cropper with a slight delay to ensure image is loaded
                 setTimeout(() => {
                     cropper = new Cropper(cropperImage, {
@@ -371,7 +329,7 @@
                     });
                 }, 100);
             }
-    
+
             document.getElementById('saveCrop').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (cropper && currentImageContainer) {
@@ -381,7 +339,7 @@
                         imageSmoothingEnabled: true,
                         imageSmoothingQuality: 'high'
                     });
-    
+
                     const croppedImageUrl = croppedCanvas.toDataURL('image/jpeg', 0.9);
                     const img = currentImageContainer.querySelector('img');
                     const hiddenInput = currentImageContainer.querySelector('input[type="hidden"]');
@@ -392,12 +350,12 @@
                     closeCropper();
                 }
             });
-    
+
             document.getElementById('cancelCrop').addEventListener('click', function(e) {
                 e.preventDefault();
                 closeCropper();
             });
-    
+
             function closeCropper() {
                 cropperModal.style.display = 'none';
                 if (cropper) {
@@ -406,7 +364,7 @@
                 }
                 currentImageContainer = null;
             }
-    
+
             // Form validation
             window.validateForm = function() {
                 const images = document.querySelectorAll('input[name="product_images[]"]');
@@ -418,18 +376,9 @@
                     });
                     return false;
                 }
-                // Create a loading state
-                Swal.fire({
-                    title: 'Saving Product',
-                    text: 'Please wait while we process your images...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
                 return true;
             };
-    
+
             // Close cropper modal when clicking outside
             cropperModal.addEventListener('click', function(e) {
                 if (e.target === cropperModal) {
@@ -438,9 +387,5 @@
             });
         });
     </script>
-    
-
-
 </body>
-
 </html>
