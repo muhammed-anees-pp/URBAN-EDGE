@@ -1,28 +1,17 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Edit Product</title>
-    <!-- plugins:css -->
     <link rel="stylesheet" href="{% static 'admin/vendors/mdi/css/materialdesignicons.min.css' %}">
     <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
-    <!-- endinject -->
-    <!-- Plugin css for this page -->
-    <link rel="stylesheet" href="{% static 'admin/vendors/jvectormap/jquery-jvectormap.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/vendors/flag-icon-css/css/flag-icon.min.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/vendors/owl-carousel-2/owl.carousel.min.css' %}">
-    <link rel="stylesheet" href="{% static 'admin/vendors/owl-carousel-2/owl.theme.default.min.css' %}">
-    <!-- End plugin css for this page -->
-    <!-- inject:css -->
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
-    <!-- End layout styles -->
-    <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}" />
-    <!-- Cropper.js CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 </head>
+
 <body>
     <div class="container-scroller">
         {% include 'admin/sidebar.html' %}
@@ -42,24 +31,23 @@
                                             {% endfor %}
                                         </ul>
                                     </div>
-                                {% endif %}
+                                    {% endif %}
                                     <h4 class="card-title">Edit Product</h4>
-                    
-                                    <form id="editProductForm" method="POST" enctype="multipart/form-data" action="{% url 'edit_product' product.id %}">
+
+                                    <form id="editProductForm" method="POST" enctype="multipart/form-data"
+                                        action="{% url 'edit_product' product.id %}">
                                         {% csrf_token %}
-                                        
                                         <div class="form-group">
                                             <label for="product_name">Product Name</label>
-                                            <input type="text" id="product_name" name="product_name" value="{{ form_data.product_name|default:product.name }}" class="form-control">
+                                            <input type="text" id="product_name" name="product_name"
+                                                value="{{ form_data.product_name|default:product.name }}" class="form-control">
                                         </div>
                                         <div class="form-group">
                                             <label for="description">Description</label>
                                             <textarea id="description" name="description" class="form-control">{{ form_data.description|default:product.description }}</textarea>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="color">Color</label>
-                                            <input type="text" id="color" name="color" value="{{ form_data.color|default:product.color }}" class="form-control">
-                                        </div>
+
+                                        <!-- Category Section -->
                                         <div class="form-group">
                                             <label for="category">Category</label>
                                             <select id="category" name="category" class="form-control">
@@ -71,25 +59,48 @@
                                                 {% endfor %}
                                             </select>
                                         </div>
+
+                                        <!-- Price Section -->
                                         <div class="form-group">
                                             <label for="price">Price</label>
                                             <input type="number" id="price" name="price" step="0.01" value="{{ form_data.price|default:product.price }}" class="form-control">
                                         </div>
+
+                                        <!-- Offer Section -->
                                         <div class="form-group">
                                             <label for="offer">Offer</label>
                                             <input type="number" id="offer" name="offer" step="0.01" min="0" max="10000" value="{{ form_data.offer|default:product.offer }}" class="form-control">
                                         </div>
-                                        <button type="submit" class="btn btn-success">Update Product</button>
-                                        <a href="{% url 'product_management' %}" class="btn btn-secondary">Back to Product List</a>
+
+                                        <!-- Image Section -->
+                                        <div class="form-group">
+                                            <label>Product Images</label>
+                                            <div class="image-upload-container">
+                                                <input type="file" class="hidden" id="imageInput" accept="image/*">
+                                                <button type="button" class="btn btn-action btn-add" id="addImageBtn">Add Image</button>
+                                            </div>
+                                            <div id="imagePreviews">
+                                                {% for image in product.images.all %}
+                                                    <div class="image-preview-container">
+                                                        <img src="{{ image.image.url }}" alt="Product Image" class="preview-image">
+                                                        <button type="button" class="btn btn-action btn-delete" data-image-id="{{ image.id }}">Delete</button>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <button type="submit" class="btn btn-success me-2">Update Product</button>
+                                            <a href="{% url 'product_management' %}" class="btn btn-secondary">Back to Product List</a>
+                                        </div>
                                     </form>
-                                    
-                                   
-                                    
+
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <!-- Image Cropping Modal -->
                 <div class="modal fade" id="cropImageModal" tabindex="-1" role="dialog" aria-labelledby="cropImageModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
@@ -113,88 +124,193 @@
                     </div>
                 </div>
                 <!-- End Image Cropping Modal -->
+
             </div>
         </div>
     </div>
+
     <!-- plugins:js -->
     <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
-    <!-- endinject -->
-    <!-- Plugin js for this page -->
-    <script src="{% static 'admin/vendors/chart.js/Chart.min.js' %}"></script>
-    <script src="{% static 'admin/vendors/progressbar.js/progressbar.min.js' %}"></script>
-    <script src="{% static 'admin/vendors/jvectormap/jquery-jvectormap.min.js' %}"></script>
-    <script src="{% static 'admin/vendors/jvectormap/jquery-jvectormap-world-mill-en.js' %}"></script>
-    <script src="{% static 'admin/vendors/owl-carousel-2/owl.carousel.min.js' %}"></script>
-    <!-- End plugin js for this page -->
-    <!-- inject:js -->
-    <script src="{% static 'admin/js/off-canvas.js' %}"></script>
-    <script src="{% static 'admin/js/hoverable-collapse.js' %}"></script>
-    <script src="{% static 'admin/js/misc.js' %}"></script>
-    <script src="{% static 'admin/js/settings.js' %}"></script>
-    <script src="{% static 'admin/js/todolist.js' %}"></script>
-    <!-- endinject -->
-    <!-- Custom js for this page -->
-    <script src="{% static 'admin/js/dashboard.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let cropper;
-        const cropImageModal = new bootstrap.Modal(document.getElementById('cropImageModal'));
-        const cropImageElement = document.getElementById('cropImage');
-        const cropImageButton = document.getElementById('cropImageButton');
-        const imagePreviews = document.querySelectorAll('.image-preview img');
-        const imageInputs = document.querySelectorAll('input[type="file"]');
-        let currentInput;
-    
-        function setupCropper() {
-            if (cropper) {
-                cropper.destroy();
-            }
-            cropper = new Cropper(cropImageElement, {
-                aspectRatio: 1,
-                viewMode: 1,
-                autoCropArea: 1
+        document.addEventListener('DOMContentLoaded', function () {
+            // Image Handling
+            const imageInput = document.getElementById('imageInput');
+            const addImageBtn = document.getElementById('addImageBtn');
+            const imagePreviews = document.getElementById('imagePreviews');
+            const cropperModal = document.getElementById('cropperModal');
+            const cropperImage = document.getElementById('cropperImage');
+            let cropper = null;
+            let currentImageContainer = null;
+
+            // Handle Add Image button click
+            addImageBtn.addEventListener('click', function () {
+                imageInput.click();
             });
-        }
-    
-        function handleImageInputChange(event) {
-            currentInput = event.target;
-            const file = currentInput.files[0];
-            if (file) {
+
+            // Handle image selection
+            imageInput.addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                if (!file.type.startsWith('image/')) {
+                    Swal.fire({
+                        title: 'Invalid File',
+                        text: 'Please select an image file',
+                        icon: 'error'
+                    });
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    cropImageElement.src = e.target.result;
-                    setupCropper();
-                    cropImageModal.show();
-                }
+                    addImagePreview(e.target.result, file.name);
+                };
                 reader.readAsDataURL(file);
-            }
-        }
-    
-        function handleCropImage() {
-            const croppedCanvas = cropper.getCroppedCanvas();
-            croppedCanvas.toBlob(function (blob) {
-                const dataTransfer = new DataTransfer();
-                const newFile = new File([blob], 'cropped-image.jpg', { type: blob.type });
-                dataTransfer.items.add(newFile);
-                currentInput.files = dataTransfer.files;
-    
-                // Display the cropped image in the preview
-                currentInput.nextElementSibling.src = URL.createObjectURL(newFile);
-    
-                cropImageModal.hide();
+                imageInput.value = ''; // Reset input for next selection
             });
-        }
-    
-        imageInputs.forEach(input => {
-            input.addEventListener('change', handleImageInputChange);
+
+            function addImagePreview(src, fileName) {
+                const previewContainer = document.createElement('div');
+                previewContainer.classList.add('image-preview-container');
+                
+                const img = document.createElement('img');
+                img.src = src;
+                img.classList.add('preview-image');
+                previewContainer.appendChild(img);
+
+                const actionsDiv = document.createElement('div');
+                actionsDiv.classList.add('image-actions');
+
+                const cropBtn = document.createElement('button');
+                cropBtn.textContent = 'Crop';
+                cropBtn.classList.add('btn-action', 'btn-crop');
+                cropBtn.type = 'button';
+                actionsDiv.appendChild(cropBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('btn-action', 'btn-delete');
+                deleteBtn.type = 'button';
+                actionsDiv.appendChild(deleteBtn);
+
+                previewContainer.appendChild(actionsDiv);
+                imagePreviews.appendChild(previewContainer);
+
+                // Create hidden input for the image
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'product_images[]';
+                hiddenInput.value = src;
+                previewContainer.appendChild(hiddenInput);
+
+                // Event listeners
+                cropBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    openCropper(img.src, previewContainer);
+                });
+
+                deleteBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    previewContainer.remove();
+                });
+            }
+
+            function openCropper(imageUrl, container) {
+                cropperModal.style.display = 'flex';
+                cropperImage.src = imageUrl;
+                currentImageContainer = container;
+
+                // Destroy existing cropper if it exists
+                if (cropper) {
+                    cropper.destroy();
+                }
+
+                // Initialize cropper with a slight delay to ensure image is loaded
+                setTimeout(() => {
+                    cropper = new Cropper(cropperImage, {
+                        aspectRatio: 1,
+                        viewMode: 2,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                        zoomable: true,
+                        scalable: true,
+                        guides: true,
+                        highlight: true,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        responsive: true
+                    });
+                }, 100);
+            }
+
+            document.getElementById('saveCrop').addEventListener('click', function (e) {
+                e.preventDefault();
+                if (cropper && currentImageContainer) {
+                    const croppedCanvas = cropper.getCroppedCanvas({
+                        width: 800,
+                        height: 800,
+                        imageSmoothingEnabled: true,
+                        imageSmoothingQuality: 'high'
+                    });
+
+                    const croppedImageUrl = croppedCanvas.toDataURL('image/jpeg', 0.9);
+                    const img = currentImageContainer.querySelector('img');
+                    const hiddenInput = currentImageContainer.querySelector('input[type="hidden"]');
+                    
+                    img.src = croppedImageUrl;
+                    hiddenInput.value = croppedImageUrl;
+                    
+                    closeCropper();
+                }
+            });
+
+            document.getElementById('cancelCrop').addEventListener('click', function (e) {
+                e.preventDefault();
+                closeCropper();
+            });
+
+            function closeCropper() {
+                cropperModal.style.display = 'none';
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                currentImageContainer = null;
+            }
+
+            // Form validation
+            window.validateForm = function () {
+                const images = document.querySelectorAll('input[name="product_images[]"]');
+                if (images.length === 0) {
+                    Swal.fire({
+                        title: 'Images Required',
+                        text: 'Please add at least one image for the product',
+                        icon: 'warning'
+                    });
+                    return false;
+                }
+                // Create a loading state
+                Swal.fire({
+                    title: 'Saving Product',
+                    text: 'Please wait while we process your images...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                return true;
+            };
+
+            // Close cropper modal when clicking outside
+            cropperModal.addEventListener('click', function (e) {
+                if (e.target === cropperModal) {
+                    closeCropper();
+                }
+            });
         });
-    
-        cropImageButton.addEventListener('click', handleCropImage);
-    });
-
-    
-
     </script>
 </body>
+
 </html>

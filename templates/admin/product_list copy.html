@@ -29,6 +29,25 @@
                     </div>
                     {% endif %}
 
+                    <!-- Search bar -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <form method="GET" action="{% url 'product_management' %}">
+                                <div class="input-group">
+                                    <input type="text" name="q" class="form-control" placeholder="Search products..." value="{{ query|default:'' }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="submit">Search</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Display search results summary -->
+                    {% if query %}
+                    <p class="text-muted">Search results for "{{ query }}": {{ products|length }} found</p>
+                    {% endif %}
+
                     <div class="row">
                         <div class="col-12 grid-margin">
                             <div class="card">
@@ -56,12 +75,6 @@
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
-                                            <!-- Add this right before the table -->
-                                        {% if products %}
-                                        <p>Number of products: {{ products|length }}</p>
-                                        {% else %}
-                                        <p>No products available</p>
-                                        {% endif %}
                                             <tbody>
                                                 {% if products %}
                                                 {% for product in products %}
@@ -90,7 +103,7 @@
                                                         <a href="{% url 'variant' product.id %}" class="btn btn-outline-danger">Add</a>
                                                     </td>
                                                     <td>
-                                                        <a href="{% url 'edit_product' product.id  %}" class="btn btn-success">Edit</a>
+                                                        <a href="{% url 'edit_product' product.id %}" class="btn btn-success">Edit</a>
                                                         <a href="{% url 'list_unlist' product.id %}" 
                                                            class="btn {% if product.is_listed %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}">
                                                             {% if product.is_listed %}Unlist{% else %}Relist{% endif %}
@@ -100,7 +113,7 @@
                                                 {% endfor %}
                                                 {% else %}
                                                 <tr>
-                                                    <td colspan="11" class="text-center">No products found</td>
+                                                    <td colspan="10" class="text-center">No products found</td>
                                                 </tr>
                                                 {% endif %}
                                             </tbody>

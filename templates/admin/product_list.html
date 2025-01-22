@@ -68,7 +68,7 @@
                                                     <th>Product Name</th>
                                                     <th>Category</th>
                                                     <th>Price</th>
-                                                    <th>Color</th>
+                                                    <th>Variants</th>
                                                     <th>Images</th>
                                                     <th>Offer</th>
                                                     <th>Add Stock</th>
@@ -90,7 +90,14 @@
                                                     <td>{{ product.name }}</td>
                                                     <td>{{ product.category.category_name }}</td>
                                                     <td>{{ product.price }}</td>
-                                                    <td>{{ product.color }}</td>
+                                                    <td>
+                                                        <!-- Display variants (color, size, stock) -->
+                                                        {% for variant in product.variants.all %}
+                                                            <p>{{ variant.color }} - {{ variant.size }} (Stock: {{ variant.stock }})</p>
+                                                        {% empty %}
+                                                            <p>No variants available</p>
+                                                        {% endfor %}
+                                                    </td>
                                                     <td>
                                                         {% for image in product.images.all %}
                                                             <img src="{{ image.image.url }}" alt="Product Image" style="width: 70px; height: 70px; margin-right: 5px;">
@@ -100,7 +107,7 @@
                                                     </td>
                                                     <td>{{ product.offer }}</td>
                                                     <td>
-                                                        <a href="{% url 'variant' product.id %}" class="btn btn-outline-danger">Add</a>
+                                                        <a href="{% url 'variant' product.id %}" class="btn btn-outline-danger">Add Stock</a>
                                                     </td>
                                                     <td>
                                                         <a href="{% url 'edit_product' product.id %}" class="btn btn-success">Edit</a>
