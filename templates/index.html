@@ -1,52 +1,53 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Home Page{% endblock %}
-
+{% block title %}URBAN EDGE | HOME{% endblock %}
 
 {% block content %}
-<body>
-  
+<section class="hero">
+    <div class="hero-content">
+        <p>NEW ARRIVAL</p>
+        <h1>LATEST<br>SHOE COLLECTION</h1>
+        <p>A small cool painted Dublin lines by their place and supplies it with the necessary regelialia. It is a paradisematic country.</p>
+        <a href="#" class="cta-button">Discover Now</a>
+    </div>
+</section>    
 
-    <section class="hero">
-        <div class="hero-content">
-            <p>NEW ARRIVAL</p>
-            <h1>LATEST<br>SHOE COLLECTION</h1>
-            <p>A small cool painted Dublin lines by their place and supplies it with the necessary regelialia. It is a paradisematic country.</p>
-            <a href="#" class="cta-button">Discover Now</a>
-        </div>
-    </section>    
-    
-
-  <section class="features">
+<section class="features">
     <div class="feature-item">
-      <img src="{% static 'assets/img/shipping.png' %}" alt="Free Shipping" />
-      <h3>Free Shipping</h3>
-      <p>Shop with us and enjoy free shipping across the country. Get your favourites delivered right to your doorstep.</p>
+        <img src="{% static 'assets/img/shipping.png' %}" alt="Free Shipping" />
+        <h3>Free Shipping</h3>
+        <p>Shop with us and enjoy free shipping across the country. Get your favourites delivered right to your doorstep.</p>
     </div>
     <div class="feature-item">
-      <img src="{% static 'assets/img/customer.png' %}" alt="Support" />
-      <h3>Support Customer</h3>
-      <p>Our customer support team is here for you 24/7 to assist with any queries or concerns. Shop confidently.</p>
+        <img src="{% static 'assets/img/customer.png' %}" alt="Support" />
+        <h3>Support Customer</h3>
+        <p>Our customer support team is here for you 24/7 to assist with any queries or concerns. Shop confidently.</p>
     </div>
     <div class="feature-item">
-      <img src="{% static 'assets/img/payment.png' %}" alt="Secure Payment" />
-      <h3>Secure Payments</h3>
-      <p>Shop safely with our secure payment options. Your transactions are protected for a worry-free shopping experience.</p>
+        <img src="{% static 'assets/img/payment.png' %}" alt="Secure Payment" />
+        <h3>Secure Payments</h3>
+        <p>Shop safely with our secure payment options. Your transactions are protected for a worry-free shopping experience.</p>
     </div>
-  </section>
+</section>
 
-  <div class="container" id="categories">
-    <h1 style="text-align: center; margin-bottom: 20px;">Categories</h1>
-    <div class="categories-grid">
+<hr class="section-divider">
+<div class="category-heading">
+    <h2>Shop by Category</h2>
+</div>
+
+<section class="category-showcase">
+    <div class="category-wrapper">
         {% for category in categories %}
-        <a href="{% url 'category_products' category.id %}" class="category-card">
-            <img src="{{ category.image.url }}" alt="{{ category.category_name }}" />
-            <h3>{{ category.category_name }}</h3>
+        <a href="{% url 'category_products' category.id %}" class="category-circle">
+            <div class="circle-image">
+                <img src="{{ category.image.url }}" alt="{{ category.category_name }}" />
+            </div>
+            <span class="category-name">{{ category.category_name }}</span>
         </a>
         {% endfor %}
     </div>
-</div>
+</section>
 
-</body>
+<hr class="section-divider">
 {% endblock %}
