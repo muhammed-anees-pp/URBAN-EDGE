@@ -241,7 +241,7 @@ header {
                 </svg>
             </button>
             <div class="profile-dropdown" id="profileDropdown">
-                <a href="#" class="dropdown-item">Profile</a>
+                <a href="{% url 'user_profile' %}" class="dropdown-item">Profile</a>
                 <a href="{% url 'userlogout' %}" class="dropdown-item logout-link">Logout</a>
             </div>
         </div>

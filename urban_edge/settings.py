@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'admin_side',
     'category',
     'products',
+    'user_profile',
 ]
 
 MIDDLEWARE = [
