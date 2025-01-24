@@ -9,6 +9,8 @@ import base64
 import uuid
 from django.core.files.base import ContentFile
 
+from django.db.models import Q
+
 
 # Product List View
 @user_passes_test(is_admin)
@@ -316,27 +318,49 @@ def toggle_product_listing(request, product_id):
     return redirect('product_management')
 
 
-# Category Products View
 # def category_products(request, category_id):
 #     category = get_object_or_404(Category, id=category_id, is_listed=True)
-#     products = Product.objects.filter(category=category, is_listed=True)
+#     products = Product.objects.filter(category=category, is_listed=True).prefetch_related('images')
 
+#     # Prepare context data with only the first image
 #     context = {
 #         'category': category,
-#         'products': products
+#         'products': [{
+#             'product': product,
+#             'first_image': product.images.first()  # Fetch the first image
+#         } for product in products]
 #     }
 #     return render(request, 'category_products.html', context)
+
 
 def category_products(request, category_id):
     category = get_object_or_404(Category, id=category_id, is_listed=True)
     products = Product.objects.filter(category=category, is_listed=True).prefetch_related('images')
 
-    # Prepare context data with only the first image
+    # Handle search
+    search_query = request.GET.get('search', '')  # Get search input
+    if search_query:
+        products = products.filter(name__icontains=search_query)  # Search by name (case-insensitive)
+
+    # Handle sorting
+    sort_option = request.GET.get('sort', '')  # Get sort option
+    if sort_option == 'name-asc':
+        products = products.order_by('name')  # Sort A to Z
+    elif sort_option == 'name-desc':
+        products = products.order_by('-name')  # Sort Z to A
+    elif sort_option == 'price-asc':
+        products = products.order_by('price')  # Low to High
+    elif sort_option == 'price-desc':
+        products = products.order_by('-price')  # High to Low
+
+    # Prepare context data
     context = {
         'category': category,
         'products': [{
             'product': product,
             'first_image': product.images.first()  # Fetch the first image
-        } for product in products]
+        } for product in products],
+        'search_query': search_query,
+        'sort_option': sort_option,
     }
     return render(request, 'category_products.html', context)
