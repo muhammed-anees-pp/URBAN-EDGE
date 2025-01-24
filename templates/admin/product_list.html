@@ -102,8 +102,7 @@
                                                     <td>
                                                         <!-- Display variants (color, size, stock) -->
                                                         {% for variant in product.variants.all %}
-                                                        <p>{{ variant.color }} - {{ variant.size }} (Stock: {{
-                                                            variant.stock }})</p>
+                                                        <p>{{ variant.color }} - {{ variant.size }} (Stock: {{variant.stock }})</p>
                                                         {% empty %}
                                                         <p>No variants available</p>
                                                         {% endfor %}

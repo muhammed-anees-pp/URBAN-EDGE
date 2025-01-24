@@ -317,12 +317,26 @@ def toggle_product_listing(request, product_id):
 
 
 # Category Products View
+# def category_products(request, category_id):
+#     category = get_object_or_404(Category, id=category_id, is_listed=True)
+#     products = Product.objects.filter(category=category, is_listed=True)
+
+#     context = {
+#         'category': category,
+#         'products': products
+#     }
+#     return render(request, 'category_products.html', context)
+
 def category_products(request, category_id):
     category = get_object_or_404(Category, id=category_id, is_listed=True)
-    products = Product.objects.filter(category=category, is_listed=True)
+    products = Product.objects.filter(category=category, is_listed=True).prefetch_related('images')
 
+    # Prepare context data with only the first image
     context = {
         'category': category,
-        'products': products
+        'products': [{
+            'product': product,
+            'first_image': product.images.first()  # Fetch the first image
+        } for product in products]
     }
     return render(request, 'category_products.html', context)
