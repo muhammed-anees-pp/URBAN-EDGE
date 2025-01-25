@@ -145,16 +145,17 @@
     }
 
     .product-card h5 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #333;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-    line-height: 1.2;
-    max-height: 2.4em; /* Limits to 2 lines */
-}
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        line-height: 1.2;
+        max-height: 2.4em;
+        /* Limits to 2 lines */
+    }
 
     .price {
         color: #333;
@@ -348,27 +349,27 @@
     }
 
     .product-card .price {
-    font-size: 18px;
-    font-weight: bold;
-    color: #7c8811;
-    margin: 0;
-}
+        font-size: 18px;
+        font-weight: bold;
+        color: #7c8811;
+        margin: 0;
+    }
 
 
     .view-details-btn {
-    display: inline-block;
-    background: #7c8811;
-    color: #fff;
-    padding: 8px 20px;
-    border-radius: 4px;
-    text-decoration: none;
-    margin-top: 10px;
-}
+        display: inline-block;
+        background: #7c8811;
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        margin-top: 10px;
+    }
 
 
     .view-details-btn:hover {
-    background: #a5b32c;
-}
+        background: #a5b32c;
+    }
 
 
 
@@ -386,13 +387,16 @@
 
 
     @media (max-width: 768px) {
-    .product-card {
-        height: auto; /* Allow flexibility for smaller screens */
+        .product-card {
+            height: auto;
+            /* Allow flexibility for smaller screens */
+        }
+
+        .product-card img {
+            height: 150px;
+            /* Adjust image height */
+        }
     }
-    .product-card img {
-        height: 150px; /* Adjust image height */
-    }
-}
 </style>
 {% endblock %}
 
@@ -467,7 +471,18 @@
                     {% endif %}
                     <div class="product-details">
                         <h5>{{ product.name }}</h5>
-                        <p class="price"><strong>₹{{ product.price }}</strong></p>
+                        <!-- <p class="price">
+                            <span style="color: black; text-decoration: line-through;">MRP: ₹{{ product.price }}</span>
+                            <span style="color: red;">Offer: ₹{{ product.offer }}</span>
+                        </p> -->
+                        <p class="price">
+                            {% if product.offer %}
+                                <span style="color: black; text-decoration: line-through;">₹{{ product.price }}</span>
+                                <span style="color: red;">₹{{ product.offer }}</span>
+                            {% else %}
+                                <span style="color: black;" >₹{{ product.price }}</span>
+                            {% endif %}
+                        </p>
                         <a href="{% url 'product_details' product.id %}" class="view-details-btn">View Details</a>
                     </div>
                 </div>
@@ -476,5 +491,6 @@
         </div>
     </div>
 </section>
+
 
 {% endblock %}

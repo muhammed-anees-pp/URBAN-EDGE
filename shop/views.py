@@ -24,10 +24,10 @@ def all_products(request):
         products = products.order_by('name')
     elif sort_option == 'name-desc':
         products = products.order_by('-name')
-    elif sort_option == 'price-asc':
-        products = products.order_by('price')
-    elif sort_option == 'price-desc':
-        products = products.order_by('-price')
+    elif sort_option == 'offer-asc':
+        products = products.order_by('offer')
+    elif sort_option == 'offer-desc':
+        products = products.order_by('-offer')
 
     # Prepare context data
     context = {

@@ -291,18 +291,6 @@ def delete_variant(request, variant_id):
     return redirect('variant', product_id=variant.product.id)
 
 
-# Product Details View
-def product_details(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    variants = product.variants.filter(stock__gt=0)  # Get variants with stock greater than 0
-    related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
-
-    context = {
-        'product': product,
-        'variants': variants,  # Pass the variants (color, size, stock) to the template
-        'related_products': related_products,
-    }
-    return render(request, 'product_details.html', context)
 
 # Toggle Product Listing
 @user_passes_test(is_admin)
@@ -318,20 +306,51 @@ def toggle_product_listing(request, product_id):
     return redirect('product_management')
 
 
+# Product Details View
+def product_details(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    variants = product.variants.filter(stock__gt=0)  # Get variants with stock greater than 0
+    related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
+
+    context = {
+        'product': product,
+        'variants': variants,  # Pass the variants (color, size, stock) to the template
+        'related_products': related_products,
+    }
+    return render(request, 'product_details.html', context)
+
+
 # def category_products(request, category_id):
 #     category = get_object_or_404(Category, id=category_id, is_listed=True)
 #     products = Product.objects.filter(category=category, is_listed=True).prefetch_related('images')
 
-#     # Prepare context data with only the first image
+#     # Handle search
+#     search_query = request.GET.get('search', '')  # Get search input
+#     if search_query:
+#         products = products.filter(name__icontains=search_query)  # Search by name (case-insensitive)
+
+#     # Handle sorting
+#     sort_option = request.GET.get('sort', '')  # Get sort option
+#     if sort_option == 'name-asc':
+#         products = products.order_by('name')  # Sort A to Z
+#     elif sort_option == 'name-desc':
+#         products = products.order_by('-name')  # Sort Z to A
+#     elif sort_option == 'offer-asc':
+#         products = products.order_by('offer')  # Low to High
+#     elif sort_option == 'offer-desc':
+#         products = products.order_by('-offer')  # High to Low
+
+#     # Prepare context data
 #     context = {
 #         'category': category,
 #         'products': [{
 #             'product': product,
 #             'first_image': product.images.first()  # Fetch the first image
-#         } for product in products]
+#         } for product in products],
+#         'search_query': search_query,
+#         'sort_option': sort_option,
 #     }
 #     return render(request, 'category_products.html', context)
-
 
 def category_products(request, category_id):
     category = get_object_or_404(Category, id=category_id, is_listed=True)
@@ -348,10 +367,14 @@ def category_products(request, category_id):
         products = products.order_by('name')  # Sort A to Z
     elif sort_option == 'name-desc':
         products = products.order_by('-name')  # Sort Z to A
-    elif sort_option == 'price-asc':
-        products = products.order_by('price')  # Low to High
-    elif sort_option == 'price-desc':
-        products = products.order_by('-price')  # High to Low
+    elif sort_option == 'price-asc':  # Sort by MRP Low to High
+        products = products.order_by('price')
+    elif sort_option == 'price-desc':  # Sort by MRP High to Low
+        products = products.order_by('-price')
+    elif sort_option == 'offer-asc':  # Sort by Offer Price Low to High
+        products = products.order_by('offer')
+    elif sort_option == 'offer-desc':  # Sort by Offer Price High to Low
+        products = products.order_by('-offer')
 
     # Prepare context data
     context = {
@@ -365,42 +388,3 @@ def category_products(request, category_id):
     }
     return render(request, 'category_products.html', context)
 
-
-# def all_products(request):
-#     products = Product.objects.filter(is_listed=True).prefetch_related('images')
-#     categories = Category.objects.filter(is_listed=True)
-
-#     # Handle search
-#     search_query = request.GET.get('search', '')
-#     if search_query:
-#         products = products.filter(name__icontains=search_query)
-
-#     # Handle category filtering
-#     selected_categories = request.GET.getlist('categories')  # Retrieve list of selected category IDs
-#     if selected_categories:
-#         products = products.filter(category__id__in=selected_categories)
-
-#     # Handle sorting
-#     sort_option = request.GET.get('sort', '')
-#     if sort_option == 'name-asc':
-#         products = products.order_by('name')
-#     elif sort_option == 'name-desc':
-#         products = products.order_by('-name')
-#     elif sort_option == 'price-asc':
-#         products = products.order_by('price')
-#     elif sort_option == 'price-desc':
-#         products = products.order_by('-price')
-
-#     # Prepare context
-#     context = {
-#         'products': [{
-#             'product': product,
-#             'first_image': product.images.first()
-#         } for product in products],
-#         'categories': categories,
-#         'selected_categories': [int(cat) for cat in selected_categories],
-#         'search_query': search_query,
-#         'sort_option': sort_option,
-#     }
-
-#     return render(request, 'all_products.html', context)
