@@ -13,7 +13,77 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}">
     <style>
-        /* Same CSS styles for the cropper and preview functionality */
+        .image-preview-container {
+            display: inline-block;
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-preview-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-container .remove-image-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 14px;
+            line-height: 22px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .cropper-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1050;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cropper-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width: 500px;
+            max-width: 90%;
+        }
+
+        .cropper-content {
+            max-height: 400px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .cropper-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cropper-actions .btn {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -21,7 +91,6 @@
     <div class="container-scroller">
         {% include 'admin/sidebar.html' %}
         <div class="container-fluid page-body-wrapper">
-            {% include 'admin/navbar.html' %}
             <div class="main-panel">
                 <div class="content-wrapper">
                     {% if messages %}
@@ -59,10 +128,10 @@
                                         <div class="form-group">
                                             <label for="category">Category</label>
                                             <select class="form-control" id="category" name="category" required>
-                                                <option value="" disabled {% if not form_data.category %}selected{%endif %}>Select Category</option>
+                                                <option value="" disabled {% if not form_data.category %}selected{% endif %}>Select Category</option>
                                                 {% for category in categories %}
                                                 <option value="{{ category.id }}" {% if
-                                                    form_data.category==category.id|stringformat:"s" %}selected{% endif
+                                                    form_data.category == category.id|stringformat:"s" %}selected{% endif
                                                     %}>
                                                     {{ category.category_name }}
                                                 </option>
@@ -71,32 +140,26 @@
                                         </div>
                                         <div class="form-group">
                                             <label for="price">Price</label>
-                                            <input type="number" class="form-control" id="price" name="price"
-                                                step="0.01" min="0" required value="{{ form_data.price }}">
+                                            <input type="number" class="form-control" id="price" name="price" step="0.01"
+                                                min="0" required value="{{ form_data.price }}">
                                         </div>
-
-                                        <!-- Removed Variant Section -->
                                         <div class="form-group">
                                             <label for="offer">Offer</label>
-                                            <input type="number" class="form-control" id="offer" name="offer"
-                                                step="0.01" min="0" value="{{ form_data.offer }}">
+                                            <input type="number" class="form-control" id="offer" name="offer" step="0.01"
+                                                min="0" value="{{ form_data.offer }}">
                                         </div>
-
                                         <div class="form-group">
                                             <label>Product Images</label>
-                                            <div class="image-upload-container">
+                                            <div class="image-upload-container d-flex align-items-center">
                                                 <input type="file" class="hidden" id="imageInput" accept="image/*">
-                                                <button type="button" class="btn btn-action btn-add" id="addImageBtn">
-                                                    Add Image
-                                                </button>
+                                                <button type="button" class="btn btn-primary" id="addImageBtn">Add Image</button>
                                             </div>
-                                            <div id="imagePreviews"></div>
+                                            <div id="imagePreviews" class="d-flex flex-wrap mt-3" style="gap: 15px;"></div>
                                         </div>
 
                                         <div class="mt-4">
                                             <button type="submit" class="btn btn-primary me-2">Create Product</button>
-                                            <a href="{% url 'product_management' %}"
-                                                class="btn btn-secondary">Cancel</a>
+                                            <a href="{% url 'product_management' %}" class="btn btn-secondary">Cancel</a>
                                         </div>
                                     </form>
                                 </div>
@@ -108,7 +171,6 @@
         </div>
     </div>
 
-    <!-- Cropper Modal -->
     <div id="cropperModal" class="cropper-modal">
         <div class="cropper-container">
             <div class="cropper-content">
@@ -121,186 +183,102 @@
         </div>
     </div>
 
-    <!-- Required Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Image Handling
-            const imageInput = document.getElementById('imageInput');
-            const addImageBtn = document.getElementById('addImageBtn');
-            const imagePreviews = document.getElementById('imagePreviews');
-            const cropperModal = document.getElementById('cropperModal');
-            const cropperImage = document.getElementById('cropperImage');
+            const imageInput = document.getElementById("imageInput");
+            const addImageBtn = document.getElementById("addImageBtn");
+            const imagePreviews = document.getElementById("imagePreviews");
+            const cropperModal = document.getElementById("cropperModal");
+            const cropperImage = document.getElementById("cropperImage");
             let cropper = null;
             let currentImageContainer = null;
 
-            // Handle Add Image button click
-            addImageBtn.addEventListener('click', function () {
+            addImageBtn.addEventListener("click", function () {
                 imageInput.click();
             });
 
-            // Handle image selection
-            imageInput.addEventListener('change', function (event) {
-                const file = event.target.files[0];
+            imageInput.addEventListener("change", function () {
+                const file = imageInput.files[0];
                 if (!file) return;
 
-                if (!file.type.startsWith('image/')) {
-                    Swal.fire({
-                        title: 'Invalid File',
-                        text: 'Please select an image file',
-                        icon: 'error'
-                    });
+                if (!file.type.startsWith("image/")) {
+                    Swal.fire("Invalid File", "Please select an image file.", "error");
                     return;
                 }
 
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    addImagePreview(e.target.result, file.name);
+                    openCropper(e.target.result);
                 };
                 reader.readAsDataURL(file);
-                imageInput.value = ''; // Reset input for next selection
+                imageInput.value = "";
             });
 
-            function addImagePreview(src, fileName) {
-                const previewContainer = document.createElement('div');
-                previewContainer.classList.add('image-preview-container');
-                
-                const img = document.createElement('img');
-                img.src = src;
-                img.classList.add('preview-image');
-                previewContainer.appendChild(img);
-
-                const actionsDiv = document.createElement('div');
-                actionsDiv.classList.add('image-actions');
-
-                const cropBtn = document.createElement('button');
-                cropBtn.textContent = 'Crop';
-                cropBtn.classList.add('btn-action', 'btn-crop');
-                cropBtn.type = 'button';
-                actionsDiv.appendChild(cropBtn);
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.classList.add('btn-action', 'btn-delete');
-                deleteBtn.type = 'button';
-                actionsDiv.appendChild(deleteBtn);
-
-                previewContainer.appendChild(actionsDiv);
-                imagePreviews.appendChild(previewContainer);
-
-                // Create hidden input for the image
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'product_images[]';
-                hiddenInput.value = src;
-                previewContainer.appendChild(hiddenInput);
-
-                // Event listeners
-                cropBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    openCropper(img.src, previewContainer);
-                });
-
-                deleteBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    previewContainer.remove();
-                });
-            }
-
-            function openCropper(imageUrl, container) {
-                cropperModal.style.display = 'flex';
+            function openCropper(imageUrl) {
+                cropperModal.style.display = "flex";
                 cropperImage.src = imageUrl;
-                currentImageContainer = container;
 
-                // Destroy existing cropper if it exists
-                if (cropper) {
-                    cropper.destroy();
-                }
+                if (cropper) cropper.destroy();
 
-                // Initialize cropper with a slight delay to ensure image is loaded
-                setTimeout(() => {
-                    cropper = new Cropper(cropperImage, {
-                        aspectRatio: 1,
-                        viewMode: 2,
-                        dragMode: 'move',
-                        autoCropArea: 1,
-                        zoomable: true,
-                        scalable: true,
-                        guides: true,
-                        highlight: true,
-                        cropBoxMovable: true,
-                        cropBoxResizable: true,
-                        responsive: true
-                    });
-                }, 100);
+                cropper = new Cropper(cropperImage, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    zoomable: true,
+                    scalable: true,
+                    responsive: true,
+                });
             }
 
-            document.getElementById('saveCrop').addEventListener('click', function (e) {
-                e.preventDefault();
-                if (cropper && currentImageContainer) {
-                    const croppedCanvas = cropper.getCroppedCanvas({
+            document.getElementById("saveCrop").addEventListener("click", function () {
+                if (cropper) {
+                    const canvas = cropper.getCroppedCanvas({
                         width: 800,
                         height: 800,
                         imageSmoothingEnabled: true,
-                        imageSmoothingQuality: 'high'
+                        imageSmoothingQuality: "high",
                     });
 
-                    const croppedImageUrl = croppedCanvas.toDataURL('image/jpeg', 0.9);
-                    const img = currentImageContainer.querySelector('img');
-                    const hiddenInput = currentImageContainer.querySelector('input[type="hidden"]');
-                    
-                    img.src = croppedImageUrl;
-                    hiddenInput.value = croppedImageUrl;
-                    
+                    const croppedImage = canvas.toDataURL("image/jpeg");
+                    addImagePreview(croppedImage);
                     closeCropper();
                 }
             });
 
-            document.getElementById('cancelCrop').addEventListener('click', function (e) {
-                e.preventDefault();
-                closeCropper();
-            });
+            document.getElementById("cancelCrop").addEventListener("click", closeCropper);
+
+            function addImagePreview(src) {
+                const container = document.createElement("div");
+                container.classList.add("image-preview-container");
+
+                const img = document.createElement("img");
+                img.src = src;
+                container.appendChild(img);
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.innerHTML = "&times;";
+                deleteBtn.classList.add("remove-image-btn");
+                deleteBtn.addEventListener("click", () => container.remove());
+                container.appendChild(deleteBtn);
+
+                const hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "product_images[]";
+                hiddenInput.value = src;
+                container.appendChild(hiddenInput);
+
+                imagePreviews.appendChild(container);
+            }
 
             function closeCropper() {
-                cropperModal.style.display = 'none';
+                cropperModal.style.display = "none";
                 if (cropper) {
                     cropper.destroy();
                     cropper = null;
                 }
-                currentImageContainer = null;
             }
-
-            // Form validation
-            window.validateForm = function () {
-                const images = document.querySelectorAll('input[name="product_images[]"]');
-                if (images.length === 0) {
-                    Swal.fire({
-                        title: 'Images Required',
-                        text: 'Please add at least one image for the product',
-                        icon: 'warning'
-                    });
-                    return false;
-                }
-                // Create a loading state
-                Swal.fire({
-                    title: 'Saving Product',
-                    text: 'Please wait while we process your images...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                return true;
-            };
-
-            // Close cropper modal when clicking outside
-            cropperModal.addEventListener('click', function (e) {
-                if (e.target === cropperModal) {
-                    closeCropper();
-                }
-            });
         });
     </script>
 </body>

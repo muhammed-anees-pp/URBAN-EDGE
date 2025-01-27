@@ -30,6 +30,66 @@ def product_list(request):
 
 
 # Create Product View
+# @user_passes_test(is_admin)
+# def create_product(request):
+#     if request.method == "POST":
+#         form_data = {
+#             'product_name': request.POST.get('product_name', ''),
+#             'description': request.POST.get('description', ''),
+#             'category': request.POST.get('category', ''),
+#             'price': request.POST.get('price', ''),
+#             'offer': request.POST.get('offer', ''),
+#         }
+
+#         try:
+#             name = form_data['product_name']
+#             description = form_data['description']
+#             category_id = form_data['category']
+#             price = Decimal(form_data['price'])
+
+#             if not name or not description or not category_id:
+#                 messages.error(request, "All fields are required.")
+#                 raise ValueError("Validation Error")
+
+#             category = Category.objects.get(id=category_id)
+
+#             product = Product.objects.create(
+#                 name=name,
+#                 description=description,
+#                 category=category,
+#                 price=price,
+#                 offer=Decimal(form_data['offer']) if form_data['offer'] else None
+#             )
+
+#             # Handle base64 images
+#             product_images = request.POST.getlist('product_images[]')
+#             if not product_images:
+#                 messages.error(request, "Please upload at least one image.")
+#                 raise ValueError("Validation Error")
+
+#             for base64_image in product_images:
+#                 if ',' in base64_image:
+#                     format, imgstr = base64_image.split(';base64,')
+#                 else:
+#                     imgstr = base64_image
+
+#                 try:
+#                     decoded_image = base64.b64decode(imgstr)
+#                     image_file = ContentFile(decoded_image, name=f'product_{product.id}_{uuid.uuid4()}.jpg')
+#                     ProductImage.objects.create(product=product, image=image_file)
+#                 except Exception as e:
+#                     product.delete()  # Rollback if image processing fails
+#                     messages.error(request, f"Error processing images: {str(e)}")
+#                     raise ValueError("Image processing error")
+
+#             messages.success(request, "Product created successfully!")
+#             return redirect('product_management')
+
+#         except Exception as e:
+#             messages.error(request, f"An unexpected error occurred: {str(e)}")
+
+#     categories = Category.objects.filter(is_listed=True)
+#     return render(request, 'admin/add_product.html', {'categories': categories})
 @user_passes_test(is_admin)
 def create_product(request):
     if request.method == "POST":
@@ -41,58 +101,170 @@ def create_product(request):
             'offer': request.POST.get('offer', ''),
         }
 
+        errors = []
         try:
+            # Validation
             name = form_data['product_name']
             description = form_data['description']
             category_id = form_data['category']
-            price = Decimal(form_data['price'])
+            try:
+                price = Decimal(form_data['price'])
+                if price <= 0:
+                    errors.append("Price must be greater than zero.")
+            except (InvalidOperation, ValueError):
+                errors.append("Price must be a valid decimal number.")
 
-            if not name or not description or not category_id:
-                messages.error(request, "All fields are required.")
+            offer = None
+            if form_data['offer']:
+                try:
+                    offer = Decimal(form_data['offer'])
+                    if offer < 0 or offer >= price:
+                        errors.append("Offer must be a positive number and less than the price.")
+                except (InvalidOperation, ValueError):
+                    errors.append("Offer must be a valid decimal number.")
+
+            if not name:
+                errors.append("Product name is required.")
+            if not description:
+                errors.append("Description is required.")
+            if not category_id:
+                errors.append("Category is required.")
+            else:
+                try:
+                    category = Category.objects.get(id=category_id)
+                except Category.DoesNotExist:
+                    errors.append("Selected category does not exist.")
+
+            product_images = request.POST.getlist('product_images[]')
+            if not product_images:
+                errors.append("Please upload at least one image.")
+
+            if errors:
                 raise ValueError("Validation Error")
 
-            category = Category.objects.get(id=category_id)
-
+            # Create the product
             product = Product.objects.create(
                 name=name,
                 description=description,
                 category=category,
                 price=price,
-                offer=Decimal(form_data['offer']) if form_data['offer'] else None
+                offer=offer
             )
 
-            # Handle base64 images
-            product_images = request.POST.getlist('product_images[]')
-            if not product_images:
-                messages.error(request, "Please upload at least one image.")
-                raise ValueError("Validation Error")
-
+            # Process images
             for base64_image in product_images:
                 if ',' in base64_image:
                     format, imgstr = base64_image.split(';base64,')
                 else:
                     imgstr = base64_image
 
-                try:
-                    decoded_image = base64.b64decode(imgstr)
-                    image_file = ContentFile(decoded_image, name=f'product_{product.id}_{uuid.uuid4()}.jpg')
-                    ProductImage.objects.create(product=product, image=image_file)
-                except Exception as e:
-                    product.delete()  # Rollback if image processing fails
-                    messages.error(request, f"Error processing images: {str(e)}")
-                    raise ValueError("Image processing error")
+                decoded_image = base64.b64decode(imgstr)
+                image_file = ContentFile(decoded_image, name=f'product_{product.id}_{uuid.uuid4()}.jpg')
+                ProductImage.objects.create(product=product, image=image_file)
 
             messages.success(request, "Product created successfully!")
             return redirect('product_management')
 
         except Exception as e:
-            messages.error(request, f"An unexpected error occurred: {str(e)}")
+            messages.error(request, "Error creating product. Please check the form and try again.")
+            categories = Category.objects.filter(is_listed=True)
+            return render(request, 'admin/add_product.html', {
+                'categories': categories,
+                'form_data': form_data,
+                'errors': errors,
+            })
 
     categories = Category.objects.filter(is_listed=True)
     return render(request, 'admin/add_product.html', {'categories': categories})
 
 
+
 # Edit Product View (with no color field)
+# @user_passes_test(is_admin)
+# def edit_product(request, product_id):
+#     product = get_object_or_404(Product, id=product_id)
+
+#     if request.method == "POST":
+#         form_data = {
+#             'product_name': request.POST.get('product_name', product.name),
+#             'description': request.POST.get('description', product.description),
+#             'category': request.POST.get('category', product.category.id if product.category else ''),
+#             'price': request.POST.get('price', product.price),
+#             'offer': request.POST.get('offer', product.offer),
+#         }
+
+#         errors = []
+
+#         try:
+#             name = form_data['product_name']
+#             if not name or Product.objects.filter(name__iexact=name).exclude(id=product.id).exists():
+#                 errors.append("Product name is required and must be unique.")
+
+#             description = form_data['description']
+#             if not description:
+#                 errors.append("Description is required.")
+
+#             try:
+#                 price = Decimal(form_data['price'])
+#                 if price <= 0:
+#                     errors.append("Price must be greater than zero.")
+#             except (InvalidOperation, ValueError):
+#                 errors.append("Price must be a valid decimal number.")
+
+#             offer = None
+#             offer_str = form_data['offer']
+#             if offer_str:
+#                 try:
+#                     offer = Decimal(offer_str)
+#                     if offer < 0 or offer >= price:
+#                         errors.append("Offer must be a positive decimal and less than the price.")
+#                 except (InvalidOperation, ValueError):
+#                     errors.append("Offer must be a valid decimal number.")
+
+#             category_id = form_data['category']
+#             if not category_id:
+#                 errors.append("Please select a category.")
+#             else:
+#                 try:
+#                     category = Category.objects.get(id=category_id)
+#                 except Category.DoesNotExist:
+#                     errors.append("Selected category does not exist.")
+
+#             if errors:
+#                 categories = Category.objects.filter(is_listed=True)
+#                 return render(request, 'admin/edit_product.html', {
+#                     'product': product,
+#                     'categories': categories,
+#                     'form_data': form_data,
+#                     'errors': errors,
+#                 })
+
+#             # Update product details
+#             product.name = name
+#             product.description = description
+#             product.price = price
+#             product.offer = offer
+#             product.category = category
+#             product.save()
+
+#             messages.success(request, "Product updated successfully.")
+#             return redirect('product_management')
+
+#         except Exception as e:
+#             errors.append(f"Error updating product: {str(e)}")
+#             categories = Category.objects.filter(is_listed=True)
+#             return render(request, 'admin/edit_product.html', {
+#                 'product': product,
+#                 'categories': categories,
+#                 'form_data': form_data,
+#                 'errors': errors,
+#             })
+
+#     categories = Category.objects.filter(is_listed=True)
+#     return render(request, 'admin/edit_product.html', {
+#         'product': product,
+#         'categories': categories,
+#     })
 @user_passes_test(is_admin)
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -107,11 +279,11 @@ def edit_product(request, product_id):
         }
 
         errors = []
-
         try:
+            # Validation
             name = form_data['product_name']
-            if not name or Product.objects.filter(name__iexact=name).exclude(id=product.id).exists():
-                errors.append("Product name is required and must be unique.")
+            if not name:
+                errors.append("Product name is required.")
 
             description = form_data['description']
             if not description:
@@ -125,18 +297,17 @@ def edit_product(request, product_id):
                 errors.append("Price must be a valid decimal number.")
 
             offer = None
-            offer_str = form_data['offer']
-            if offer_str:
+            if form_data['offer']:
                 try:
-                    offer = Decimal(offer_str)
+                    offer = Decimal(form_data['offer'])
                     if offer < 0 or offer >= price:
-                        errors.append("Offer must be a positive decimal and less than the price.")
+                        errors.append("Offer must be a positive number and less than the price.")
                 except (InvalidOperation, ValueError):
                     errors.append("Offer must be a valid decimal number.")
 
             category_id = form_data['category']
             if not category_id:
-                errors.append("Please select a category.")
+                errors.append("Category is required.")
             else:
                 try:
                     category = Category.objects.get(id=category_id)
@@ -152,7 +323,7 @@ def edit_product(request, product_id):
                     'errors': errors,
                 })
 
-            # Update product details
+            # Update the product
             product.name = name
             product.description = description
             product.price = price
@@ -160,11 +331,11 @@ def edit_product(request, product_id):
             product.category = category
             product.save()
 
-            messages.success(request, "Product updated successfully.")
+            messages.success(request, "Product updated successfully!")
             return redirect('product_management')
 
         except Exception as e:
-            errors.append(f"Error updating product: {str(e)}")
+            errors.append("Error updating product. Please check the form and try again.")
             categories = Category.objects.filter(is_listed=True)
             return render(request, 'admin/edit_product.html', {
                 'product': product,
@@ -178,6 +349,7 @@ def edit_product(request, product_id):
         'product': product,
         'categories': categories,
     })
+
 
 @user_passes_test(is_admin)
 def add_variant(request, product_id):

@@ -9,308 +9,80 @@
     <link rel="stylesheet" href="{% static 'admin/vendors/mdi/css/materialdesignicons.min.css' %}">
     <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}">
 </head>
 
 <body>
     <div class="container-scroller">
         {% include 'admin/sidebar.html' %}
         <div class="container-fluid page-body-wrapper">
-            {% include 'admin/navbar.html' %}
             <div class="main-panel">
                 <div class="content-wrapper">
+                    {% if messages %}
+                    <div class="alert-container">
+                        {% for message in messages %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show"
+                            role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <div class="row">
-                        <div class="col-12 grid-margin stretch-card">
+                        <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
-                                    {% if errors %}
-                                    <div class="alert alert-danger">
-                                        <ul>
-                                            {% for error in errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    {% endif %}
                                     <h4 class="card-title">Edit Product</h4>
-
-                                    <form id="editProductForm" method="POST" enctype="multipart/form-data"
-                                        action="{% url 'edit_product' product.id %}">
+                                    <form id="editProductForm" method="POST" action="{% url 'edit_product' product.id %}">
                                         {% csrf_token %}
                                         <div class="form-group">
                                             <label for="product_name">Product Name</label>
-                                            <input type="text" id="product_name" name="product_name"
-                                                value="{{ form_data.product_name|default:product.name }}" class="form-control">
+                                            <input type="text" class="form-control" id="product_name" name="product_name"
+                                                value="{{ form_data.product_name|default:product.name }}" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="description">Description</label>
-                                            <textarea id="description" name="description" class="form-control">{{ form_data.description|default:product.description }}</textarea>
+                                            <textarea class="form-control" id="description" name="description" rows="4" required>{{ form_data.description|default:product.description }}</textarea>
                                         </div>
-
-                                        <!-- Category Section -->
                                         <div class="form-group">
                                             <label for="category">Category</label>
-                                            <select id="category" name="category" class="form-control">
+                                            <select class="form-control" id="category" name="category" required>
                                                 <option value="" disabled {% if not form_data.category %}selected{% endif %}>Select Category</option>
-                                                {% for cat in categories %}
-                                                <option value="{{ cat.id }}" {% if form_data.category == cat.id|stringformat:"s" or product.category.id == cat.id %}selected{% endif %}>
-                                                    {{ cat.category_name }}
+                                                {% for category in categories %}
+                                                <option value="{{ category.id }}" {% if form_data.category == category.id|stringformat:"s" or product.category.id == category.id %}selected{% endif %}>
+                                                    {{ category.category_name }}
                                                 </option>
                                                 {% endfor %}
                                             </select>
                                         </div>
-
-                                        <!-- Price Section -->
                                         <div class="form-group">
                                             <label for="price">Price</label>
-                                            <input type="number" id="price" name="price" step="0.01" value="{{ form_data.price|default:product.price }}" class="form-control">
+                                            <input type="number" class="form-control" id="price" name="price" step="0.01" min="0"
+                                                value="{{ form_data.price|default:product.price }}" required>
                                         </div>
-
-                                        <!-- Offer Section -->
                                         <div class="form-group">
                                             <label for="offer">Offer</label>
-                                            <input type="number" id="offer" name="offer" step="0.01" min="0" max="10000" value="{{ form_data.offer|default:product.offer }}" class="form-control">
+                                            <input type="number" class="form-control" id="offer" name="offer" step="0.01" min="0"
+                                                value="{{ form_data.offer|default:product.offer }}">
                                         </div>
-
-                                        <!-- Image Section -->
-                                        <div class="form-group">
-                                            <label>Product Images</label>
-                                            <div class="image-upload-container">
-                                                <input type="file" class="hidden" id="imageInput" accept="image/*">
-                                                <button type="button" class="btn btn-action btn-add" id="addImageBtn">Add Image</button>
-                                            </div>
-                                            <div id="imagePreviews">
-                                                {% for image in product.images.all %}
-                                                    <div class="image-preview-container">
-                                                        <img src="{{ image.image.url }}" alt="Product Image" class="preview-image">
-                                                        <button type="button" class="btn btn-action btn-delete" data-image-id="{{ image.id }}">Delete</button>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-
                                         <div class="mt-4">
-                                            <button type="submit" class="btn btn-success me-2">Update Product</button>
-                                            <a href="{% url 'product_management' %}" class="btn btn-secondary">Back to Product List</a>
+                                            <button type="submit" class="btn btn-success">Update Product</button>
+                                            <a href="{% url 'product_management' %}" class="btn btn-secondary">Cancel</a>
                                         </div>
                                     </form>
-
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Image Cropping Modal -->
-                <div class="modal fade" id="cropImageModal" tabindex="-1" role="dialog" aria-labelledby="cropImageModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="cropImageModalLabel">Crop Image</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <div>
-                                    <img id="cropImage" src="" alt="Image to crop" style="max-width: 100%;">
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" id="cropImageButton" class="btn btn-primary">Crop</button>
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- End Image Cropping Modal -->
-
             </div>
         </div>
     </div>
-
-    <!-- plugins:js -->
     <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Image Handling
-            const imageInput = document.getElementById('imageInput');
-            const addImageBtn = document.getElementById('addImageBtn');
-            const imagePreviews = document.getElementById('imagePreviews');
-            const cropperModal = document.getElementById('cropperModal');
-            const cropperImage = document.getElementById('cropperImage');
-            let cropper = null;
-            let currentImageContainer = null;
-
-            // Handle Add Image button click
-            addImageBtn.addEventListener('click', function () {
-                imageInput.click();
-            });
-
-            // Handle image selection
-            imageInput.addEventListener('change', function (event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                if (!file.type.startsWith('image/')) {
-                    Swal.fire({
-                        title: 'Invalid File',
-                        text: 'Please select an image file',
-                        icon: 'error'
-                    });
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    addImagePreview(e.target.result, file.name);
-                };
-                reader.readAsDataURL(file);
-                imageInput.value = ''; // Reset input for next selection
-            });
-
-            function addImagePreview(src, fileName) {
-                const previewContainer = document.createElement('div');
-                previewContainer.classList.add('image-preview-container');
-                
-                const img = document.createElement('img');
-                img.src = src;
-                img.classList.add('preview-image');
-                previewContainer.appendChild(img);
-
-                const actionsDiv = document.createElement('div');
-                actionsDiv.classList.add('image-actions');
-
-                const cropBtn = document.createElement('button');
-                cropBtn.textContent = 'Crop';
-                cropBtn.classList.add('btn-action', 'btn-crop');
-                cropBtn.type = 'button';
-                actionsDiv.appendChild(cropBtn);
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.classList.add('btn-action', 'btn-delete');
-                deleteBtn.type = 'button';
-                actionsDiv.appendChild(deleteBtn);
-
-                previewContainer.appendChild(actionsDiv);
-                imagePreviews.appendChild(previewContainer);
-
-                // Create hidden input for the image
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'product_images[]';
-                hiddenInput.value = src;
-                previewContainer.appendChild(hiddenInput);
-
-                // Event listeners
-                cropBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    openCropper(img.src, previewContainer);
-                });
-
-                deleteBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    previewContainer.remove();
-                });
-            }
-
-            function openCropper(imageUrl, container) {
-                cropperModal.style.display = 'flex';
-                cropperImage.src = imageUrl;
-                currentImageContainer = container;
-
-                // Destroy existing cropper if it exists
-                if (cropper) {
-                    cropper.destroy();
-                }
-
-                // Initialize cropper with a slight delay to ensure image is loaded
-                setTimeout(() => {
-                    cropper = new Cropper(cropperImage, {
-                        aspectRatio: 1,
-                        viewMode: 2,
-                        dragMode: 'move',
-                        autoCropArea: 1,
-                        zoomable: true,
-                        scalable: true,
-                        guides: true,
-                        highlight: true,
-                        cropBoxMovable: true,
-                        cropBoxResizable: true,
-                        responsive: true
-                    });
-                }, 100);
-            }
-
-            document.getElementById('saveCrop').addEventListener('click', function (e) {
-                e.preventDefault();
-                if (cropper && currentImageContainer) {
-                    const croppedCanvas = cropper.getCroppedCanvas({
-                        width: 800,
-                        height: 800,
-                        imageSmoothingEnabled: true,
-                        imageSmoothingQuality: 'high'
-                    });
-
-                    const croppedImageUrl = croppedCanvas.toDataURL('image/jpeg', 0.9);
-                    const img = currentImageContainer.querySelector('img');
-                    const hiddenInput = currentImageContainer.querySelector('input[type="hidden"]');
-                    
-                    img.src = croppedImageUrl;
-                    hiddenInput.value = croppedImageUrl;
-                    
-                    closeCropper();
-                }
-            });
-
-            document.getElementById('cancelCrop').addEventListener('click', function (e) {
-                e.preventDefault();
-                closeCropper();
-            });
-
-            function closeCropper() {
-                cropperModal.style.display = 'none';
-                if (cropper) {
-                    cropper.destroy();
-                    cropper = null;
-                }
-                currentImageContainer = null;
-            }
-
-            // Form validation
-            window.validateForm = function () {
-                const images = document.querySelectorAll('input[name="product_images[]"]');
-                if (images.length === 0) {
-                    Swal.fire({
-                        title: 'Images Required',
-                        text: 'Please add at least one image for the product',
-                        icon: 'warning'
-                    });
-                    return false;
-                }
-                // Create a loading state
-                Swal.fire({
-                    title: 'Saving Product',
-                    text: 'Please wait while we process your images...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                return true;
-            };
-
-            // Close cropper modal when clicking outside
-            cropperModal.addEventListener('click', function (e) {
-                if (e.target === cropperModal) {
-                    closeCropper();
-                }
-            });
-        });
-    </script>
 </body>
 
 </html>
