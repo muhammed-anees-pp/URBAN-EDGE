@@ -327,43 +327,6 @@ def toggle_product_listing(request, product_id):
         messages.error(request, "Product not found")
     return redirect('product_management')
 
-
-# Product Details View
-# def product_details(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-#     variants = product.variants.filter(stock__gt=0)  # Get variants with stock greater than 0
-#     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
-
-#     context = {
-#         'product': product,
-#         'variants': variants,  # Pass the variants (color, size, stock) to the template
-#         'related_products': related_products,
-#     }
-#     return render(request, 'product_details.html', context)
-
-# def product_details(request, product_id):
-#     # Fetch the product object
-#     product = get_object_or_404(Product, id=product_id)
-
-#     # Get all variants of the product
-#     variants = product.variants.all()  # Fetch all variants (color, size, and stock)
-
-#     # Get all images related to the product
-#     product_images = product.images.all()  # Fetch all images for the product
-
-#     # Fetch related products in the same category excluding the current product
-#     related_products = Product.objects.filter(category=product.category, is_listed=True).exclude(id=product_id)
-
-#     # Prepare context for the template
-#     context = {
-#         'product': product,
-#         'variants': variants,  # All variants of the product (size, color, stock)
-#         'product_images': product_images,  # All images of the product
-#         'related_products': related_products,  # Related products in the same category
-#     }
-
-#     return render(request, 'product_details.html', context)
-
 def product_details(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     variants = product.variants.filter(stock__gt=0)  # Get variants with stock greater than 0
