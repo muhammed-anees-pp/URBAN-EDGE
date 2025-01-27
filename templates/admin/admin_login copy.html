@@ -35,16 +35,6 @@
             letter-spacing: 1px;
         }
 
-        .alert {
-            background-color: #ff4d4d;
-            color: white;
-            padding: 10px;
-            margin-bottom: 16px;
-            border-radius: 3px;
-            font-size: 14px;
-            text-align: center;
-        }
-
         .input-group {
             margin-bottom: 16px;
         }
@@ -99,18 +89,11 @@
 <body>
     <div class="login-container">
         <h1 class="title">Admin Login</h1>
-        {% if messages %}
-        <div class="alert">
-            {% for message in messages %}
-            <p>{{ message }}</p>
-            {% endfor %}
-        </div>
-        {% endif %}
         <form method="post">
             {% csrf_token %}
             <div class="input-group">
                 <label for="username" class="input-label">username</label>
-                <input type="text" id="username" name="username" class="input-field" required value="{{ form_data.username }}">
+                <input type="text" id="username" name="username" class="input-field" required>
             </div>
             
             <div class="input-group">
