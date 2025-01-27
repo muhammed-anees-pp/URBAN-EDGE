@@ -28,68 +28,6 @@ def product_list(request):
         'query': query,  # Pass the query back to the template to preserve it in the search bar
     })
 
-
-# Create Product View
-# @user_passes_test(is_admin)
-# def create_product(request):
-#     if request.method == "POST":
-#         form_data = {
-#             'product_name': request.POST.get('product_name', ''),
-#             'description': request.POST.get('description', ''),
-#             'category': request.POST.get('category', ''),
-#             'price': request.POST.get('price', ''),
-#             'offer': request.POST.get('offer', ''),
-#         }
-
-#         try:
-#             name = form_data['product_name']
-#             description = form_data['description']
-#             category_id = form_data['category']
-#             price = Decimal(form_data['price'])
-
-#             if not name or not description or not category_id:
-#                 messages.error(request, "All fields are required.")
-#                 raise ValueError("Validation Error")
-
-#             category = Category.objects.get(id=category_id)
-
-#             product = Product.objects.create(
-#                 name=name,
-#                 description=description,
-#                 category=category,
-#                 price=price,
-#                 offer=Decimal(form_data['offer']) if form_data['offer'] else None
-#             )
-
-#             # Handle base64 images
-#             product_images = request.POST.getlist('product_images[]')
-#             if not product_images:
-#                 messages.error(request, "Please upload at least one image.")
-#                 raise ValueError("Validation Error")
-
-#             for base64_image in product_images:
-#                 if ',' in base64_image:
-#                     format, imgstr = base64_image.split(';base64,')
-#                 else:
-#                     imgstr = base64_image
-
-#                 try:
-#                     decoded_image = base64.b64decode(imgstr)
-#                     image_file = ContentFile(decoded_image, name=f'product_{product.id}_{uuid.uuid4()}.jpg')
-#                     ProductImage.objects.create(product=product, image=image_file)
-#                 except Exception as e:
-#                     product.delete()  # Rollback if image processing fails
-#                     messages.error(request, f"Error processing images: {str(e)}")
-#                     raise ValueError("Image processing error")
-
-#             messages.success(request, "Product created successfully!")
-#             return redirect('product_management')
-
-#         except Exception as e:
-#             messages.error(request, f"An unexpected error occurred: {str(e)}")
-
-#     categories = Category.objects.filter(is_listed=True)
-#     return render(request, 'admin/add_product.html', {'categories': categories})
 @user_passes_test(is_admin)
 def create_product(request):
     if request.method == "POST":
@@ -177,94 +115,6 @@ def create_product(request):
     categories = Category.objects.filter(is_listed=True)
     return render(request, 'admin/add_product.html', {'categories': categories})
 
-
-
-# Edit Product View (with no color field)
-# @user_passes_test(is_admin)
-# def edit_product(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-
-#     if request.method == "POST":
-#         form_data = {
-#             'product_name': request.POST.get('product_name', product.name),
-#             'description': request.POST.get('description', product.description),
-#             'category': request.POST.get('category', product.category.id if product.category else ''),
-#             'price': request.POST.get('price', product.price),
-#             'offer': request.POST.get('offer', product.offer),
-#         }
-
-#         errors = []
-
-#         try:
-#             name = form_data['product_name']
-#             if not name or Product.objects.filter(name__iexact=name).exclude(id=product.id).exists():
-#                 errors.append("Product name is required and must be unique.")
-
-#             description = form_data['description']
-#             if not description:
-#                 errors.append("Description is required.")
-
-#             try:
-#                 price = Decimal(form_data['price'])
-#                 if price <= 0:
-#                     errors.append("Price must be greater than zero.")
-#             except (InvalidOperation, ValueError):
-#                 errors.append("Price must be a valid decimal number.")
-
-#             offer = None
-#             offer_str = form_data['offer']
-#             if offer_str:
-#                 try:
-#                     offer = Decimal(offer_str)
-#                     if offer < 0 or offer >= price:
-#                         errors.append("Offer must be a positive decimal and less than the price.")
-#                 except (InvalidOperation, ValueError):
-#                     errors.append("Offer must be a valid decimal number.")
-
-#             category_id = form_data['category']
-#             if not category_id:
-#                 errors.append("Please select a category.")
-#             else:
-#                 try:
-#                     category = Category.objects.get(id=category_id)
-#                 except Category.DoesNotExist:
-#                     errors.append("Selected category does not exist.")
-
-#             if errors:
-#                 categories = Category.objects.filter(is_listed=True)
-#                 return render(request, 'admin/edit_product.html', {
-#                     'product': product,
-#                     'categories': categories,
-#                     'form_data': form_data,
-#                     'errors': errors,
-#                 })
-
-#             # Update product details
-#             product.name = name
-#             product.description = description
-#             product.price = price
-#             product.offer = offer
-#             product.category = category
-#             product.save()
-
-#             messages.success(request, "Product updated successfully.")
-#             return redirect('product_management')
-
-#         except Exception as e:
-#             errors.append(f"Error updating product: {str(e)}")
-#             categories = Category.objects.filter(is_listed=True)
-#             return render(request, 'admin/edit_product.html', {
-#                 'product': product,
-#                 'categories': categories,
-#                 'form_data': form_data,
-#                 'errors': errors,
-#             })
-
-#     categories = Category.objects.filter(is_listed=True)
-#     return render(request, 'admin/edit_product.html', {
-#         'product': product,
-#         'categories': categories,
-#     })
 @user_passes_test(is_admin)
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -479,50 +329,56 @@ def toggle_product_listing(request, product_id):
 
 
 # Product Details View
+# def product_details(request, product_id):
+#     product = get_object_or_404(Product, id=product_id)
+#     variants = product.variants.filter(stock__gt=0)  # Get variants with stock greater than 0
+#     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
+
+#     context = {
+#         'product': product,
+#         'variants': variants,  # Pass the variants (color, size, stock) to the template
+#         'related_products': related_products,
+#     }
+#     return render(request, 'product_details.html', context)
+
+# def product_details(request, product_id):
+#     # Fetch the product object
+#     product = get_object_or_404(Product, id=product_id)
+
+#     # Get all variants of the product
+#     variants = product.variants.all()  # Fetch all variants (color, size, and stock)
+
+#     # Get all images related to the product
+#     product_images = product.images.all()  # Fetch all images for the product
+
+#     # Fetch related products in the same category excluding the current product
+#     related_products = Product.objects.filter(category=product.category, is_listed=True).exclude(id=product_id)
+
+#     # Prepare context for the template
+#     context = {
+#         'product': product,
+#         'variants': variants,  # All variants of the product (size, color, stock)
+#         'product_images': product_images,  # All images of the product
+#         'related_products': related_products,  # Related products in the same category
+#     }
+
+#     return render(request, 'product_details.html', context)
+
 def product_details(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     variants = product.variants.filter(stock__gt=0)  # Get variants with stock greater than 0
+    product_images = product.images.all()  # Fetch all images related to the product
     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
 
     context = {
         'product': product,
-        'variants': variants,  # Pass the variants (color, size, stock) to the template
-        'related_products': related_products,
+        'variants': variants,
+        'product_images': product_images,  # Pass the product images
+        'related_products': related_products,  # Pass the related products
     }
     return render(request, 'product_details.html', context)
 
 
-# def category_products(request, category_id):
-#     category = get_object_or_404(Category, id=category_id, is_listed=True)
-#     products = Product.objects.filter(category=category, is_listed=True).prefetch_related('images')
-
-#     # Handle search
-#     search_query = request.GET.get('search', '')  # Get search input
-#     if search_query:
-#         products = products.filter(name__icontains=search_query)  # Search by name (case-insensitive)
-
-#     # Handle sorting
-#     sort_option = request.GET.get('sort', '')  # Get sort option
-#     if sort_option == 'name-asc':
-#         products = products.order_by('name')  # Sort A to Z
-#     elif sort_option == 'name-desc':
-#         products = products.order_by('-name')  # Sort Z to A
-#     elif sort_option == 'offer-asc':
-#         products = products.order_by('offer')  # Low to High
-#     elif sort_option == 'offer-desc':
-#         products = products.order_by('-offer')  # High to Low
-
-#     # Prepare context data
-#     context = {
-#         'category': category,
-#         'products': [{
-#             'product': product,
-#             'first_image': product.images.first()  # Fetch the first image
-#         } for product in products],
-#         'search_query': search_query,
-#         'sort_option': sort_option,
-#     }
-#     return render(request, 'category_products.html', context)
 
 def category_products(request, category_id):
     category = get_object_or_404(Category, id=category_id, is_listed=True)
