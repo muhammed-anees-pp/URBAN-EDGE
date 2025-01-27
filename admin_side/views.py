@@ -11,20 +11,6 @@ from django.views.decorators.cache import never_cache
 def is_admin(user):
     return user.is_staff
 
-# @never_cache
-# def admin_login(request):
-#     if request.method == 'POST':
-#         username = request.POST.get('username')
-#         password = request.POST.get('password')
-#         user = authenticate(request, username=username, password=password)
-
-#         if user is not None and user.is_staff:
-#             login(request, user)
-#             return redirect('admin_dashboard')
-#         else:
-#             messages.error(request, 'Invalid credentials or not an admin user.')
-
-#     return render(request, 'admin/admin_login.html')
 @never_cache
 def admin_login(request):
     form_data = {'username': ''}  # Initialize form data
@@ -43,7 +29,6 @@ def admin_login(request):
             messages.error(request, 'Invalid credentials or not an admin user.')
 
     return render(request, 'admin/admin_login.html', {'form_data': form_data})
-
 
 
 

@@ -43,36 +43,41 @@ def user_login(request):
     if request.user.is_authenticated:
         return redirect('home')
 
+    form_data = {}  # To retain user input on error
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        form_data['username'] = username
 
         if not username or not password:
             messages.error(request, 'Please enter both username and password.')
-            return render(request, 'login.html', {'username': username})
+            return render(request, 'login.html', {'form_data': form_data})
 
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            messages.success(request, 'Successfully logged in.')
+            # messages.success(request, 'Successfully logged in.')
             return redirect('home')
         else:
             messages.error(request, 'Invalid username or password.')
-            return render(request, 'login.html', {'username': username})
+            return render(request, 'login.html', {'form_data': form_data})
 
-    return render(request, 'login.html')
+    return render(request, 'login.html', {'form_data': form_data})
+
+
 
 def user_logout(request):
     """Logout user."""
     logout(request)
-    messages.success(request, 'Successfully logged out.')
+    # messages.success(request, 'Successfully logged out.')
     return redirect('home')
 
 def register(request):
-    """User registration with OTP"""
+    """User registration with OTP."""
     if request.user.is_authenticated:
         return redirect('home')
 
+    form_data = {}  # To retain user input on error
     if request.method == 'POST':
         username = request.POST.get('username').strip()
         first_name = request.POST.get('first_name').strip()
@@ -80,6 +85,13 @@ def register(request):
         email = request.POST.get('email').strip()
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
+
+        form_data = {
+            'username': username,
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+        }
 
         errors = {}
 
@@ -94,7 +106,7 @@ def register(request):
         if errors:
             for error in errors.values():
                 messages.error(request, error)
-            return render(request, 'register.html')
+            return render(request, 'register.html', {'form_data': form_data})
 
         otp = generate_otp()
         expires_at = django_timezone.now() + timedelta(minutes=1)
@@ -110,12 +122,13 @@ def register(request):
 
         if not send_otp_email(email, otp):
             messages.error(request, "Failed to send OTP email. Please try again.")
-            return render(request, 'register.html')
+            return render(request, 'register.html', {'form_data': form_data})
 
-        messages.success(request, "OTP sent successfully! Please verify your email.")
+        # messages.success(request, "OTP sent successfully! Please verify your email.")
         return redirect('verify_otp')
 
-    return render(request, 'register.html')
+    return render(request, 'register.html', {'form_data': form_data})
+
 
 def verify_otp(request):
     """Verify OTP"""
@@ -157,7 +170,7 @@ def verify_otp(request):
                 request.session.pop(key, None)
 
             login(request, user)
-            messages.success(request, 'Registration successful. Welcome!')
+            # messages.success(request, 'Registration successful. Welcome!')
             return redirect('home')
         else:
             return render(request, 'verify_otp.html', {'error': 'Invalid OTP. Please try again.', 'email': email})
@@ -245,42 +258,6 @@ def verify_forgot_password_otp(request):
             return redirect('verify_forgot_password_otp')
 
     return render(request, 'verify_forgot_password_otp.html')
-
-
-# def resend_forgot_password_otp(request):
-#     """Resend OTP for forgot password."""
-#     if request.method == 'POST':
-#         otp_expires_at = request.session.get('password_reset_expires_at')
-
-#         # Check if the OTP is still valid
-#         if otp_expires_at:
-#             otp_expires_at = datetime.fromtimestamp(otp_expires_at, tz=timezone.utc)
-#             if django_timezone.now() < otp_expires_at:
-#                 # OTP is still valid, show the time remaining to the user
-#                 time_remaining = (otp_expires_at - django_timezone.now()).seconds
-#                 messages.error(request, f'Please wait {time_remaining} seconds before requesting a new OTP.')
-#                 return redirect('verify_forgot_password_otp')
-
-#         # Generate a new OTP if expired or not present
-#         otp = generate_otp()
-#         expires_at = django_timezone.now() + timedelta(minutes=1)
-#         request.session['password_reset_otp'] = otp
-#         request.session['password_reset_expires_at'] = int(expires_at.timestamp())  # Store as timestamp
-
-#         email = request.session.get('reset_email')
-#         if email:
-#             # Send the OTP to the email
-#             if send_otp_email(email, otp):
-#                 messages.success(request, 'A new OTP has been sent to your email.')
-#             else:
-#                 messages.error(request, 'Failed to send OTP. Please try again.')
-#         else:
-#             messages.error(request, 'Email not found in session.')
-
-#         return redirect('verify_forgot_password_otp')
-
-#     # For GET requests, simply redirect to the OTP verification page
-#     return redirect('verify_forgot_password_otp')
 
 
 
