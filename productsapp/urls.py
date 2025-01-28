@@ -25,5 +25,4 @@ urlpatterns = [
 
     # Category Products
     path('category/<int:category_id>/', views.category_products, name='category_products'),
-    # path('vs/', views.ind, name='tt'),
 ]

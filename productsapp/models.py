@@ -2,7 +2,7 @@ from django.db import models
 from category.models import Category
 
 class Product(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=500)
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=7, decimal_places=2)

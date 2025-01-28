@@ -1,296 +1,469 @@
 {% extends 'base.html' %}
 {% block title %}{{ product.name }} - Product Details{% endblock %}
+{% load static %}
 
 {% block content %}
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
             background-color: #f4f4f4;
         }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background-color: #ffffff;
-            border-bottom: 1px solid #ddd;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        header .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #333;
-        }
-
-        header nav a {
-            margin: 0 10px;
-            text-decoration: none;
-            color: #555;
-            font-weight: 500;
-        }
-
-        header nav a:hover {
-            color: #007bff;
-        }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            padding-top: 100px; /* Account for navbar height */
         }
 
+        /* Product Details Section */
         .product-details {
             display: flex;
-            gap: 30px;
-            margin-bottom: 40px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            gap: 50px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 30px;
         }
 
-        .product-images img {
+        .product-images {
+            flex: 1;
+            position: relative;
+            text-align: center;
+            overflow: hidden; /* Ensures zoomed image doesn't overflow the container */
+        }
+
+        .main-image {
             width: 100%;
+            max-width: 500px;
             border-radius: 10px;
+            cursor: zoom-in; /* Add cursor style for hover */
+            transition: transform 0.3s ease;
+        }
+
+        .thumbnail-images {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .thumbnail-images img {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .thumbnail-images img:hover {
+            transform: scale(1.1);
+        }
+
+        .product-info {
+            flex: 1.5;
         }
 
         .product-info h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
             color: #333;
         }
 
-        .product-info .price {
-            font-size: 1.5rem;
-            color: #28a745;
-            margin-bottom: 15px;
+        .price {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
             font-weight: 500;
         }
 
-        .product-info .rating {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
+        .price .original {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 1.5rem;
+            margin-right: 10px;
         }
 
-        .product-info .rating span {
-            margin-left: 10px;
-            color: #666;
+        .price .offer {
+            color: #e63946; /* Attractive color for the offer price */
         }
 
         .product-info .description {
-            margin-bottom: 20px;
+            font-size: 1rem;
             color: #555;
             line-height: 1.6;
+            margin-bottom: 30px;
         }
 
-        .product-info button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
+        .dropdown {
+            margin-bottom: 20px;
+        }
+
+        .dropdown select {
+            width: 100%;
+            padding: 12px;
             font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            transition: border-color 0.3s ease;
+        }
+
+        .dropdown select:hover {
+            border-color: #007bff;
+        }
+
+        /* Add to Cart and Wishlist Buttons */
+        .wishlist-cart {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .wishlist-cart button {
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
             transition: background-color 0.3s ease;
         }
 
-        .product-info button:hover {
+        .wishlist-cart .add-to-cart {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .wishlist-cart .add-to-cart:hover {
             background-color: #0056b3;
         }
 
-        .related-products, .customer-reviews {
-            margin-bottom: 40px;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .wishlist-cart .add-to-wishlist {
+            background-color: #f39c12;
+            color: white;
         }
 
-        .related-products h2, .customer-reviews h2 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
+        .wishlist-cart .add-to-wishlist:hover {
+            background-color: #e67e22;
+        }
+
+        /* Related Products Section */
+        .related-products {
+            margin-top: 50px;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .related-products h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
             color: #333;
         }
 
-        .product-list, .reviews {
+        .product-list {
             display: flex;
-            gap: 20px;
+            gap: 30px;
             overflow-x: auto;
-            padding-bottom: 10px;
         }
 
-        .product, .review {
+        .product {
             background-color: #f9f9f9;
             border: 1px solid #ddd;
             border-radius: 10px;
-            padding: 15px;
-            flex: 0 0 300px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 200px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
         }
 
         .product img {
             width: 100%;
-            border-radius: 5px;
-            margin-bottom: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
         }
 
-       
-
-
-
-        .product-title {
-            font-size: 32px;
-            margin: 10px 0;
-          }
-
-          .quantity-add {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 20px 0;
+        .product img:hover {
+            transform: scale(1.05);
         }
-        
-        .quantity-btn {
-            padding: 5px 10px;
-            border: 1px solid #ccc;
-            background: white;
-            cursor: pointer;
+
+        .product p {
+            margin: 0;
+            font-weight: 600;
+            color: #333;
         }
-        
-        .quantity {
-            padding: 0 10px;
-        }
-        .add-to-cart {
-            background-color: #3e8e41;
+
+        .product .btn-primary {
+            background-color: #007bff;
             color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        
-        .add-to-cart:hover {
-            background-color: #2e6e31;
-        }
-        .wishlist-link {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            border-radius: 5px;
             text-decoration: none;
-            color: #3b5998;
-            font-weight: bold;
         }
-        .product-images {
-            flex: 1;
-            display: flex;
+
+        .product .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        /* Popup Notification */
+        .popup {
+            min-width: 300px;
+            min-height: 80px;
+            position: absolute;
+            top: 10px;
+            right: 0;
+            background-color: rgb(255, 255, 255);
+            font-family: sans-serif;
+            font-size: 13px;
+            font-weight: 900;
+            color: hsl(176, 71%, 54%);
+            border-radius: 4px;
+            display: none;
             flex-direction: column;
-            align-items: center;
+            padding-top: 5px;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
         }
-        
-        .main-image {
+
+        .popup h3 {
+            margin: 10px 10px;
+        }
+
+        .popup hr {
             width: 100%;
-            max-width: 200px;
-            margin-bottom: 20px;
+            height: 4px;
+            background-color: hsla(176, 51%, 49%, 0.562);
+            border-radius: 10px;
+            border: none;
         }
-        .thumbnail-images {
-            display: flex;
-            gap: 10px;
+
+        #countdown {
+            position: absolute;
+            bottom: 0;
         }
-        
-        .thumbnail-images img {
-            width: 80px;
-            height: auto;
-            border: 1px solid #ddd;
-            cursor: pointer;
+
+        .active {
+            animation: sajjad 5s ease infinite;
         }
+
+        @keyframes sajjad {
+            0% {
+                width: 100%;
+            }
+            100% {
+                width: 0;
+            }
+        }
+
     </style>
-</head>
-<body>
+
     <div class="container">
         <div class="product-details">
-            
-            <div class="product-info">
-                <h1 class="product-title">{{product.name}}</h1>
-                <p class="price">{{ product.price }}</p>
-                <div class="rating">
-                    ⭐⭐⭐⭐ <span>(4.1/5, 156 reviews)</span>
-                </div>
-                <p class="description">{{ product.description }}</p>
-                <!-- Available Sizes and Stock -->
-                <h3>Available Sizes</h3>
-                <ul>
-                    {% for size in sizes %}
-                        <h5>{{ size.size }} - Stock: {{ size.stock }}</h5>
-                    {% empty %}
-                        <li>No sizes available.</li>
-                    {% endfor %}
-                </ul>
-        
-                <div class="quantity-add">
-                    <button class="quantity-btn">-</button>
-                    <span class="quantity">1</span>
-                    <button class="quantity-btn">+</button>
-                    <button class="add-to-cart">Add to Cart</button>
-                  </div>
-                  <a href="#" class="wishlist-link">Add to Wishlist</a>
-            </div>
-
-            <section class="product-images">
-                <img src="{{ product.image1.url }}" alt="{{ product.name }}" class="main-image">
-                <div class="thumbnail-images">
-                    {% if product.image2 %}
-                        <img src="{{ product.image2.url }}" alt="{{ product.name }} View 2">
-                    {% endif %}
-                    {% if product.image3 %}
-                        <img src="{{ product.image3.url }}" alt="{{ product.name }} View 3">
-                    {% endif %}
-                    {% if product.image4 %}
-                        <img src="{{ product.image4.url }}" alt="{{ product.name }} Dimensions">
-                    {% endif %}
-                </div>
+            <!-- Product Images -->
+            <section class="product-images" id="image-container">
+                {% if product_images %}
+                    <img src="{{ product_images.0.image.url }}" alt="{{ product.name }}" class="main-image" id="zoom-image">
+                    <div class="thumbnail-images">
+                        {% for image in product_images %}
+                            <img src="{{ image.image.url }}" alt="{{ product.name }}" onclick="changeImage('{{ image.image.url }}')">
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No images available for this product.</p>
+                {% endif %}
             </section>
+
+            <!-- Product Info -->
+            <div class="product-info">
+                <h1>{{ product.name }}</h1>
+                <p class="price">
+                    {% if product.offer %}
+                        <span class="original">₹{{ product.price }}</span>
+                        <span class="offer">₹{{ product.offer }}</span>
+                    {% else %}
+                        ₹{{ product.price }}
+                    {% endif %}
+                </p>
+                <p class="description">{{ product.description }}</p>
+
+                <!-- Variant Selection -->
+                <div class="dropdown">
+                    <label for="color">Select Color:</label>
+                    <select id="color" onchange="updateSizes()">
+                        {% for color in unique_colors %}
+                            <option value="{{ color }}" {% if loop.first %}selected{% endif %}>{{ color }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="dropdown">
+                    <label for="size">Select Size:</label>
+                    <select id="size">
+                        <option value="">Select a color first</option>
+                    </select>
+                </div>
+
+                <!-- Add to Cart and Wishlist -->
+                <div class="wishlist-cart">
+                    <button class="add-to-cart" onclick="addToCart('{{ product.id }}')">Add to Cart</button>
+                    <button class="add-to-wishlist">Add to Wishlist</button>
+                </div>
+            </div>
         </div>
 
-
+        <!-- Related Products Section -->
+        {% if related_products %}
         <section class="related-products">
             <h2>Related Products</h2>
             <div class="product-list">
+                {% for related_product in related_products %}
                 <div class="product">
-                    {% for related_product in related_products %}
-                        <div class="product">
-                        {% if related_product.image1 %}
-                        <img src="{{ related_product.image1.url }}" alt="{{ related_product.name }}">
-                         {% endif %}
-                        <p>{{ related_product.name }}</p>
-                        <p>{{ related_product.price }}</p>
+                    <img src="{{ related_product.images.first.image.url }}" alt="{{ related_product.name }}">
+                    <p>{{ related_product.name }}</p>
+                    <p>
+                        {% if related_product.offer %}
+                            <span class="original">₹{{ related_product.price }}</span>
+                            <span class="offer">₹{{ related_product.offer }}</span>
+                        {% else %}
+                            ₹{{ related_product.price }}
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'product_details' related_product.id %}" class="btn-primary">View Details</a>
                 </div>
-                    {% endfor %}
-                </div>
+                {% endfor %}
             </div>
         </section>
-
-        <section class="customer-reviews">
-            <h2>Customer Reviews</h2>
-            <div class="reviews">
-                <div class="review">
-                    <p><strong>Salik</strong> (Jan 01, 2025)</p>
-                    <p>Good product, having good quality</p>
-                    <p>⭐ 4/5</p>
-                </div>
-                <div class="review">
-                    <p><strong>Midlaj</strong> (Jan 08, 2025)</p>
-                    <p>Good product</p>
-                    <p>⭐ 3/5</p>
-                </div>
-            </div>
-        </section>
+        {% endif %}
     </div>
-</body>
+
+    <!-- Popup Notification -->
+    <div class="popup" id="popup">
+        <div class="description">
+            <div class="check" id="check">
+                <svg xmlns="http://www.w3.org/2000/svg" height="34px" viewBox="0 -960 960 960" width="24px" fill="#fff">
+                    <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/>
+                </svg>
+            </div>
+            <h3 id="text"></h3>
+        </div>
+        <hr id="countdown">
+    </div>
+
+{% block extra_js %}
+<script>
+    // Image zoom handling
+    const imageContainer = document.getElementById("image-container");
+    const mainImage = document.getElementById("zoom-image");
+    let isZoomed = false;
+
+    if (imageContainer) {
+        imageContainer.addEventListener('mousemove', function(e) {
+            if (!isZoomed) return;
+
+            const { left, top, width, height } = this.getBoundingClientRect();
+            const x = (e.clientX - left) / width;
+            const y = (e.clientY - top) / height;
+
+            mainImage.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+        });
+
+        imageContainer.addEventListener('mouseenter', function() {
+            isZoomed = true;
+            mainImage.style.transform = 'scale(1.5)';
+        });
+
+        imageContainer.addEventListener('mouseleave', function() {
+            isZoomed = false;
+            mainImage.style.transform = 'scale(1)';
+            mainImage.style.transformOrigin = 'center center';
+        });
+
+        // Add touch support for mobile devices
+        let touchTimeout;
+        imageContainer.addEventListener('touchstart', function() {
+            touchTimeout = setTimeout(() => {
+                isZoomed = !isZoomed;
+                mainImage.style.transform = isZoomed ? 'scale(1.5)' : 'scale(1)';
+            }, 200);
+        });
+
+        imageContainer.addEventListener('touchend', function() {
+            clearTimeout(touchTimeout);
+        });
+
+        imageContainer.addEventListener('touchmove', function(e) {
+            if (!isZoomed) return;
+            
+            const touch = e.touches[0];
+            const { left, top, width, height } = this.getBoundingClientRect();
+            const x = (touch.clientX - left) / width;
+            const y = (touch.clientY - top) / height;
+
+            mainImage.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+            e.preventDefault(); // Prevent page scrolling while zoomed
+        });
+    }
+
+    const colorSizeDict = JSON.parse('{{ color_size_dict|escapejs }}');
+
+    function updateSizes() {
+        const selectedColor = document.getElementById("color").value;
+        const sizeDropdown = document.getElementById("size");
+
+        sizeDropdown.innerHTML = "";
+        if (!selectedColor) {
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.text = "Select a color first";
+            sizeDropdown.appendChild(defaultOption);
+            return;
+        }
+
+        const availableSizes = colorSizeDict[selectedColor] || [];
+
+        if (availableSizes.length > 0) {
+            availableSizes.forEach(function(size, index) {
+                const option = document.createElement("option");
+                option.value = size;
+                option.text = size;
+
+                if (index === 0) {
+                    option.selected = true;
+                }
+
+                sizeDropdown.appendChild(option);
+            });
+        } else {
+            const option = document.createElement("option");
+            option.value = "";
+            option.text = "No sizes available for this color";
+            option.disabled = true;
+            sizeDropdown.appendChild(option);
+        }
+    }
+
+    function changeImage(imageUrl) {
+        const mainImage = document.getElementById('zoom-image');
+        mainImage.src = imageUrl;
+    }
+
+    function addToCart(productId) {
+        console.log('Adding to cart', productId);
+    }
+
+    window.onload = function() {
+        updateSizes();
+    };
+</script>
 {% endblock %}
 
+{% endblock %}
