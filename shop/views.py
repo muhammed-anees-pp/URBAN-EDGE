@@ -1,7 +1,6 @@
-from django.shortcuts import render
-from products.models import Product, ProductImage
+from django.shortcuts import render, HttpResponse
+from productsapp.models import Product, ProductImage
 from category.models import Category
-
 
 def all_products(request):
     # Get all listed products and categories

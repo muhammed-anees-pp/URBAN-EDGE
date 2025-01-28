@@ -10,35 +10,6 @@
     <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
     <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}">
-    <style>
-        .error-message {
-            color: red;
-            font-size: 0.9rem;
-        }
-
-        /* New styles for input and select fields */
-        .form-control {
-            background-color: white;
-            color: black;
-            border: 1px solid #ced4da;
-        }
-
-        .form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
-        }
-
-        select.form-control {
-            background-color: white;
-            color: black;
-            border: 1px solid #ced4da;
-        }
-
-        select.form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
-        }
-    </style>
 </head>
 
 <body>
@@ -47,7 +18,7 @@
         <div class="container-fluid page-body-wrapper">
             <div class="main-panel">
                 <div class="content-wrapper">
-                    <!-- {% if messages %}
+                    {% if messages %}
                     <div class="alert-container">
                         {% for message in messages %}
                         <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show"
@@ -61,16 +32,6 @@
                     </div>
                     {% endif %}
 
-                    {% if errors %}
-                    <div class="alert alert-danger">
-                        <ul>
-                            {% for error in errors %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %} -->
-
                     <div class="row">
                         <div class="col-12 grid-margin">
                             <div class="card">
@@ -80,22 +41,16 @@
                                         {% csrf_token %}
                                         <div class="form-group">
                                             <label for="product_name">Product Name</label>
-                                            <input type="text" class="form-control {% if 'Product name is required' in errors %}is-invalid{% endif %}" id="product_name" name="product_name"
+                                            <input type="text" class="form-control" id="product_name" name="product_name"
                                                 value="{{ form_data.product_name|default:product.name }}" required>
-                                            {% if 'Product name is required' in errors %}
-                                                <div class="error-message">Product name is required.</div>
-                                            {% endif %}
                                         </div>
                                         <div class="form-group">
                                             <label for="description">Description</label>
-                                            <textarea class="form-control {% if 'Description is required' in errors %}is-invalid{% endif %}" id="description" name="description" rows="4" required>{{ form_data.description|default:product.description }}</textarea>
-                                            {% if 'Description is required' in errors %}
-                                                <div class="error-message">Description is required.</div>
-                                            {% endif %}
+                                            <textarea class="form-control" id="description" name="description" rows="4" required>{{ form_data.description|default:product.description }}</textarea>
                                         </div>
                                         <div class="form-group">
                                             <label for="category">Category</label>
-                                            <select class="form-control {% if 'Category is required' in errors %}is-invalid{% endif %}" id="category" name="category" required>
+                                            <select class="form-control" id="category" name="category" required>
                                                 <option value="" disabled {% if not form_data.category %}selected{% endif %}>Select Category</option>
                                                 {% for category in categories %}
                                                 <option value="{{ category.id }}" {% if form_data.category == category.id|stringformat:"s" or product.category.id == category.id %}selected{% endif %}>
@@ -103,25 +58,16 @@
                                                 </option>
                                                 {% endfor %}
                                             </select>
-                                            {% if 'Category is required' in errors %}
-                                                <div class="error-message">Category is required.</div>
-                                            {% endif %}
                                         </div>
                                         <div class="form-group">
                                             <label for="price">Price</label>
-                                            <input type="number" class="form-control {% if 'Price must be greater than zero.' in errors %}is-invalid{% endif %}" id="price" name="price" step="0.01" min="0"
+                                            <input type="number" class="form-control" id="price" name="price" step="0.01" min="0"
                                                 value="{{ form_data.price|default:product.price }}" required>
-                                            {% if 'Price must be greater than zero.' in errors %}
-                                                <div class="error-message">Price must be greater than zero.</div>
-                                            {% endif %}
                                         </div>
                                         <div class="form-group">
                                             <label for="offer">Offer</label>
-                                            <input type="number" class="form-control {% if 'Offer must be a positive number and less than the price.' in errors %}is-invalid{% endif %}" id="offer" name="offer" step="0.01" min="0"
+                                            <input type="number" class="form-control" id="offer" name="offer" step="0.01" min="0"
                                                 value="{{ form_data.offer|default:product.offer }}">
-                                            {% if 'Offer must be a positive number and less than the price.' in errors %}
-                                                <div class="error-message">Offer must be a positive number and less than the price.</div>
-                                            {% endif %}
                                         </div>
                                         <div class="mt-4">
                                             <button type="submit" class="btn btn-success">Update Product</button>

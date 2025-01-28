@@ -84,35 +84,6 @@
             padding: 10px 20px;
             font-size: 14px;
         }
-
-        .error-message {
-            color: red;
-            font-size: 0.9rem;
-        }
-
-        /* New styles for input and select fields */
-        .form-control {
-            background-color: white;
-            color: black;
-            border: 1px solid #ced4da;
-        }
-
-        .form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
-        }
-
-        select.form-control {
-            background-color: white;
-            color: black;
-            border: 1px solid #ced4da;
-        }
-
-        select.form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
-        }
-
     </style>
 </head>
 
@@ -122,7 +93,7 @@
         <div class="container-fluid page-body-wrapper">
             <div class="main-panel">
                 <div class="content-wrapper">
-                    <!-- {% if messages %}
+                    {% if messages %}
                     <div class="alert-container">
                         {% for message in messages %}
                         <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show"
@@ -134,17 +105,7 @@
                         </div>
                         {% endfor %}
                     </div>
-                    {% endif %} -->
-
-                    <!-- {% if errors %}
-                        <div class="alert alert-danger">
-                            <ul>
-                                {% for error in errors %}
-                                    <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% endif %} -->
+                    {% endif %}
 
                     <div class="row">
                         <div class="col-12 grid-margin">
@@ -156,49 +117,36 @@
                                         {% csrf_token %}
                                         <div class="form-group">
                                             <label for="name">Product Name</label>
-                                            <input type="text" class="form-control {% if 'Product name is required' in errors %}is-invalid{% endif %}" id="name" name="product_name"
+                                            <input type="text" class="form-control" id="name" name="product_name"
                                                 required value="{{ form_data.product_name }}">
-                                            {% if 'Product name is required' in errors %}
-                                                <div class="error-message">Product name is required.</div>
-                                            {% endif %}
                                         </div>
                                         <div class="form-group">
                                             <label for="description">Description</label>
-                                            <textarea class="form-control {% if 'Description is required' in errors %}is-invalid{% endif %}" id="description" name="description" rows="4"
+                                            <textarea class="form-control" id="description" name="description" rows="4"
                                                 required>{{ form_data.description }}</textarea>
-                                            {% if 'Description is required' in errors %}
-                                                <div class="error-message">Description is required.</div>
-                                            {% endif %}
                                         </div>
                                         <div class="form-group">
                                             <label for="category">Category</label>
-                                            <select class="form-control {% if 'Category is required' in errors %}is-invalid{% endif %}" id="category" name="category" required>
+                                            <select class="form-control" id="category" name="category" required>
                                                 <option value="" disabled {% if not form_data.category %}selected{% endif %}>Select Category</option>
                                                 {% for category in categories %}
-                                                <option value="{{ category.id }}" {% if form_data.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                                <option value="{{ category.id }}" {% if
+                                                    form_data.category == category.id|stringformat:"s" %}selected{% endif
+                                                    %}>
                                                     {{ category.category_name }}
                                                 </option>
                                                 {% endfor %}
                                             </select>
-                                            {% if 'Category is required' in errors %}
-                                                <div class="error-message">Category is required.</div>
-                                            {% endif %}
                                         </div>
                                         <div class="form-group">
                                             <label for="price">Price</label>
-                                            <input type="number" class="form-control {% if 'Price must be greater than zero.' in errors %}is-invalid{% endif %}" id="price" name="price" step="0.01"
+                                            <input type="number" class="form-control" id="price" name="price" step="0.01"
                                                 min="0" required value="{{ form_data.price }}">
-                                            {% if 'Price must be greater than zero.' in errors %}
-                                                <div class="error-message">Price must be greater than zero.</div>
-                                            {% endif %}
                                         </div>
                                         <div class="form-group">
                                             <label for="offer">Offer</label>
-                                            <input type="number" class="form-control {% if 'Offer must be a positive number and less than the price.' in errors %}is-invalid{% endif %}" id="offer" name="offer" step="0.01"
+                                            <input type="number" class="form-control" id="offer" name="offer" step="0.01"
                                                 min="0" value="{{ form_data.offer }}">
-                                            {% if 'Offer must be a positive number and less than the price.' in errors %}
-                                                <div class="error-message">Offer must be a positive number and less than the price.</div>
-                                            {% endif %}
                                         </div>
                                         <div class="form-group">
                                             <label>Product Images</label>
@@ -206,17 +154,7 @@
                                                 <input type="file" class="hidden" id="imageInput" accept="image/*">
                                                 <button type="button" class="btn btn-primary" id="addImageBtn">Add Image</button>
                                             </div>
-                                            <div id="imagePreviews" class="d-flex flex-wrap mt-3" style="gap: 15px;">
-                                                {% for img in form_data.product_images %}
-                                                    <div class="image-preview-container">
-                                                        <img src="{{ img }}" alt="Image Preview">
-                                                        <button type="button" class="remove-image-btn">×</button>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                            {% if 'Please upload at least one image.' in errors %}
-                                                <div class="error-message">Please upload at least one image.</div>
-                                            {% endif %}
+                                            <div id="imagePreviews" class="d-flex flex-wrap mt-3" style="gap: 15px;"></div>
                                         </div>
 
                                         <div class="mt-4">

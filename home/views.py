@@ -1,29 +1,14 @@
-# from django.shortcuts import render
-# from category.models import Category
-# from products.models import Product
-# from django.utils import timezone
-# from datetime import timedelta
-
-# # Create your views here.
-# def index(request):
-#     categories = Category.objects.filter(is_listed=True)
-
-#     context = {
-#         'categories' : categories,
-#     }
-#     return render(request,'home.html',context)
-
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 from category.models import Category
-from products.models import Product
+from productsapp.models import Product
 import random
 
-# Home View
+# # Home View
 def index(request):
     # Get the listed categories
     categories = Category.objects.filter(is_listed=True)
 
-    # Fetch the latest 4 products (based on created date or any other criteria)
+    # # Fetch the latest 4 products (based on created date or any other criteria)
     latest_products = Product.objects.filter(is_listed=True).order_by('-created_at')[:4]  # Adjust 'created_at' based on your model fields
 
     # Randomly shuffle the products to show them in random order
@@ -34,4 +19,3 @@ def index(request):
         'random_products': random_products,  # Add the random products to the context
     }
     return render(request, 'home.html', context)
-

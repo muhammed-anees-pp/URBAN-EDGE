@@ -10,12 +10,12 @@ urlpatterns = [
     path('account/', include('accounts.urls')),
     path('adminpanel/', include('admin_side.urls')),
     path('category/', include('category.urls')),
-    path('product/',include('products.urls')),
     # path('auth/', include('social_django.urls', namespace='social')),
     # path('accounts/', include('allauth.urls')),
     # path('social-auth/', include('social_django.urls', namespace='social')),
     path('', include('user_profile.urls')),
     path('shop/', include('shop.urls')),
+    path('products/',include('productsapp.urls')),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root = settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

@@ -8,7 +8,6 @@ from django.contrib.auth.decorators import user_passes_test
 import base64
 import uuid
 from django.core.files.base import ContentFile
-
 from django.db.models import Q
 
 
@@ -37,6 +36,7 @@ def create_product(request):
             'category': request.POST.get('category', ''),
             'price': request.POST.get('price', ''),
             'offer': request.POST.get('offer', ''),
+            'product_images': request.POST.getlist('product_images[]')  # Preserve image data
         }
 
         errors = []
@@ -73,7 +73,7 @@ def create_product(request):
                 except Category.DoesNotExist:
                     errors.append("Selected category does not exist.")
 
-            product_images = request.POST.getlist('product_images[]')
+            product_images = form_data['product_images']
             if not product_images:
                 errors.append("Please upload at least one image.")
 
