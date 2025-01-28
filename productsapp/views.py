@@ -9,6 +9,8 @@ import base64
 import uuid
 from django.core.files.base import ContentFile
 from django.db.models import Q
+import json
+import random
 
 
 # Product List View
@@ -26,6 +28,7 @@ def product_list(request):
         'categories': categories,
         'query': query,  # Pass the query back to the template to preserve it in the search bar
     })
+
 
 @user_passes_test(is_admin)
 def create_product(request):
@@ -326,115 +329,6 @@ def toggle_product_listing(request, product_id):
     except Product.DoesNotExist:
         messages.error(request, "Product not found")
     return redirect('product_management')
-
-# def product_details(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-#     variants = product.variants.filter(stock__gt=0)  # Get variants with stock greater than 0
-#     product_images = product.images.all()  # Fetch all images related to the product
-#     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
-
-#     context = {
-#         'product': product,
-#         'variants': variants,
-#         'product_images': product_images,  # Pass the product images
-#         'related_products': related_products,  # Pass the related products
-#     }
-#     return render(request, 'product_details.html', context)
-
-# def product_details(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-#     variants = product.variants.filter(stock__gt=0).distinct('color', 'size')  # Ensure only unique color and size pairs
-#     product_images = product.images.all()  # Fetch all images related to the product
-#     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
-
-#     context = {
-#         'product': product,
-#         'variants': variants,
-#         'product_images': product_images,  # Pass the product images
-#         'related_products': related_products,  # Pass the related products
-#     }
-#     return render(request, 'product_details.html', context)
-
-# def product_details(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-    
-#     # Get all variants that are in stock
-#     variants = product.variants.filter(stock__gt=0)
-
-#     # Get unique colors and sizes
-#     unique_colors = variants.values_list('color', flat=True).distinct()
-#     unique_sizes = variants.values_list('size', flat=True).distinct()
-
-#     product_images = product.images.all()  # Fetch all images related to the product
-#     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
-
-#     context = {
-#         'product': product,
-#         'unique_colors': unique_colors,
-#         'unique_sizes': unique_sizes,
-#         'product_images': product_images,  # Pass the product images
-#         'related_products': related_products,  # Pass the related products
-#     }
-#     return render(request, 'product_details.html', context)
-
-# def product_details(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-    
-#     # Get all variants that are in stock
-#     variants = product.variants.filter(stock__gt=0)
-    
-#     # Get unique colors and sizes
-#     unique_colors = variants.values_list('color', flat=True).distinct()
-    
-#     # Create a dictionary with colors as keys and their available sizes as values
-#     color_size_dict = {}
-#     for color in unique_colors:
-#         color_size_dict[color] = variants.filter(color=color).values_list('size', flat=True).distinct()
-
-#     product_images = product.images.all()  # Fetch all images related to the product
-#     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
-
-#     context = {
-#         'product': product,
-#         'unique_colors': unique_colors,
-#         'color_size_dict': color_size_dict,  # Pass the color-size data
-#         'product_images': product_images,
-#         'related_products': related_products,
-#     }
-#     return render(request, 'product_details.html', context)
-
-# import json
-
-# def product_details(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-    
-#     # Get all variants that are in stock
-#     variants = product.variants.filter(stock__gt=0)
-    
-#     # Get unique colors and sizes
-#     unique_colors = variants.values_list('color', flat=True).distinct()
-    
-#     # Create a dictionary with colors as keys and their available sizes as values
-#     color_size_dict = {}
-#     for color in unique_colors:
-#         color_size_dict[color] = list(variants.filter(color=color).values_list('size', flat=True).distinct())
-
-#     product_images = product.images.all()  # Fetch all images related to the product
-#     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
-
-#     context = {
-#         'product': product,
-#         'unique_colors': unique_colors,
-#         'color_size_dict': json.dumps(color_size_dict),  # Convert to JSON string
-#         'product_images': product_images,
-#         'related_products': related_products,
-#     }
-#     return render(request, 'product_details.html', context)
-
-import json
-import random
-from django.shortcuts import render, get_object_or_404
-from .models import Product
 
 def product_details(request, product_id):
     product = get_object_or_404(Product, id=product_id)

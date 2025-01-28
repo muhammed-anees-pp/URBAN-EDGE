@@ -3,360 +3,472 @@
 {% load static %}
 
 {% block content %}
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            padding-top: 100px; /* Account for navbar height */
-        }
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        /* Product Details Section */
-        .product-details {
-            display: flex;
-            gap: 50px;
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-        }
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f4f4f4;
+    }
 
-        .product-images {
-            flex: 1;
-            position: relative;
-            text-align: center;
-            overflow: hidden; /* Ensures zoomed image doesn't overflow the container */
-        }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        padding-top: 100px;
+        /* Account for navbar height */
+    }
 
-        .main-image {
-            width: 100%;
-            max-width: 500px;
-            border-radius: 10px;
-            cursor: zoom-in; /* Add cursor style for hover */
-            transition: transform 0.3s ease;
-        }
+    /* Product Details Section */
+    .product-details {
+        display: flex;
+        gap: 50px;
+        background-color: #fff;
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+    }
 
-        .thumbnail-images {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
+    .product-images {
+        flex: 1;
+        position: relative;
+        text-align: center;
+        overflow: hidden;
+        /* Ensures zoomed image doesn't overflow the container */
+    }
 
-        .thumbnail-images img {
-            width: 70px;
-            height: 70px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
+    .main-image {
+        width: 100%;
+        max-width: 500px;
+        border-radius: 10px;
+        cursor: zoom-in;
+        /* Add cursor style for hover */
+        transition: transform 0.3s ease;
+    }
 
-        .thumbnail-images img:hover {
-            transform: scale(1.1);
-        }
+    .thumbnail-images {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
 
-        .product-info {
-            flex: 1.5;
-        }
+    .thumbnail-images img {
+        width: 70px;
+        height: 70px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
 
-        .product-info h1 {
-            font-size: 2.2rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
-        }
+    .thumbnail-images img:hover {
+        transform: scale(1.1);
+    }
 
-        .price {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
+    .product-info {
+        flex: 1.5;
+    }
 
-        .price .original {
-            text-decoration: line-through;
-            color: #999;
-            font-size: 1.5rem;
-            margin-right: 10px;
-        }
+    .product-info h1 {
+        font-size: 2.2rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+    }
 
-        .price .offer {
-            color: #e63946; /* Attractive color for the offer price */
-        }
+    .price {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
 
-        .product-info .description {
-            font-size: 1rem;
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
+    .price .original {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 1.5rem;
+        margin-right: 10px;
+    }
 
-        .dropdown {
-            margin-bottom: 20px;
-        }
+    .price .offer {
+        color: #e63946;
+        /* Attractive color for the offer price */
+    }
 
-        .dropdown select {
-            width: 100%;
-            padding: 12px;
-            font-size: 1rem;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            transition: border-color 0.3s ease;
-        }
+    .product-info .description {
+        font-size: 1rem;
+        color: #555;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
 
-        .dropdown select:hover {
-            border-color: #007bff;
-        }
+    .dropdown {
+        margin-bottom: 20px;
+    }
 
-        /* Add to Cart and Wishlist Buttons */
-        .wishlist-cart {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
+    .dropdown select {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+        transition: border-color 0.3s ease;
+    }
 
-        .wishlist-cart button {
-            padding: 12px 20px;
-            border-radius: 5px;
-            font-size: 1.1rem;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+    .dropdown select:hover {
+        border-color: #007bff;
+    }
 
-        .wishlist-cart .add-to-cart {
-            background-color: #007bff;
-            color: white;
-        }
+    /* Add to Cart and Wishlist Buttons */
+    .wishlist-cart {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
 
-        .wishlist-cart .add-to-cart:hover {
-            background-color: #0056b3;
-        }
+    .wishlist-cart button {
+        padding: 12px 20px;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
 
-        .wishlist-cart .add-to-wishlist {
-            background-color: #f39c12;
-            color: white;
-        }
+    .wishlist-cart .add-to-cart {
+        background-color: #007bff;
+        color: white;
+    }
 
-        .wishlist-cart .add-to-wishlist:hover {
-            background-color: #e67e22;
-        }
+    .wishlist-cart .add-to-cart:hover {
+        background-color: #0056b3;
+    }
 
-        /* Related Products Section */
-        .related-products {
-            margin-top: 50px;
-            padding: 30px;
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        }
+    .wishlist-cart .add-to-wishlist {
+        background-color: #f39c12;
+        color: white;
+    }
 
-        .related-products h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #333;
+    .wishlist-cart .add-to-wishlist:hover {
+        background-color: #e67e22;
+    }
+
+    /* Popup Notification */
+    .popup {
+        min-width: 300px;
+        min-height: 80px;
+        position: absolute;
+        top: 10px;
+        right: 0;
+        background-color: rgb(255, 255, 255);
+        font-family: sans-serif;
+        font-size: 13px;
+        font-weight: 900;
+        color: hsl(176, 71%, 54%);
+        border-radius: 4px;
+        display: none;
+        flex-direction: column;
+        padding-top: 5px;
+        justify-content: center;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .popup h3 {
+        margin: 10px 10px;
+    }
+
+    .popup hr {
+        width: 100%;
+        height: 4px;
+        background-color: hsla(176, 51%, 49%, 0.562);
+        border-radius: 10px;
+        border: none;
+    }
+
+    #countdown {
+        position: absolute;
+        bottom: 0;
+    }
+
+    .active {
+        animation: sajjad 5s ease infinite;
+    }
+
+    /* Related Products Section */
+
+    .container-fluid {
+        max-width: 1650px;
+        margin: 0 auto;
+        padding: 20px;
+        /* padding-top: 10px; */
+        /* Account for navbar height */
+    }
+
+    .related-products {
+        width: 100%;
+        padding: 30px 100px;
+        background-color: #fff;
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        margin-top: 10px;
+    }
+
+    .related-products h2 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .product-list {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        /* Create a 4-column grid */
+        gap: 30px;
+        padding: 0 15px;
+    }
+
+    .product {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        /* Ensures that content doesn't spill outside the card */
+    }
+
+    .product img {
+        width: 100%;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        transition: transform 0.3s ease;
+    }
+
+    .product img:hover {
+        transform: scale(1.05);
+    }
+
+    .product-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        height: 3em;
+        /* Limit height to two lines */
+        line-height: 1.5em;
+        /* Control line height */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .price {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .original {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 1rem;
+        margin-right: 10px;
+    }
+
+    .offer {
+        color: #e63946;
+        /* Red color for the offer price */
+    }
+
+    .wishlist-cart {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 15px;
+    }
+
+    .wishlist-cart .add-to-cart {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        font-size: 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .wishlist-cart .add-to-cart:hover {
+        background-color: #0056b3;
+    }
+
+    .wishlist-cart .btn-primary {
+        padding: 10px 20px;
+        background-color: #f39c12;
+        color: white;
+        font-size: 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .wishlist-cart .btn-primary:hover {
+        background-color: #e67e22;
+    }
+
+    @media (max-width: 1024px) {
+        .product-list {
+            grid-template-columns: repeat(3, 1fr);
+            /* 3 columns for medium screens */
+        }
+    }
+
+
+    @media (max-width: 768px) {
+        .product {
+            width: calc(50% - 30px);
+            /* Make each product take up 50% of the width on smaller screens */
         }
 
         .product-list {
-            display: flex;
-            gap: 30px;
-            overflow-x: auto;
+            grid-template-columns: repeat(2, 1fr);
+            /* 2 columns for smaller screens */
         }
+    }
 
+
+    @media (max-width: 480px) {
         .product {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 200px;
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-        }
-
-        .product img {
             width: 100%;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            transition: transform 0.3s ease;
+            /* Make each product take up the full width on very small screens */
         }
 
-        .product img:hover {
-            transform: scale(1.05);
+        .product-list {
+            grid-template-columns: 1fr;
+            /* 1 column for very small screens */
         }
+    }
 
-        .product p {
-            margin: 0;
-            font-weight: 600;
-            color: #333;
-        }
 
-        .product .btn-primary {
-            background-color: #007bff;
-            color: white;
-            padding: 8px 15px;
-            font-size: 0.9rem;
-            border-radius: 5px;
-            text-decoration: none;
-        }
 
-        .product .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
-        /* Popup Notification */
-        .popup {
-            min-width: 300px;
-            min-height: 80px;
-            position: absolute;
-            top: 10px;
-            right: 0;
-            background-color: rgb(255, 255, 255);
-            font-family: sans-serif;
-            font-size: 13px;
-            font-weight: 900;
-            color: hsl(176, 71%, 54%);
-            border-radius: 4px;
-            display: none;
-            flex-direction: column;
-            padding-top: 5px;
-            justify-content: center;
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
-        }
-
-        .popup h3 {
-            margin: 10px 10px;
-        }
-
-        .popup hr {
+    @keyframes sajjad {
+        0% {
             width: 100%;
-            height: 4px;
-            background-color: hsla(176, 51%, 49%, 0.562);
-            border-radius: 10px;
-            border: none;
         }
 
-        #countdown {
-            position: absolute;
-            bottom: 0;
+        100% {
+            width: 0;
         }
+    }
+</style>
 
-        .active {
-            animation: sajjad 5s ease infinite;
-        }
-
-        @keyframes sajjad {
-            0% {
-                width: 100%;
-            }
-            100% {
-                width: 0;
-            }
-        }
-
-    </style>
-
-    <div class="container">
-        <div class="product-details">
-            <!-- Product Images -->
-            <section class="product-images" id="image-container">
-                {% if product_images %}
-                    <img src="{{ product_images.0.image.url }}" alt="{{ product.name }}" class="main-image" id="zoom-image">
-                    <div class="thumbnail-images">
-                        {% for image in product_images %}
-                            <img src="{{ image.image.url }}" alt="{{ product.name }}" onclick="changeImage('{{ image.image.url }}')">
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p>No images available for this product.</p>
-                {% endif %}
-            </section>
-
-            <!-- Product Info -->
-            <div class="product-info">
-                <h1>{{ product.name }}</h1>
-                <p class="price">
-                    {% if product.offer %}
-                        <span class="original">₹{{ product.price }}</span>
-                        <span class="offer">₹{{ product.offer }}</span>
-                    {% else %}
-                        ₹{{ product.price }}
-                    {% endif %}
-                </p>
-                <p class="description">{{ product.description }}</p>
-
-                <!-- Variant Selection -->
-                <div class="dropdown">
-                    <label for="color">Select Color:</label>
-                    <select id="color" onchange="updateSizes()">
-                        {% for color in unique_colors %}
-                            <option value="{{ color }}" {% if loop.first %}selected{% endif %}>{{ color }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="dropdown">
-                    <label for="size">Select Size:</label>
-                    <select id="size">
-                        <option value="">Select a color first</option>
-                    </select>
-                </div>
-
-                <!-- Add to Cart and Wishlist -->
-                <div class="wishlist-cart">
-                    <button class="add-to-cart" onclick="addToCart('{{ product.id }}')">Add to Cart</button>
-                    <button class="add-to-wishlist">Add to Wishlist</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Related Products Section -->
-        {% if related_products %}
-        <section class="related-products">
-            <h2>Related Products</h2>
-            <div class="product-list">
-                {% for related_product in related_products %}
-                <div class="product">
-                    <img src="{{ related_product.images.first.image.url }}" alt="{{ related_product.name }}">
-                    <p>{{ related_product.name }}</p>
-                    <p>
-                        {% if related_product.offer %}
-                            <span class="original">₹{{ related_product.price }}</span>
-                            <span class="offer">₹{{ related_product.offer }}</span>
-                        {% else %}
-                            ₹{{ related_product.price }}
-                        {% endif %}
-                    </p>
-                    <a href="{% url 'product_details' related_product.id %}" class="btn-primary">View Details</a>
-                </div>
+<div class="container">
+    <div class="product-details">
+        <!-- Product Images -->
+        <section class="product-images" id="image-container">
+            {% if product_images %}
+            <img src="{{ product_images.0.image.url }}" alt="{{ product.name }}" class="main-image" id="zoom-image">
+            <div class="thumbnail-images">
+                {% for image in product_images %}
+                <img src="{{ image.image.url }}" alt="{{ product.name }}"
+                    onclick="changeImage('{{ image.image.url }}')">
                 {% endfor %}
             </div>
+            {% else %}
+            <p>No images available for this product.</p>
+            {% endif %}
         </section>
-        {% endif %}
-    </div>
 
-    <!-- Popup Notification -->
-    <div class="popup" id="popup">
-        <div class="description">
-            <div class="check" id="check">
-                <svg xmlns="http://www.w3.org/2000/svg" height="34px" viewBox="0 -960 960 960" width="24px" fill="#fff">
-                    <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/>
-                </svg>
+        <!-- Product Info -->
+        <div class="product-info">
+            <h1>{{ product.name }}</h1>
+            <p class="price">
+                {% if product.offer %}
+                <span class="original">₹{{ product.price }}</span>
+                <span class="offer">₹{{ product.offer }}</span>
+                {% else %}
+                ₹{{ product.price }}
+                {% endif %}
+            </p>
+            <p class="description">{{ product.description }}</p>
+
+            <!-- Variant Selection -->
+            <div class="dropdown">
+                <label for="color">Select Color:</label>
+                <select id="color" onchange="updateSizes()">
+                    {% for color in unique_colors %}
+                    <option value="{{ color }}" {% if loop.first %}selected{% endif %}>{{ color }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <h3 id="text"></h3>
+
+            <div class="dropdown">
+                <label for="size">Select Size:</label>
+                <select id="size">
+                    <option value="">Select a color first</option>
+                </select>
+            </div>
+
+            <!-- Add to Cart and Wishlist -->
+            <div class="wishlist-cart">
+                <button class="add-to-cart" onclick="addToCart('{{ product.id }}')">Add to Cart</button>
+                <button class="add-to-wishlist">Add to Wishlist</button>
+            </div>
         </div>
-        <hr id="countdown">
     </div>
+</div>
+
+<div class="container-fluid">
+
+    <!-- Related Products Section -->
+    {% if related_products %}
+    <section class="related-products">
+        <div class="text-center">
+            <h2 class="section-title">Related Products</h2>
+        </div>
+        <div class="product-list">
+            {% for related_product in related_products %}
+            <div class="product">
+                <img src="{{ related_product.images.first.image.url }}" alt="{{ related_product.name }}">
+                <p class="product-name">{{ related_product.name }}</p>
+                <p class="price">
+                    {% if related_product.offer %}
+                    <span class="original">₹{{ related_product.price }}</span>
+                    <span class="offer">₹{{ related_product.offer }}</span>
+                    {% else %}
+                    ₹{{ related_product.price }}
+                    {% endif %}
+                </p>
+                <div class="wishlist-cart">
+                    <button class="add-to-cart" onclick="addToCart('{{ related_product.id }}')">Add to Cart</button>
+                    <a href="{% url 'product_details' related_product.id %}" class="btn-primary">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+
+
+<!-- Popup Notification -->
+<div class="popup" id="popup">
+    <div class="description">
+        <div class="check" id="check">
+            <svg xmlns="http://www.w3.org/2000/svg" height="34px" viewBox="0 -960 960 960" width="24px" fill="#fff">
+                <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
+            </svg>
+        </div>
+        <h3 id="text"></h3>
+    </div>
+    <hr id="countdown">
+</div>
 
 {% block extra_js %}
 <script>
@@ -366,7 +478,7 @@
     let isZoomed = false;
 
     if (imageContainer) {
-        imageContainer.addEventListener('mousemove', function(e) {
+        imageContainer.addEventListener('mousemove', function (e) {
             if (!isZoomed) return;
 
             const { left, top, width, height } = this.getBoundingClientRect();
@@ -376,12 +488,12 @@
             mainImage.style.transformOrigin = `${x * 100}% ${y * 100}%`;
         });
 
-        imageContainer.addEventListener('mouseenter', function() {
+        imageContainer.addEventListener('mouseenter', function () {
             isZoomed = true;
             mainImage.style.transform = 'scale(1.5)';
         });
 
-        imageContainer.addEventListener('mouseleave', function() {
+        imageContainer.addEventListener('mouseleave', function () {
             isZoomed = false;
             mainImage.style.transform = 'scale(1)';
             mainImage.style.transformOrigin = 'center center';
@@ -389,20 +501,20 @@
 
         // Add touch support for mobile devices
         let touchTimeout;
-        imageContainer.addEventListener('touchstart', function() {
+        imageContainer.addEventListener('touchstart', function () {
             touchTimeout = setTimeout(() => {
                 isZoomed = !isZoomed;
                 mainImage.style.transform = isZoomed ? 'scale(1.5)' : 'scale(1)';
             }, 200);
         });
 
-        imageContainer.addEventListener('touchend', function() {
+        imageContainer.addEventListener('touchend', function () {
             clearTimeout(touchTimeout);
         });
 
-        imageContainer.addEventListener('touchmove', function(e) {
+        imageContainer.addEventListener('touchmove', function (e) {
             if (!isZoomed) return;
-            
+
             const touch = e.touches[0];
             const { left, top, width, height } = this.getBoundingClientRect();
             const x = (touch.clientX - left) / width;
@@ -431,7 +543,7 @@
         const availableSizes = colorSizeDict[selectedColor] || [];
 
         if (availableSizes.length > 0) {
-            availableSizes.forEach(function(size, index) {
+            availableSizes.forEach(function (size, index) {
                 const option = document.createElement("option");
                 option.value = size;
                 option.text = size;
@@ -460,7 +572,7 @@
         console.log('Adding to cart', productId);
     }
 
-    window.onload = function() {
+    window.onload = function () {
         updateSizes();
     };
 </script>
