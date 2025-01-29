@@ -16,15 +16,14 @@ def cart_view(request):
 
     # Calculate total price for each cart item
     for item in cart_items:
-        item.total_price = item.product_variant.product.price * item.quantity  # Add total_price attribute to each item
+        item.total_price_value = item.total_price()  # Call the total_price method
 
-    grand_total = sum(item.total_price for item in cart_items)
+    grand_total = sum(item.total_price_value for item in cart_items)
     
     if not cart_items.exists():
         return render(request, 'cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Start shopping now!'})
 
     return render(request, 'cart.html', {'cart_items': cart_items, 'grand_total': grand_total, 'cart_empty': False})
-
 
 @login_required(login_url='/login/')
 def add_to_cart(request):
