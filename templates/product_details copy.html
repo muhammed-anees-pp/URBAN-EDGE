@@ -432,6 +432,7 @@
 </div>
 
 <div class="container-fluid">
+
     <!-- Related Products Section -->
     {% if related_products %}
     <section class="related-products">
@@ -460,9 +461,9 @@
         </div>
     </section>
     {% endif %}
+
 </div>
 
-    
 
 <!-- Popup Notification -->
 <div class="popup" id="popup">
@@ -575,9 +576,9 @@
         mainImage.src = imageUrl;
     }
 
-function addToCart(productId) {
-    const color = document.getElementById("color") ? document.getElementById("color").value : null;
-    const size = document.getElementById("size") ? document.getElementById("size").value : null;
+    function addToCart(productId) {
+    const color = document.getElementById("color").value;
+    const size = document.getElementById("size").value;
     const cartMessage = document.getElementById("cart-message");
 
     fetch("{% url 'add_to_cart' %}", {
@@ -599,7 +600,7 @@ function addToCart(productId) {
             cartMessage.style.display = "block";
             cartMessage.style.backgroundColor = "#d4edda"; // Green background for success
             cartMessage.style.color = "#155724"; // Dark green text
-            cartMessage.innerText = data.message || "Item added to cart!";
+            cartMessage.innerText = "Item added to cart!";
         } else {
             cartMessage.style.display = "block";
             cartMessage.style.backgroundColor = "#f8d7da"; // Red background for error
@@ -611,14 +612,10 @@ function addToCart(productId) {
         cartMessage.style.display = "block";
         cartMessage.style.backgroundColor = "#f8d7da"; // Red background for error
         cartMessage.style.color = "#721c24"; // Dark red text
-        cartMessage.innerText = "You are not logged in";
+        cartMessage.innerText = "An error occurred. Please try again.";
         console.error("Error:", error);
     });
 }
-
-
-
-
 
     function showPopup(message) {
         const popup = document.getElementById("popup");

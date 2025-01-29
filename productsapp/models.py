@@ -31,21 +31,3 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.color} - {self.size}"
-
-# class Size(models.Model):
-#     name = models.CharField(max_length=50, unique=True)  # Size name (e.g., Small, Medium, Large)
-
-#     def __str__(self):
-#         return self.name
-
-# class ProductVariant(models.Model):
-#     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
-#     size = models.ForeignKey(Size, on_delete=models.CASCADE)  # Reference to Size model
-#     color = models.CharField(max_length=50)  # Color for the variant
-#     stock = models.PositiveIntegerField(default=0)
-
-#     class Meta:
-#         unique_together = ('product', 'size', 'color')  # Prevent duplicate combinations of product, size, and color
-
-#     def __str__(self):
-#         return f"{self.product.name} - {self.color} - {self.size.name}"

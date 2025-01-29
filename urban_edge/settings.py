@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'user_profile',
     'shop',
     'productsapp',
+    'cart',
 ]
 
 MIDDLEWARE = [
@@ -221,7 +222,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET') 
 
 
-LOGIN_URL = 'userlogin'
+LOGIN_URL = 'userlogin/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_URL = 'userlogout'
 LOGOUT_REDIRECT_URL = 'userlogin'

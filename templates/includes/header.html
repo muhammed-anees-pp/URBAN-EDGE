@@ -207,7 +207,7 @@
             <a href="#" class="nav-link">Contact</a>
             <a href="#" class="nav-link">About</a>
             <a href="#" class="nav-link"><i data-feather="heart"></i></a>
-            <a href="#" class="nav-link"><i data-feather="shopping-cart"></i></a>
+            <a href="{% url 'cart_view' %}" class="nav-link"><i data-feather="shopping-cart"></i></a>
 
             <!-- Profile Dropdown -->
             {% if user.is_authenticated %}
