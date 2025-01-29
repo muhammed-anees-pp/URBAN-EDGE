@@ -4,6 +4,10 @@ from .models import Cart, CartItem
 from productsapp.models import Product, ProductVariant # Import ProductVariant
 from django.contrib.auth.decorators import login_required
 import logging
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -77,10 +81,9 @@ def add_to_cart(request):
         logger.error(f"Error adding to cart: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
 
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
 
-logger = logging.getLogger(__name__)
+
+#logger = logging.getLogger(__name__)
 
 @login_required(login_url='/login/')
 @require_POST
