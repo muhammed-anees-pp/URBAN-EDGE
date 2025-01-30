@@ -22,7 +22,7 @@
             <i class="lucide-gift" style="color: #e91e63;"></i>
             <span>Offers</span>
         </a> -->
-        <a href="#" class="nav-item {% if request.path == '/coupons/' %}active{% endif %}">
+        <a href="{% url 'order_management' %}" class="nav-item {% if request.path == '/coupons/' %}active{% endif %}">
             <i class="lucide-ticket" style="color: #ff5722;"></i>
             <span>Coupon</span>
         </a>

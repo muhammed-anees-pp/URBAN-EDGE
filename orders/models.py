@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
-from productsapp.models import Product
+from productsapp.models import Product, ProductVariant
 from user_profile.models import Address
 from django.utils import timezone
 
@@ -33,6 +33,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    # product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)  # Add this line
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
 

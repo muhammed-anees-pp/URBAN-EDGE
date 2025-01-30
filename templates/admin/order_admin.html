@@ -1,0 +1,53 @@
+<div class="container mt-5">
+    <h2 class="mb-4">Order Management</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>User</th>
+                <th>Total Price</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.user.username }}</td>
+                <td>₹{{ order.total_price }}</td>
+                <td><span class="badge bg-info">{{ order.status }}</span></td>
+                <td>
+                    <a href="{% url 'admin_order_details' order.id %}" class="btn btn-primary btn-sm">View</a>
+                    <button class="btn btn-warning btn-sm" onclick="updateStatus('{{ order.id }}')">Update Status</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function updateStatus(orderId) {
+        const newStatus = prompt("Enter new status (pending, completed, canceled):");
+        if (newStatus) {
+            fetch(`/update_order_status/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: newStatus }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    window.location.reload(); // Reload the page to reflect changes
+                } else {
+                    alert(data.error);
+                }
+            });
+        }
+    }
+</script>

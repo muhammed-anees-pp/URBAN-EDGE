@@ -1,0 +1,30 @@
+<div class="container mt-5">
+    <h2>Order Details</h2>
+    <p><strong>Order ID:</strong> {{ order.id }}</p>
+    <p><strong>User:</strong> {{ order.user.username }}</p>
+    <p><strong>Status:</strong> {{ order.status }}</p>
+    <h4>Items:</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.price }}</td>
+                <td>₹{{ item.subtotal }}</td>
+                <td><span class="badge bg-info">{{ item.status }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'order_management' %}" class="btn btn-secondary">Back to Orders</a>
+</div>
