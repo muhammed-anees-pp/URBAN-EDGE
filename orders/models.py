@@ -1,7 +1,15 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from productsapp.models import Product
-from user_profile.models import Address  # Import Address model
+from user_profile.models import Address
+from django.utils import timezone
+
+def generate_order_id():
+    # Example: ORD-20231025-USER123-ABC123
+    date_part = timezone.now().strftime("%Y%m%d")  # Current date in YYYYMMDD format
+    random_part = uuid.uuid4().hex[:6].upper()  # Random 6-character string
+    return f"ORD-{date_part}-{random_part}"
 
 class Order(models.Model):
     ORDER_STATUS_CHOICES = [
@@ -10,6 +18,7 @@ class Order(models.Model):
         ('canceled', 'Canceled'),
     ]
 
+    id = models.CharField(primary_key=True, max_length=50, default=generate_order_id, editable=False)  # Custom order ID
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
     payment_method = models.CharField(max_length=20)
