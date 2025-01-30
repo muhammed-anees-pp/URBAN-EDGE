@@ -462,7 +462,7 @@
     {% endif %}
 </div>
 
-    
+
 
 <!-- Popup Notification -->
 <div class="popup" id="popup">
@@ -575,47 +575,46 @@
         mainImage.src = imageUrl;
     }
 
-function addToCart(productId) {
-    const color = document.getElementById("color") ? document.getElementById("color").value : null;
-    const size = document.getElementById("size") ? document.getElementById("size").value : null;
-    const cartMessage = document.getElementById("cart-message");
 
-    fetch("{% url 'add_to_cart' %}", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": "{{ csrf_token }}",
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({
-            "product_id": productId,
-            "color": color,
-            "size": size,
-            "quantity": 1
+    function addToCart(productId) {
+        const color = document.getElementById("color") ? document.getElementById("color").value : null;
+        const size = document.getElementById("size") ? document.getElementById("size").value : null;
+        const cartMessage = document.getElementById("cart-message");
+
+        fetch("{% url 'add_to_cart' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                "product_id": productId,
+                "color": color,
+                "size": size,
+                "quantity": 1
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            cartMessage.style.display = "block";
-            cartMessage.style.backgroundColor = "#d4edda"; // Green background for success
-            cartMessage.style.color = "#155724"; // Dark green text
-            cartMessage.innerText = data.message || "Item added to cart!";
-        } else {
-            cartMessage.style.display = "block";
-            cartMessage.style.backgroundColor = "#f8d7da"; // Red background for error
-            cartMessage.style.color = "#721c24"; // Dark red text
-            cartMessage.innerText = data.error || "Error adding item to cart.";
-        }
-    })
-    .catch(error => {
-        cartMessage.style.display = "block";
-        cartMessage.style.backgroundColor = "#f8d7da"; // Red background for error
-        cartMessage.style.color = "#721c24"; // Dark red text
-        cartMessage.innerText = "You are not logged in";
-        console.error("Error:", error);
-    });
-}
-
+            .then(response => response.json())
+            .then(data => {
+                cartMessage.style.display = "block";
+                if (data.success) {
+                    cartMessage.style.backgroundColor = "#d4edda"; // Green background for success
+                    cartMessage.style.color = "#155724"; // Dark green text
+                    cartMessage.innerText = data.message || "Item added to cart!";
+                } else {
+                    cartMessage.style.backgroundColor = "#f8d7da"; // Red background for error
+                    cartMessage.style.color = "#721c24"; // Dark red text
+                    cartMessage.innerText = data.error || "Error adding item to cart.";
+                }
+            })
+            .catch(error => {
+                cartMessage.style.display = "block";
+                cartMessage.style.backgroundColor = "#f8d7da"; // Red background for error
+                cartMessage.style.color = "#721c24"; // Dark red text
+                cartMessage.innerText = "Error adding item to cart.";
+                console.error("Error:", error);
+            });
+    }
 
 
 

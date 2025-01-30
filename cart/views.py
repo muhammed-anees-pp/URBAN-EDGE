@@ -29,6 +29,7 @@ def cart_view(request):
 
     return render(request, 'cart.html', {'cart_items': cart_items, 'grand_total': grand_total, 'cart_empty': False})
 
+
 @login_required(login_url='/login/')
 def add_to_cart(request):
     product_id = request.POST.get('product_id')
@@ -65,9 +66,12 @@ def add_to_cart(request):
             logger.error(f"Product variant out of stock: variant_id={product_variant.id}")
             return JsonResponse({'success': False, 'error': 'This product is out of stock.'})
 
-        # Add to cart
+        # Add to cart or update existing cart item
         cart, created = Cart.objects.get_or_create(user=request.user)
         cart_item, created = CartItem.objects.get_or_create(cart=cart, product_variant=product_variant)
+        if not created:
+            return JsonResponse({'success': False, 'error': 'This product is already in the cart.'})
+
         cart_item.quantity += quantity
         cart_item.save()
 
@@ -80,6 +84,7 @@ def add_to_cart(request):
     except Exception as e:
         logger.error(f"Error adding to cart: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
+
 
 
 
