@@ -83,26 +83,27 @@ def add_to_cart(request):
 
 
 
-#logger = logging.getLogger(__name__)
-
 @login_required(login_url='/login/')
 @require_POST
 def update_cart(request, item_id, action):
     logger.debug(f"Update Cart URL: /update_cart/{item_id}/{action}/")
     try:
         cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+        product_variant = cart_item.product_variant
+
         if action == "increase":
+            if cart_item.quantity + 1 > product_variant.stock:
+                return JsonResponse({'message': 'Stock Will Be Unavailable', 'status': 'error'}, status=400)
             cart_item.quantity += 1
         elif action == "decrease" and cart_item.quantity > 1:
             cart_item.quantity -= 1
-        else:
-            cart_item.quantity = 1
         cart_item.save()
-        return JsonResponse({'message': 'Cart updated successfully.'})
+        return JsonResponse({'message': 'Cart updated successfully.', 'status': 'success'})
     except CartItem.DoesNotExist:
-        return JsonResponse({'message': 'Item not found in the cart.'}, status=404)
+        return JsonResponse({'message': 'Item not found in the cart.', 'status': 'error'}, status=404)
     except Exception as e:
-        return JsonResponse({'message': str(e)}, status=500)
+        return JsonResponse({'message': str(e), 'status': 'error'}, status=500)
+
 
 @login_required(login_url='/login/')
 @require_POST
