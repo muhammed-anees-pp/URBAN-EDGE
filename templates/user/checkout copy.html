@@ -103,7 +103,7 @@
     <div class="payment__methods">
         <h3 class="checkout__title payment__title">Payment</h3>
         <div class="payment__option flex">
-            <input type="radio" name="payment_method" value="COD" id="cod" class="payment__input" checked/>
+            <input type="radio" name="payment_method" value="COD" id="cod" class="payment__input"/>
             <label for="cod" class="payment__label">Cash on Delivery</label>
         </div>
         <div class="payment__option flex">
@@ -191,9 +191,6 @@
                 defaultAddressDiv.innerHTML += `<p>${detail.innerHTML}</p>`;
             });
     
-            // Update the hidden input field with the selected address id
-            document.getElementById('address-id').value = selectedAddressId;
-    
             alert("Address selected: " + selectedAddressId);
             document.getElementById('change-address-section').classList.add('hidden');
         }
@@ -225,32 +222,34 @@
     
         // Function to place order
         async function placeOrder() {
-            const paymentMethodElements = document.getElementsByName("payment_method");
-            let paymentMethod;
-    
-            for (const element of paymentMethodElements) {
-                if (element.checked) {
-                    paymentMethod = element.value;
-                    break;
-                }
-            }
-    
-            if (!paymentMethod) {
-                document.getElementById("error-message").innerText = "Please select a payment method.";
-                return;
-            }
+            const paymentMethod = document.getElementById("payment-method").value;
     
             if (!selectedAddressId) {
                 document.getElementById("error-message").innerText = "Please select an address.";
                 return;
             }
     
-            // Set the payment method in the hidden input
-            document.getElementById('payment-method-hidden').value = paymentMethod;
+            const response = await fetch("/place_order/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    address_id: selectedAddressId,
+                    payment_method: paymentMethod
+                })
+            });
     
-            // Submit the form
-            document.getElementById('place-order-form').submit();
+            const data = await response.json();
+    
+            if (response.ok) {
+                window.location.href = "/order_success/";
+            } else {
+                document.getElementById("error-message").innerText = data.error;
+            }
         }
     </script>
+    
 </body>
 </html>

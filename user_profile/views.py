@@ -20,11 +20,36 @@ def user_profile(request):
     return render(request, 'user/profile.html', context)
 
 
+# @login_required
+# def view_addresses(request):
+#     """View all addresses."""
+#     addresses = Address.objects.filter(user=request.user, is_deleted=False)
+#     return render(request, 'user/address.html', {'addresses': addresses})
+
 @login_required
 def view_addresses(request):
     """View all addresses."""
     addresses = Address.objects.filter(user=request.user, is_deleted=False)
+
+    # If no address is marked as default, set the oldest address as default
+    if not addresses.filter(is_default=True).exists() and addresses.exists():
+        oldest_address = addresses.order_by('id').first()
+        oldest_address.is_default = True
+        oldest_address.save()
+
     return render(request, 'user/address.html', {'addresses': addresses})
+
+@login_required
+def set_default_address(request, address_id):
+    """Set an address as default."""
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+
+    # Set the selected address as default
+    address.is_default = True
+    address.save()
+
+    messages.success(request, "Default address updated successfully!")
+    return redirect('addresses')
 
 
 @login_required

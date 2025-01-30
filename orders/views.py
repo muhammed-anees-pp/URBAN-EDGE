@@ -8,10 +8,198 @@ from orders.models import Order, OrderItem
 from user_profile.models import Address
 from productsapp.models import ProductVariant
 
+# @login_required
+# def place_order(request):
+#     user = request.user
+#     addresses = Address.objects.filter(user=user)
+
+#     try:
+#         cart = Cart.objects.get(user=user)
+#         cart_items = CartItem.objects.filter(cart=cart)
+        
+#         if not cart_items.exists():
+#             return JsonResponse({"error": "Your cart is empty. Please add items to checkout."}, status=400)
+
+#         for item in cart_items:
+#             if item.quantity < 1:
+#                 return JsonResponse({"error": f"Invalid quantity for {item.product_variant.product.name}. Please update your cart."}, status=400)
+            
+#             if item.quantity > item.product_variant.stock:
+#                 return JsonResponse({
+#                     "error": f"Requested quantity for {item.product_variant.product.name} exceeds available stock."
+#                 }, status=400)
+        
+#         total = Decimal('0.00')
+#         for item in cart_items:
+#             price = Decimal(str(item.product_variant.product.offer if item.product_variant.product.offer else item.product_variant.product.price))
+#             quantity = Decimal(str(item.quantity))
+#             item.subtotal = price * quantity
+#             total += item.subtotal
+
+#         delivery_charge = Decimal('40.00') if total < Decimal('500.00') else Decimal('0.00')
+#         total += delivery_charge
+        
+#     except Cart.DoesNotExist:
+#         cart_items = []
+#         total = Decimal('0.00')
+#         delivery_charge = Decimal('0.00')
+    
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body.decode("utf-8"))
+#             address_id = data.get("address_id")
+#             payment_method = data.get("payment_method")
+
+#             if not address_id or not payment_method:
+#                 return JsonResponse({"error": "Address or payment method not provided."}, status=400)
+
+#             address = Address.objects.get(id=address_id, user=request.user)
+            
+#             if payment_method == 'COD' and total > Decimal('1000.00'):
+#                 return JsonResponse({"error": "Cash on Delivery is not available for orders above ₹1000."}, status=400)
+
+#             order = Order.objects.create(
+#                 user=user,
+#                 address=address,
+#                 payment_method=payment_method,
+#                 total_price=total,
+#             )
+
+#             for item in cart_items:
+#                 if item.product_variant.stock < item.quantity:
+#                     return JsonResponse({"error": f"Not enough stock for {item.product_variant.product.name}."}, status=400)
+
+#                 item.product_variant.stock -= item.quantity
+#                 item.product_variant.save()
+
+#                 price = item.product_variant.product.offer if item.product_variant.product.offer else item.product_variant.product.price
+#                 OrderItem.objects.create(
+#                     order=order,
+#                     product=item.product_variant.product,
+#                     quantity=item.quantity,
+#                     price=price,
+#                 )
+
+#             cart_items.delete()
+
+#             return JsonResponse({"success": "Order placed successfully!"}, status=200)
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({"error": "Invalid request format."}, status=400)
+    
+#     context = {
+#         'addresses': addresses,
+#         'cart_items': cart_items,
+#         'total': total,
+#         'delivery_charge': delivery_charge
+#     }
+#     return render(request, 'user/checkout.html', context)
+
+
+
+
+
+
+# @login_required
+# def place_order(request):
+#     user = request.user
+#     addresses = Address.objects.filter(user=user)
+#     default_address = addresses.filter(is_default=True).first()  # Get the default address
+
+#     try:
+#         cart = Cart.objects.get(user=user)
+#         cart_items = CartItem.objects.filter(cart=cart)
+        
+#         if not cart_items.exists():
+#             return JsonResponse({"error": "Your cart is empty. Please add items to checkout."}, status=400)
+
+#         for item in cart_items:
+#             if item.quantity < 1:
+#                 return JsonResponse({"error": f"Invalid quantity for {item.product_variant.product.name}. Please update your cart."}, status=400)
+            
+#             if item.quantity > item.product_variant.stock:
+#                 return JsonResponse({
+#                     "error": f"Requested quantity for {item.product_variant.product.name} exceeds available stock."
+#                 }, status=400)
+        
+#         total = Decimal('0.00')
+#         for item in cart_items:
+#             price = Decimal(str(item.product_variant.product.offer if item.product_variant.product.offer else item.product_variant.product.price))
+#             quantity = Decimal(str(item.quantity))
+#             item.subtotal = price * quantity
+#             total += item.subtotal
+
+#         delivery_charge = Decimal('40.00') if total < Decimal('500.00') else Decimal('0.00')
+#         total += delivery_charge
+        
+#     except Cart.DoesNotExist:
+#         cart_items = []
+#         total = Decimal('0.00')
+#         delivery_charge = Decimal('0.00')
+    
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body.decode("utf-8"))
+#             address_id = data.get("address_id")
+#             payment_method = data.get("payment_method")
+
+#             if not address_id or not payment_method:
+#                 return JsonResponse({"error": "Address or payment method not provided."}, status=400)
+
+#             address = Address.objects.get(id=address_id, user=request.user)
+            
+#             if payment_method == 'COD' and total > Decimal('1000.00'):
+#                 return JsonResponse({"error": "Cash on Delivery is not available for orders above ₹1000."}, status=400)
+
+#             order = Order.objects.create(
+#                 user=user,
+#                 address=address,
+#                 payment_method=payment_method,
+#                 total_price=total,
+#             )
+
+#             for item in cart_items:
+#                 if item.product_variant.stock < item.quantity:
+#                     return JsonResponse({"error": f"Not enough stock for {item.product_variant.product.name}."}, status=400)
+
+#                 item.product_variant.stock -= item.quantity
+#                 item.product_variant.save()
+
+#                 price = item.product_variant.product.offer if item.product_variant.product.offer else item.product_variant.product.price
+#                 OrderItem.objects.create(
+#                     order=order,
+#                     product=item.product_variant.product,
+#                     quantity=item.quantity,
+#                     price=price,
+#                 )
+
+#             cart_items.delete()
+
+#             return JsonResponse({"success": "Order placed successfully!"}, status=200)
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({"error": "Invalid request format."}, status=400)
+    
+#     context = {
+#         'addresses': addresses,
+#         'default_address': default_address,  # Pass the default address to the template
+#         'cart_items': cart_items,
+#         'total': total,
+#         'delivery_charge': delivery_charge
+#     }
+#     return render(request, 'user/checkout.html', context)
+
+
+
+
+from django.shortcuts import redirect
+from django.urls import reverse
+
 @login_required
 def place_order(request):
     user = request.user
     addresses = Address.objects.filter(user=user)
+    default_address = addresses.filter(is_default=True).first()  # Get the default address
 
     try:
         cart = Cart.objects.get(user=user)
@@ -46,17 +234,16 @@ def place_order(request):
     
     if request.method == "POST":
         try:
-            data = json.loads(request.body.decode("utf-8"))
-            address_id = data.get("address_id")
-            payment_method = data.get("payment_method")
+            address_id = request.POST.get("address_id")
+            payment_method = request.POST.get("payment_method")
 
             if not address_id or not payment_method:
                 return JsonResponse({"error": "Address or payment method not provided."}, status=400)
 
             address = Address.objects.get(id=address_id, user=request.user)
             
-            if payment_method == 'COD' and total > Decimal('1000.00'):
-                return JsonResponse({"error": "Cash on Delivery is not available for orders above ₹1000."}, status=400)
+            # if payment_method == 'COD' and total > Decimal('1000.00'):
+            #     return JsonResponse({"error": "Cash on Delivery is not available for orders above ₹1000."}, status=400)
 
             order = Order.objects.create(
                 user=user,
@@ -82,18 +269,21 @@ def place_order(request):
 
             cart_items.delete()
 
-            return JsonResponse({"success": "Order placed successfully!"}, status=200)
+            # Redirect to the order success page
+            return redirect(reverse('order_success'))
 
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid request format."}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
     
     context = {
         'addresses': addresses,
+        'default_address': default_address,  # Pass the default address to the template
         'cart_items': cart_items,
         'total': total,
         'delivery_charge': delivery_charge
     }
     return render(request, 'user/checkout.html', context)
+
 
 
 def order_success(request):
