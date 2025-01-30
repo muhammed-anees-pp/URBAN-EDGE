@@ -17,7 +17,7 @@ class Address(models.Model):
 
 
     def __str__(self):
-        return f"{self.name} - {self.address}, {self.city}, {self.state},{self.country}"
+        return f"{self.name} \n{self.address}, {self.city} \n{self.state},{self.country},{self.postcode} \nPhone: {self.phone}\n Email: {self.email}"
     
 
     def save(self, *args, **kwargs):

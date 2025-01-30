@@ -168,8 +168,8 @@
                                         {{ item.product.name|slice:":50" }}{% if item.product.name|length > 50 %}...{% endif %}
                                     </h5>
                                     <p class="mb-1">
-                                        <span class="text-muted">Color:</span> {{ item.productvariant.color }} | 
-                                        <span class="text-muted">Size:</span> {{ item.productvariant.size }}
+                                        <span class="text-muted">Color:</span> {{ item.product_variant.color }} | 
+                                        <span class="text-muted">Size:</span> {{ item.product_variant.size }}
                                     </p>
                                     <p class="mb-0">
                                         <span class="text-muted">Price:</span> ₹{{ item.price }}

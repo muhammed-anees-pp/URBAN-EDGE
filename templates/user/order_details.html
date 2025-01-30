@@ -188,15 +188,6 @@
                             <h5 class="mb-1">Order ID: <span class="order-id">#{{ order.id }}</span></h5>
                             <p class="mb-0 text-muted">Ordered on {{ order.created_at|date:"d M Y" }}</p>
                         </div>
-                        <div class="col-md-6 text-md-end">
-                            {% if order.status == 'completed' %}
-                                <span class="badge-status bg-success">Delivered</span>
-                            {% elif order.status == 'pending' %}
-                                <span class="badge-status bg-warning">Processing</span>
-                            {% else %}
-                                <span class="badge-status bg-danger">Cancelled</span>
-                            {% endif %}
-                        </div>
                     </div>
                 </div>
 
@@ -209,7 +200,6 @@
                                 <th>Color</th>
                                 <th>Size</th>
                                 <th>Price</th>
-                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -226,15 +216,6 @@
                                 <td>{{ item.product_variant.color }}</td>
                                 <td>{{ item.product_variant.size }}</td>
                                 <td>₹{{ item.price }}</td>
-                                <td>
-                                    {% if item.order.status == 'completed' %}
-                                        <span class="badge bg-success">Delivered</span>
-                                    {% elif item.order.status == 'pending' %}
-                                        <span class="badge bg-warning">Processing</span>
-                                    {% else %}
-                                        <span class="badge bg-danger">Cancelled</span>
-                                    {% endif %}
-                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -245,7 +226,7 @@
                 <div class="mt-4">
                     <h5 class="mb-3">Delivery Address</h5>
                     <div class="p-3 bg-light rounded">
-                        {{ order.address.full_address }}
+                        {{ order.address|linebreaks }}
                     </div>
                 </div>
 

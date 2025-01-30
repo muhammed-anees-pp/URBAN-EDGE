@@ -9,6 +9,94 @@ from user_profile.models import Address
 from productsapp.models import ProductVariant
 from django.urls import reverse
 
+# @login_required
+# def place_order(request):
+#     user = request.user
+#     addresses = Address.objects.filter(user=user)
+#     default_address = addresses.filter(is_default=True).first()
+
+#     try:
+#         cart = Cart.objects.get(user=user)
+#         cart_items = CartItem.objects.filter(cart=cart)
+        
+#         if not cart_items.exists():
+#             return JsonResponse({"error": "Your cart is empty. Please add items to checkout."}, status=400)
+
+#         for item in cart_items:
+#             if item.quantity < 1:
+#                 return JsonResponse({"error": f"Invalid quantity for {item.product_variant.product.name}. Please update your cart."}, status=400)
+            
+#             if item.quantity > item.product_variant.stock:
+#                 return JsonResponse({
+#                     "error": f"Requested quantity for {item.product_variant.product.name} exceeds available stock."
+#                 }, status=400)
+        
+#         total = Decimal('0.00')
+#         for item in cart_items:
+#             price = Decimal(str(item.product_variant.product.offer if item.product_variant.product.offer else item.product_variant.product.price))
+#             quantity = Decimal(str(item.quantity))
+#             item.subtotal = price * quantity
+#             total += item.subtotal
+
+#         delivery_charge = Decimal('40.00') if total < Decimal('500.00') else Decimal('0.00')
+#         total_amount = total + delivery_charge  # Total amount including delivery charge
+        
+#     except Cart.DoesNotExist:
+#         cart_items = []
+#         total = Decimal('0.00')
+#         delivery_charge = Decimal('0.00')
+#         total_amount = total  # Total amount including delivery charge
+    
+#     if request.method == "POST":
+#         try:
+#             address_id = request.POST.get("address_id")
+#             payment_method = request.POST.get("payment_method")
+
+#             if not address_id or not payment_method:
+#                 return JsonResponse({"error": "Address or payment method not provided."}, status=400)
+
+#             address = Address.objects.get(id=address_id, user=request.user)
+            
+#             order = Order.objects.create(
+#                 user=user,
+#                 address=address,
+#                 payment_method=payment_method,
+#                 total_price=total_amount,
+#             )
+
+#             for item in cart_items:
+#                 if item.product_variant.stock < item.quantity:
+#                     return JsonResponse({"error": f"Not enough stock for {item.product_variant.product.name}."}, status=400)
+
+#                 item.product_variant.stock -= item.quantity
+#                 item.product_variant.save()
+
+#                 price = item.product_variant.product.offer if item.product_variant.product.offer else item.product_variant.product.price
+#                 for _ in range(item.quantity):
+#                     OrderItem.objects.create(
+#                         order=order,
+#                         product=item.product_variant.product,
+#                         quantity=1,
+#                         price=price,
+#                     )
+
+#             cart_items.delete()
+
+#             return redirect(reverse('order_success'))
+
+#         except Exception as e:
+#             return JsonResponse({"error": str(e)}, status=400)
+    
+#     context = {
+#         'addresses': addresses,
+#         'default_address': default_address,
+#         'cart_items': cart_items,
+#         'total': total,
+#         'delivery_charge': delivery_charge,
+#         'total_amount': total_amount,
+#     }
+#     return render(request, 'user/checkout.html', context)
+
 @login_required
 def place_order(request):
     user = request.user
@@ -76,6 +164,7 @@ def place_order(request):
                     OrderItem.objects.create(
                         order=order,
                         product=item.product_variant.product,
+                        product_variant=item.product_variant,  # Add this line to include product_variant
                         quantity=1,
                         price=price,
                     )
@@ -121,7 +210,32 @@ def order_success(request):
     return render(request, 'user/order_confirm.html', context)
 
 
+@login_required
+def user_orders(request):
+    # Fetch all order items for the user, grouped by order
+    order_items = OrderItem.objects.filter(order__user=request.user).order_by('-order__created_at')
+    return render(request, 'user/orders_list.html', {'order_items': order_items})
+
+
 ##################################################################################################################
+
+
+@login_required
+def user_order_details(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order_items = order.items.all()
+
+    for item in order_items:
+        item.subtotal = item.quantity * item.price
+
+    return render(request, 'user/order_details.html', {
+        'order': order, 
+        'order_items': order_items
+    })
+
+
+
+
 
 
 
@@ -159,11 +273,7 @@ def update_order_status(request, order_id):
 
     return JsonResponse({"error": "Invalid request."}, status=400)
 
-@login_required
-def user_orders(request):
-    # Fetch all order items for the user, grouped by order
-    order_items = OrderItem.objects.filter(order__user=request.user).order_by('-order__created_at')
-    return render(request, 'user/orders_list.html', {'order_items': order_items})
+
 
 # @login_required
 # def user_order_details(request, order_id):
@@ -175,18 +285,7 @@ def user_orders(request):
 
 #     return render(request, 'user/order_details.html', {'order': order, 'order_items': order_items})
 
-@login_required
-def user_order_details(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    order_items = order.items.all()
 
-    for item in order_items:
-        item.subtotal = item.quantity * item.price
-
-    return render(request, 'user/order_details.html', {
-        'order': order, 
-        'order_items': order_items
-    })
 
 
 
