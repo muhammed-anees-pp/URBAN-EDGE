@@ -424,7 +424,7 @@
             <div class="total-label">Grand Total</div>
             <h2 class="grand-total">₹{{ grand_total }}</h2>
         </div>
-        <a href="#" class="checkout-btn">
+        <a href="{% url 'place_order' %}" class="checkout-btn">
             <i class="fas fa-lock me-2"></i>Proceed to Checkout
         </a>
     </div>

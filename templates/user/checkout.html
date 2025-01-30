@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .addresses, .cart-items, .totals {
+            margin-bottom: 20px;
+        }
+        .address, .cart-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .totals {
+            font-size: 1.2em;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Checkout</h1>
+
+    <!-- Display Addresses -->
+    <div class="addresses">
+        <h2>Select Address</h2>
+        {% for address in addresses %}
+            <div class="address">
+                <p>{{ address.street }}, {{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
+                <!-- Use data attributes to pass the address ID -->
+                <button data-address-id="{{ address.id }}" onclick="selectAddress(this)">Select</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Display Cart Items -->
+    <div class="cart-items">
+        <h2>Your Cart</h2>
+        {% for item in cart_items %}
+            <div class="cart-item">
+                <p>{{ item.product_variant.product.name }} - {{ item.quantity }} x ₹{{ item.product_variant.product.price }}</p>
+                <p>Subtotal: ₹{{ item.subtotal }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Display Totals -->
+    <div class="totals">
+        <p>Delivery Charge: ₹{{ delivery_charge }}</p>
+        <p><strong>Total: ₹{{ total }}</strong></p>
+    </div>
+
+    <!-- Payment Method Selection -->
+    <div class="payment-method">
+        <h2>Payment Method</h2>
+        <select id="payment-method">
+            <option value="COD">Cash on Delivery</option>
+            <option value="Online">Online Payment</option>
+        </select>
+    </div>
+
+    <!-- Place Order Button -->
+    <button onclick="placeOrder()">Place Order</button>
+
+    <!-- Error Message Display -->
+    <div id="error-message" class="error"></div>
+
+    <script>
+        let selectedAddressId = null;
+
+        // Function to select address
+        function selectAddress(button) {
+            // Get the address ID from the button's data attribute
+            selectedAddressId = button.getAttribute("data-address-id");
+            alert("Address selected: " + selectedAddressId);
+        }
+
+        // Function to place order
+        async function placeOrder() {
+            const paymentMethod = document.getElementById("payment-method").value;
+
+            if (!selectedAddressId) {
+                document.getElementById("error-message").innerText = "Please select an address.";
+                return;
+            }
+
+            const response = await fetch("/place_order/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    address_id: selectedAddressId,
+                    payment_method: paymentMethod
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                window.location.href = "/order_success/";
+            } else {
+                document.getElementById("error-message").innerText = data.error;
+            }
+        }
+    </script>
+</body>
+</html>
