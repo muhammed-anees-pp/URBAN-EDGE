@@ -21,9 +21,11 @@
                                     <h5 class="card-title" title="{{ item.product.name }}">
                                         {{ item.product.name|slice:":50" }}{% if item.product.name|length > 50 %}...{% endif %}
                                     </h5>
+
+                                
                                     <p class="card-text">
-                                        <strong>Color:</strong> {{ item.product.productvariant.color }} | 
-                                        <strong>Size:</strong> {{ item.product.productvariant.size }}
+                                        <strong>Color:</strong> {{ item.productvariant.color }} | 
+                                        <strong>Size:</strong> {{ item.productvariant.size }}
                                     </p>
                                     <p class="card-text">
                                         <strong>Price:</strong> ₹{{ item.price }}

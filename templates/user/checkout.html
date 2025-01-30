@@ -1,212 +1,312 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .addresses, .cart-items, .totals {
-            margin-bottom: 20px;
-        }
-        .address, .cart-item {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
-        .totals {
-            font-size: 1.2em;
-        }
-        .error {
-            color: red;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <h1>Checkout</h1>
+{% extends 'base.html' %}
 
-    <!-- Display Default Address -->
-    <div class="addresses">
-        <h2>Delivery Address</h2>
-        <div class="address">
-            <div id="default-address">
-                {% if default_address %}
-                    <p><strong>Name:</strong> {{ default_address.name }}</p>
-                    <p><strong>Address:</strong> {{ default_address.address }}</p>
-                    <p><strong>City:</strong> {{ default_address.city }}</p>
-                    <p><strong>State:</strong> {{ default_address.state }}</p>
-                    <p><strong>Country:</strong> {{ default_address.country }}</p>
-                    <p><strong>Postcode:</strong> {{ default_address.postcode }}</p>
-                    <p><strong>Phone:</strong> {{ default_address.phone }}</p>
-                    <p><strong>Email:</strong> {{ default_address.email }}</p>
-                    <p><strong>Additional Info:</strong> {{ default_address.additional_info }}</p>
-                {% else %}
-                    <p>No default address found. Please add an address.</p>
-                {% endif %}
-            </div>
-            <button onclick="showChangeAddress()">Change Address</button>
-        </div>
-    </div>
+{% block title %}Checkout{% endblock %}
 
-    <!-- Change Address Section (Hidden by Default) -->
-    <div id="change-address-section" class="hidden">
-        <h3>Select or Add Address</h3>
-        {% for address in addresses %}
-            <div class="address">
-                <p><strong>Name:</strong> {{ address.name }}</p>
-                <p><strong>Address:</strong> {{ address.address }}</p>
-                <p><strong>City:</strong> {{ address.city }}</p>
-                <p><strong>State:</strong> {{ address.state }}</p>
-                <p><strong>Country:</strong> {{ address.country }}</p>
-                <p><strong>Postcode:</strong> {{ address.postcode }}</p>
-                <p><strong>Phone:</strong> {{ address.phone }}</p>
-                <p><strong>Email:</strong> {{ address.email }}</p>
-                <p><strong>Additional Info:</strong> {{ address.additional_info }}</p>
-                <button data-address-id="{{ address.id }}" onclick="selectAddress(this)">Select</button>
-            </div>
-        {% endfor %}
-        <button onclick="showAddAddressModal()">Add New Address</button>
-    </div>
+{% block extra_css %}
+<style>
+    .checkout-container {
+        padding: 2rem;
+    }
 
-    <!-- Display Cart Items -->
-    <div class="cart-items">
-        <h2>Your Cart</h2>
-        {% for item in cart_items %}
+    h2.cart-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+
+    .cart-item {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .product-image {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: #6c757d;
+    }
+
+    .offer-price {
+        color: #198754;
+        font-weight: bold;
+    }
+
+    .address-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background-color: #f8f9fa;
+    }
+
+    .address-card.selected {
+        border-color: #0d6efd;
+        background-color: #f0f7ff;
+    }
+
+    .payment-option {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <div class="row g-4">
+        <!-- Left Column - Cart Items -->
+        <div class="col-lg-8">
+            <h2 class="cart-title mb-4">Your Cart</h2>
+            {% for item in cart_items %}
             <div class="cart-item">
-                {% if item.product_variant.product.offer %}
-                <p>{{ item.product_variant.product.name }} MRP - ₹{{ item.product_variant.product.price }} Offer Price - ₹{{ item.product_variant.product.offer }}</p>
-                <p>{{ item.quantity }} x ₹{{ item.product_variant.product.offer }}</p>
-                <p>Subtotal: ₹{{ item.subtotal }}</p>
-                {% else %}
-                <p>{{ item.product_variant.product.name }} MRP - ₹{{ item.product_variant.product.price }}</p>
-                <p>{{ item.quantity }} x ₹{{ item.product_variant.product.price }}</p>
-                <p>Subtotal: ₹{{ item.subtotal }}</p>
-                {% endif %}
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <img src="{{ item.product_variant.product.images.first.image.url }}"
+                            alt="{{ item.product_variant.product.name }}" class="product-image">
+                    </div>
+                    <div class="col-md-9">
+                        <h5 class="mb-2">{{ item.product_variant.product.name }}</h5>
+                        <p class="mb-2">
+                            Size: {{ item.product_variant.size }} |
+                            Color: {{ item.product_variant.color }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if item.product_variant.product.offer %}
+                                <span class="original-price me-2">₹{{ item.product_variant.product.price }}</span>
+                                <span class="offer-price">₹{{ item.product_variant.product.offer }}</span>
+                                {% else %}
+                                <span class="offer-price">₹{{ item.product_variant.product.price }}</span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                Quantity: {{ item.quantity }} |
+                                Subtotal: ₹{{ item.subtotal }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        {% endfor %}
-    </div>
-
-    <!-- Display Totals -->
-    <div class="totals">
-        <p>Delivery Charge: ₹{{ delivery_charge }}</p>
-        <p><strong>Total: ₹{{ total }}</strong></p>
-    </div>
-
-    <!-- Payment Method Selection -->
-    <div class="payment__methods">
-        <h3 class="checkout__title payment__title">Payment</h3>
-        <div class="payment__option flex">
-            <input type="radio" name="payment_method" value="COD" id="cod" class="payment__input" checked/>
-            <label for="cod" class="payment__label">Cash on Delivery</label>
+            {% endfor %}
         </div>
-        <div class="payment__option flex">
-            <input type="radio" name="payment_method" id="razorpay" value="razorpay" class="payment__input"/>
-            <label for="onlinepay" class="payment__label">Online Payment</label>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Delivery Address -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Delivery Address</h4>
+                    <button class="btn btn-outline-primary btn-sm" onclick="showChangeAddress()">Change</button>
+                </div>
+                <div class="address-card" id="default-address">
+                    {% if default_address %}
+                    <p class="fw-bold mb-1">{{ default_address.name }}</p>
+                    <p class="mb-1">{{ default_address.address }}</p>
+                    <p class="mb-1">{{ default_address.city }}, {{ default_address.state }}</p>
+                    <p class="mb-1">{{ default_address.country }} - {{ default_address.postcode }}</p>
+                    <p class="mb-1">Phone: {{ default_address.phone }}</p>
+                    {% else %}
+                    <p>No default address found. Please add an address.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="mb-4">
+                <h4 class="mb-3">Payment Method</h4>
+                <div class="payment-option">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" value="COD" id="cod" checked>
+                        <label class="form-check-label" for="cod">Cash on Delivery</label>
+                    </div>
+                </div>
+                <div class="payment-option">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" value="razorpay"
+                            id="razorpay">
+                        <label class="form-check-label" for="razorpay">Online Payment</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="summary-card">
+                <h4 class="mb-3">Order Summary</h4>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Items Total</span>
+                    <span>₹{{ total }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Delivery Charge</span>
+                    {% if delivery_charge %}
+                    <span>₹{{ delivery_charge }}</span>
+                    {% else %}
+                    <span>Free</span>
+                    {% endif %}
+
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>Total Amount</span>
+                    <span>₹{{ total_amount }}</span>
+                </div>
+
+                <form method="POST" action="{% url 'place_order' %}" id="place-order-form" class="mt-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="address_id" id="address-id" value="{{ default_address.id|default:'' }}">
+                    <input type="hidden" name="payment_method" id="payment-method-hidden">
+                    <button type="button" onclick="placeOrder()" class="btn btn-primary w-100">Place Order</button>
+                </form>
+                <div id="error-message" class="text-danger mt-2"></div>
+            </div>
         </div>
     </div>
-    
-    <!-- Place Order Form -->
-    <form method="POST" action="{% url 'place_order' %}" id="place-order-form">
-        {% csrf_token %}
-        <input type="hidden" name="address_id" id="address-id" value="{{ default_address.id|default:'' }}">
-        <input type="hidden" name="payment_method" id="payment-method-hidden">
-        <button id="placeOrderBtn" class="btn btn--md" type="button" onclick="placeOrder()">Place Order</button>
-    </form>
+</div>
 
-    <!-- Error Message Display -->
-    <div id="error-message" class="error"></div>
-
-    <!-- Add Address Modal -->
-    <div id="add-address-modal" class="hidden">
-        <h3>Add New Address</h3>
-        <form id="add-address-form" method="post" action="{% url 'add_address' %}">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
+<!-- Address Selection Modal -->
+<div class="modal fade" id="addressModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Delivery Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="mb-3">
-                <label for="address">Address:</label>
-                <input type="text" id="address" name="address" required>
+            <div class="modal-body">
+                {% for address in addresses %}
+                <div class="address-card mb-3">
+                    <p class="fw-bold mb-1">{{ address.name }}</p>
+                    <p class="mb-1">{{ address.address }}</p>
+                    <p class="mb-1">{{ address.city }}, {{ address.state }}</p>
+                    <p class="mb-1">{{ address.country }} - {{ address.postcode }}</p>
+                    <p class="mb-1">Phone: {{ address.phone }}</p>
+                    <button class="btn btn-primary mt-2" data-address-id="{{ address.id }}"
+                        onclick="selectAddress(this)">
+                        Deliver Here
+                    </button>
+                </div>
+                {% endfor %}
+                <button class="btn btn-outline-primary w-100" onclick="showAddAddressModal()">
+                    + Add New Address
+                </button>
             </div>
-            <div class="mb-3">
-                <label for="city">City:</label>
-                <input type="text" id="city" name="city" required>
-            </div>
-            <div class="mb-3">
-                <label for="state">State:</label>
-                <input type="text" id="state" name="state" required>
-            </div>
-            <div class="mb-3">
-                <label for="country">Country:</label>
-                <input type="text" id="country" name="country" required>
-            </div>
-            <div class="mb-3">
-                <label for="postcode">Postcode:</label>
-                <input type="text" id="postcode" name="postcode" required>
-            </div>
-            <div class="mb-3">
-                <label for="phone">Phone:</label>
-                <input type="text" id="phone" name="phone" required>
-            </div>
-            <div class="mb-3">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email">
-            </div>
-            <div class="mb-3">
-                <label for="additional_info">Additional Info:</label>
-                <textarea id="additional_info" name="additional_info" rows="3"></textarea>
-            </div>
-            <button type="submit">Save Address</button>
-        </form>
+        </div>
     </div>
+</div>
 
-    <script>
-        let selectedAddressId = "{{ default_address.id|default:'' }}"; // Pre-select default address
-    
-        // Function to show the "Change Address" section
-        function showChangeAddress() {
-            document.getElementById('change-address-section').classList.remove('hidden');
+<!-- Add Address Modal -->
+<div class="modal fade" id="addAddressModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-address-form" method="post" action="{% url 'add_address' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="address" name="address" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="city" class="form-label">City</label>
+                        <input type="text" class="form-control" id="city" name="city" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="state" class="form-label">State</label>
+                        <input type="text" class="form-control" id="state" name="state" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="country" class="form-label">Country</label>
+                        <input type="text" class="form-control" id="country" name="country" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="postcode" class="form-label">Postcode</label>
+                        <input type="text" class="form-control" id="postcode" name="postcode" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="phone" name="phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="additional_info" class="form-label">Additional Info</label>
+                        <textarea class="form-control" id="additional_info" name="additional_info" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Save Address</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let selectedAddressId = "{{ default_address.id|default:'' }}";
+    const addressModal = new bootstrap.Modal(document.getElementById('addressModal'));
+    const addAddressModal = new bootstrap.Modal(document.getElementById('addAddressModal'));
+
+    function showChangeAddress() {
+        addressModal.show();
+    }
+
+    function showAddAddressModal() {
+        addressModal.hide();
+        addAddressModal.show();
+    }
+
+    function selectAddress(button) {
+        selectedAddressId = button.getAttribute("data-address-id");
+
+        const addressDetails = button.parentElement.innerHTML;
+        const defaultAddressDiv = document.getElementById('default-address');
+        defaultAddressDiv.innerHTML = addressDetails;
+
+        // Remove the select button from the displayed address
+        const selectButton = defaultAddressDiv.querySelector('button');
+        if (selectButton) {
+            selectButton.remove();
         }
-    
-        // Function to select an address
-        function selectAddress(button) {
-            selectedAddressId = button.getAttribute("data-address-id");
-    
-            // Get the selected address details from the button's parent element
-            const addressDetails = button.parentElement.querySelectorAll('p');
-    
-            // Update the default address section with the selected address details
-            const defaultAddressDiv = document.getElementById('default-address');
-            defaultAddressDiv.innerHTML = ''; // Clear the current content
-    
-            addressDetails.forEach(detail => {
-                defaultAddressDiv.innerHTML += `<p>${detail.innerHTML}</p>`;
-            });
-    
-            // Update the hidden input field with the selected address id
-            document.getElementById('address-id').value = selectedAddressId;
-    
-            alert("Address selected: " + selectedAddressId);
-            document.getElementById('change-address-section').classList.add('hidden');
-        }
-    
-        // Function to show the "Add Address" modal
-        function showAddAddressModal() {
-            document.getElementById('add-address-modal').classList.remove('hidden');
-        }
-    
-        // Function to handle adding a new address
-        document.getElementById('add-address-form').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
+
+        document.getElementById('address-id').value = selectedAddressId;
+        addressModal.hide();
+    }
+
+    document.getElementById('add-address-form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+
+        try {
             const response = await fetch("{% url 'add_address' %}", {
                 method: "POST",
                 headers: {
@@ -214,43 +314,43 @@
                 },
                 body: formData
             });
-    
+
             if (response.ok) {
-                alert("Address added successfully!");
-                window.location.reload(); // Reload the page to reflect the new address
+                window.location.reload();
             } else {
-                alert("Failed to add address.");
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.textContent = 'Failed to add address. Please try again.';
+                event.target.prepend(errorDiv);
             }
-        });
-    
-        // Function to place order
-        async function placeOrder() {
-            const paymentMethodElements = document.getElementsByName("payment_method");
-            let paymentMethod;
-    
-            for (const element of paymentMethodElements) {
-                if (element.checked) {
-                    paymentMethod = element.value;
-                    break;
-                }
-            }
-    
-            if (!paymentMethod) {
-                document.getElementById("error-message").innerText = "Please select a payment method.";
-                return;
-            }
-    
-            if (!selectedAddressId) {
-                document.getElementById("error-message").innerText = "Please select an address.";
-                return;
-            }
-    
-            // Set the payment method in the hidden input
-            document.getElementById('payment-method-hidden').value = paymentMethod;
-    
-            // Submit the form
-            document.getElementById('place-order-form').submit();
+        } catch (error) {
+            console.error('Error:', error);
         }
-    </script>
-</body>
-</html>
+    });
+
+    function placeOrder() {
+        const paymentMethodElements = document.getElementsByName("payment_method");
+        let paymentMethod;
+
+        for (const element of paymentMethodElements) {
+            if (element.checked) {
+                paymentMethod = element.value;
+                break;
+            }
+        }
+
+        if (!paymentMethod) {
+            document.getElementById("error-message").innerText = "Please select a payment method.";
+            return;
+        }
+
+        if (!selectedAddressId) {
+            document.getElementById("error-message").innerText = "Please select an address.";
+            return;
+        }
+
+        document.getElementById('payment-method-hidden').value = paymentMethod;
+        document.getElementById('place-order-form').submit();
+    }
+</script>
+{% endblock %}

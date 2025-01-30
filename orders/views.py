@@ -365,12 +365,13 @@ def place_order(request):
             total += item.subtotal
 
         delivery_charge = Decimal('40.00') if total < Decimal('500.00') else Decimal('0.00')
-        total += delivery_charge
+        total_amount = total + delivery_charge  # Total amount including delivery charge
         
     except Cart.DoesNotExist:
         cart_items = []
         total = Decimal('0.00')
         delivery_charge = Decimal('0.00')
+        total_amount = total  # Total amount including delivery charge
     
     if request.method == "POST":
         try:
@@ -386,7 +387,7 @@ def place_order(request):
                 user=user,
                 address=address,
                 payment_method=payment_method,
-                total_price=total,
+                total_price=total_amount,
             )
 
             for item in cart_items:
@@ -417,13 +418,40 @@ def place_order(request):
         'default_address': default_address,
         'cart_items': cart_items,
         'total': total,
-        'delivery_charge': delivery_charge
+        'delivery_charge': delivery_charge,
+        'total_amount': total_amount,
     }
     return render(request, 'user/checkout.html', context)
 
 
+# def order_success(request):
+#     return render(request, 'user/order_confirm.html')
+
+# from django.shortcuts import render
+# from orders.models import Order, OrderItem
+
 def order_success(request):
-    return render(request, 'user/order_confirm.html')
+    # Fetch the latest order for the logged-in user
+    latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
+    
+    if not latest_order:
+        # Handle case where no order exists (e.g., redirect to home or show an error)
+        return render(request, 'user/order_confirm.html', {
+            'error': 'No order found.'
+        })
+    
+    # Fetch order items for the latest order
+    order_items = OrderItem.objects.filter(order=latest_order)
+    
+    # Prepare data for the template
+    context = {
+        'order_number': latest_order.id,  # Use the custom order ID
+        'order_items': order_items,
+        'order_total': latest_order.total_price,
+    }
+    
+    return render(request, 'user/order_confirm.html', context)
+
 
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
@@ -462,6 +490,16 @@ def user_orders(request):
     order_items = OrderItem.objects.filter(order__user=request.user).order_by('-order__created_at')
     return render(request, 'user/orders_list.html', {'order_items': order_items})
 
+# @login_required
+# def user_order_details(request, order_id):
+#     order = get_object_or_404(Order, id=order_id, user=request.user)
+#     order_items = order.items.all()
+
+#     for item in order_items:
+#         item.subtotal = item.quantity * item.price
+
+#     return render(request, 'user/order_details.html', {'order': order, 'order_items': order_items})
+
 @login_required
 def user_order_details(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
@@ -470,7 +508,12 @@ def user_order_details(request, order_id):
     for item in order_items:
         item.subtotal = item.quantity * item.price
 
-    return render(request, 'user/order_details.html', {'order': order, 'order_items': order_items})
+    return render(request, 'user/order_details.html', {
+        'order': order, 
+        'order_items': order_items
+    })
+
+
 
 @login_required
 def cancel_order_item(request, item_id):
