@@ -1,0 +1,31 @@
+<!-- templates/user/cancel_reason.html -->
+
+{% extends "base.html" %}
+
+{% block title %}Cancel Order Item{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Cancel Order Item</h4>
+                </div>
+                <div class="card-body">
+                    <p>You are canceling: <strong>{{ order_item.product.name }}</strong></p>
+                    <form method="POST" action="{% url 'cancel_order_item' order_item.id %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="cancel_reason">Reason for Cancellation:</label>
+                            <textarea class="form-control" id="cancel_reason" name="cancel_reason" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger mt-3">Confirm Cancellation</button>
+                        <a href="{% url 'user_orders' %}" class="btn btn-secondary mt-3">Go Back</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

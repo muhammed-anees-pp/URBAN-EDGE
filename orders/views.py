@@ -1,13 +1,13 @@
-from django.http import JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
-import json
-from decimal import Decimal
-from cart.models import Cart, CartItem
-from orders.models import Order, OrderItem
-from user_profile.models import Address
-from productsapp.models import ProductVariant
-from django.urls import reverse
+# from django.http import JsonResponse
+# from django.shortcuts import render, redirect, get_object_or_404
+# from django.contrib.auth.decorators import login_required, user_passes_test
+# import json
+# from decimal import Decimal
+# from cart.models import Cart, CartItem
+# from orders.models import Order, OrderItem
+# from user_profile.models import Address
+# from productsapp.models import ProductVariant
+# from django.urls import reverse
 
 # @login_required
 # def place_order(request):
@@ -76,6 +76,7 @@ from django.urls import reverse
 #                     OrderItem.objects.create(
 #                         order=order,
 #                         product=item.product_variant.product,
+#                         product_variant=item.product_variant,  # Add this line to include product_variant
 #                         quantity=1,
 #                         price=price,
 #                     )
@@ -96,6 +97,147 @@ from django.urls import reverse
 #         'total_amount': total_amount,
 #     }
 #     return render(request, 'user/checkout.html', context)
+
+
+# def order_success(request):
+#     # Fetch the latest order for the logged-in user
+#     latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
+    
+#     if not latest_order:
+#         # Handle case where no order exists (e.g., redirect to home or show an error)
+#         return render(request, 'user/order_confirm.html', {
+#             'error': 'No order found.'
+#         })
+    
+#     # Fetch order items for the latest order
+#     order_items = OrderItem.objects.filter(order=latest_order)
+    
+#     # Prepare data for the template
+#     context = {
+#         'order_number': latest_order.id,  # Use the custom order ID
+#         'order_items': order_items,
+#         'order_total': latest_order.total_price,
+#     }
+    
+#     return render(request, 'user/order_confirm.html', context)
+
+
+# @login_required
+# def user_orders(request):
+#     # Fetch all order items for the user, grouped by order
+#     order_items = OrderItem.objects.filter(order__user=request.user).order_by('-order__created_at')
+#     return render(request, 'user/orders_list.html', {'order_items': order_items})
+
+
+# ##################################################################################################################
+
+# # @login_required
+# # def user_order_details(request, order_id):
+# #     order = get_object_or_404(Order, id=order_id, user=request.user)
+# #     order_items = order.items.all()
+
+# #     # Calculate subtotal for each item
+# #     for item in order_items:
+# #         item.subtotal = item.quantity * item.price
+
+# #     # Get the particular product (first product in the order)
+# #     particular_product = order_items.first()
+
+# #     # Get other products in the same order (excluding the particular product)
+# #     other_products_in_order = order_items.exclude(id=particular_product.id) if order_items.count() > 1 else []
+
+# #     return render(request, 'user/order_details.html', {
+# #         'order': order, 
+# #         'particular_product': particular_product,
+# #         'other_products_in_order': other_products_in_order,
+# #     })
+
+
+# # @login_required
+# # def user_order_details(request, item_id):
+# #     # Get the clicked order item
+# #     particular_product = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+# #     order = particular_product.order  # Get the order from the item
+
+# #     # Get all items in the same order
+# #     order_items = order.items.all()
+
+# #     # Calculate subtotal for each item
+# #     for item in order_items:
+# #         item.subtotal = item.quantity * item.price
+
+# #     # Exclude the particular product to get other products
+# #     other_products_in_order = order_items.exclude(id=particular_product.id)
+
+# #     return render(request, 'user/order_details.html', {
+# #         'order': order,
+# #         'particular_product': particular_product,
+# #         'other_products_in_order': other_products_in_order,
+# #     })
+
+
+# @login_required
+# def user_order_details(request, order_id):
+#     # Get the order using the custom order ID
+#     order = get_object_or_404(Order, id=order_id, user=request.user)
+#     order_items = order.items.all()
+
+#     # Calculate subtotal for each item
+#     for item in order_items:
+#         item.subtotal = item.quantity * item.price
+
+#     # Get the particular product (first product in the order)
+#     particular_product = order_items.first()
+
+#     # Get other products in the same order (excluding the particular product)
+#     other_products_in_order = order_items.exclude(id=particular_product.id) if order_items.count() > 1 else []
+
+#     return render(request, 'user/order_details.html', {
+#         'order': order,
+#         'particular_product': particular_product,
+#         'other_products_in_order': other_products_in_order,
+#     })
+
+
+
+
+
+
+# from django.shortcuts import render, redirect, get_object_or_404
+# from django.contrib.auth.decorators import login_required
+# from django.http import JsonResponse
+# from .models import OrderItem
+
+# @login_required
+# def cancel_order_item(request, item_id):
+#     order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+
+#     if request.method == "POST":
+#         # Handle the cancellation reason form submission
+#         cancel_reason = request.POST.get("cancel_reason")
+#         if cancel_reason:
+#             order_item.status = 'canceled'
+#             order_item.cancel_reason = cancel_reason
+#             order_item.save()
+#             return JsonResponse({"message": "Order item canceled successfully."})
+#         else:
+#             return JsonResponse({"error": "Please provide a reason for cancellation."}, status=400)
+
+#     # Render the cancellation reason form template
+#     return render(request, 'user/cancel_reason.html', {'order_item': order_item})
+#################################################33
+
+
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+import json
+from decimal import Decimal
+from cart.models import Cart, CartItem
+from orders.models import Order, OrderItem
+from user_profile.models import Address
+from productsapp.models import ProductVariant
+from django.urls import reverse
 
 @login_required
 def place_order(request):
@@ -217,84 +359,85 @@ def user_orders(request):
     return render(request, 'user/orders_list.html', {'order_items': order_items})
 
 
-##################################################################################################################
-
-
 @login_required
-def user_order_details(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)
+def user_order_details(request, item_id):
+    # Get the clicked order item
+    particular_product = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+    order = particular_product.order  # Get the order from the item
+
+    # Get all items in the same order
     order_items = order.items.all()
 
+    # Calculate subtotal for each item
     for item in order_items:
         item.subtotal = item.quantity * item.price
+
+    # Exclude the particular product to get other products
+    other_products_in_order = order_items.exclude(id=particular_product.id)
 
     return render(request, 'user/order_details.html', {
-        'order': order, 
-        'order_items': order_items
+        'order': order,
+        'particular_product': particular_product,
+        'other_products_in_order': other_products_in_order,
     })
-
-
-
-
-
-
-
-
-
-
-def is_admin(user):
-    return user.is_authenticated and user.is_superuser
-
-@user_passes_test(is_admin)
-def order_management(request):
-    orders = Order.objects.all().order_by('-created_at')
-    return render(request, 'admin/order_admin.html', {'orders': orders})
-
-@user_passes_test(is_admin)
-def admin_order_details(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    order_items = order.items.all()
-    
-    for item in order_items:
-        item.subtotal = item.quantity * item.price
-
-    return render(request, 'admin/order_details_admin.html', {'order': order, 'order_items': order_items})
-
-@user_passes_test(is_admin)
-def update_order_status(request, order_id):
-    if request.method == "POST":
-        order = get_object_or_404(Order, id=order_id)
-        new_status = request.POST.get('status')
-
-        if new_status in dict(Order.ORDER_STATUS_CHOICES):
-            order.status = new_status
-            order.save()
-            return JsonResponse({"message": "Order status updated successfully."})
-
-    return JsonResponse({"error": "Invalid request."}, status=400)
-
-
-
-# @login_required
-# def user_order_details(request, order_id):
-#     order = get_object_or_404(Order, id=order_id, user=request.user)
-#     order_items = order.items.all()
-
-#     for item in order_items:
-#         item.subtotal = item.quantity * item.price
-
-#     return render(request, 'user/order_details.html', {'order': order, 'order_items': order_items})
-
-
-
 
 
 @login_required
 def cancel_order_item(request, item_id):
     order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
 
-    if order_item.order.status == 'pending':
-        order_item.delete()  # Remove the canceled item
-        return JsonResponse({"message": "Order item canceled successfully."})
+    if request.method == "POST":
+        # Handle the cancellation reason form submission
+        cancel_reason = request.POST.get("cancel_reason")
+        if cancel_reason:
+            order_item.status = 'canceled'
+            order_item.cancel_reason = cancel_reason
+            order_item.save()
+            return JsonResponse({"message": "Order item canceled successfully."})
+        else:
+            return JsonResponse({"error": "Please provide a reason for cancellation."}, status=400)
+
+    # Render the cancellation reason form template
+    return render(request, 'user/cancel_reason.html', {'order_item': order_item})
+
+
+
+
+############################################
+
+
+# def is_admin(user):
+#     return user.is_authenticated and user.is_superuser
+
+# @user_passes_test(is_admin)
+# def order_management(request):
+#     orders = Order.objects.all().order_by('-created_at')
+#     return render(request, 'admin/order_admin.html', {'orders': orders})
+
+# @user_passes_test(is_admin)
+# def admin_order_details(request, order_id):
+#     order = get_object_or_404(Order, id=order_id)
+#     order_items = order.items.all()
     
-    return JsonResponse({"error": "Order item cannot be canceled."}, status=400)
+#     for item in order_items:
+#         item.subtotal = item.quantity * item.price
+
+#     return render(request, 'admin/order_details_admin.html', {'order': order, 'order_items': order_items})
+
+# @user_passes_test(is_admin)
+# def update_order_status(request, order_id):
+#     if request.method == "POST":
+#         order = get_object_or_404(Order, id=order_id)
+#         new_status = request.POST.get('status')
+
+#         if new_status in dict(Order.ORDER_STATUS_CHOICES):
+#             order.status = new_status
+#             order.save()
+#             return JsonResponse({"message": "Order status updated successfully."})
+
+#     return JsonResponse({"error": "Invalid request."}, status=400)
+
+
+
+
+
