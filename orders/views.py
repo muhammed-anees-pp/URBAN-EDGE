@@ -8,6 +8,10 @@ from orders.models import Order, OrderItem
 from user_profile.models import Address
 from productsapp.models import ProductVariant
 from django.urls import reverse
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 @login_required
 def place_order(request):
@@ -197,10 +201,6 @@ def user_order_details(request, item_id):
         'grand_total': grand_total,
     })
 
-# from django.http import JsonResponse
-# from django.shortcuts import get_object_or_404
-# from django.urls import reverse
-
 
 @login_required
 def cancel_order_item(request, item_id):
@@ -226,6 +226,9 @@ def cancel_order_item(request, item_id):
             order_item.cancel_reason = cancel_reason
             order_item.save()
 
+            # Update the order status based on the product statuses
+            update_order_status_based_on_items(order_item.order)
+
             # Return a JSON response with success message and redirect URL
             return JsonResponse({
                 "success": True,
@@ -238,19 +241,6 @@ def cancel_order_item(request, item_id):
     # Render the cancellation reason form template
     return render(request, 'user/cancel_reason.html', {'order_item': order_item})
 
-
-
-
-
-
-#####################################################################
-
-
-
-
-
-############################################
-#####Admin Side###
 
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
@@ -278,20 +268,71 @@ def admin_order_details(request, order_id):
         'status_choices': status_choices,
     })
 
+
 @user_passes_test(is_admin)
+@require_POST
 def update_order_status(request, order_id):
-    if request.method == "POST":
-        order = get_object_or_404(Order, id=order_id)
-        new_status = request.POST.get('status')
+    order = get_object_or_404(Order, id=order_id)
+    item_id = request.POST.get('item_id')
+    new_status = request.POST.get('status')
 
-        if new_status in dict(Order.ORDER_STATUS_CHOICES):
-            order.status = new_status
-            order.save()
-            return JsonResponse({"message": "Order status updated successfully."})
+    if not item_id or not new_status:
+        return JsonResponse({"error": "Invalid request."}, status=400)
 
-    return JsonResponse({"error": "Invalid request."}, status=400)
+    order_item = get_object_or_404(OrderItem, id=item_id, order=order)
+
+    # Define the allowed status transitions
+    allowed_transitions = {
+        'order_placed': ['shipped'],
+        'shipped': ['out_for_delivery'],
+        'out_for_delivery': ['delivered'],
+        'delivered': [],
+        'canceled': [],
+        'return': []
+    }
+
+    current_status = order_item.status
+    if new_status not in allowed_transitions.get(current_status, []):
+        return JsonResponse({"error": f"Cannot update status from {current_status} to {new_status}."}, status=400)
+
+    # Update the item status
+    order_item.status = new_status
+    order_item.save()
+
+    # Debug: Print the updated item status
+    print(f"Updated OrderItem {order_item.id} status to {order_item.status}")
+
+    # Update the order status based on the product statuses
+    update_order_status_based_on_items(order)
+
+    # Return a success response
+    return JsonResponse({
+        "success": True,
+        "message": "Order item status updated successfully.",
+        "redirect_url": reverse('admin_order_details', args=[order.id])
+    })
 
 
-
-
-
+def update_order_status_based_on_items(order):
+    order_items = order.items.all()
+    
+    # Debug: Print all item statuses
+    print("Order Items Statuses:", [item.status for item in order_items])
+    
+    # Case 1: All items are canceled
+    if all(item.status == 'canceled' for item in order_items):
+        print("All items are canceled. Updating order status to 'canceled'.")
+        order.status = 'canceled'
+    
+    # Case 2: All items are either delivered or canceled
+    elif all(item.status in ['delivered', 'canceled'] for item in order_items):
+        print("All items are delivered or canceled. Updating order status to 'completed'.")
+        order.status = 'completed'
+    
+    # Case 3: Some items are still in progress
+    else:
+        print("Some items are still in progress. Keeping order status as 'order_placed'.")
+        order.status = 'order_placed'
+    
+    order.save()
+    print("Updated Order Status:", order.status)

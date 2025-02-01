@@ -14,8 +14,9 @@ def generate_order_id():
 class Order(models.Model):
     ORDER_STATUS_CHOICES = [
         ('order_placed', 'Order Placed'),
-        ('shipped', 'Shipped'),
-        ('delivered', 'Delivered'),
+        # ('shipped', 'Shipped'),
+        # ('delivered', 'Delivered'),
+        ('completed', 'Completed'),
         ('canceled', 'Canceled'),
     ]
 
@@ -52,3 +53,14 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
+    
+    def can_update_status(self, new_status):
+        allowed_transitions = {
+            'order_placed': ['shipped'],
+            'shipped': ['out_for_delivery'],
+            'out_for_delivery': ['delivered'],
+            'delivered': [],
+            'canceled': [],
+            'return': []
+        }
+        return new_status in allowed_transitions.get(self.status, [])
