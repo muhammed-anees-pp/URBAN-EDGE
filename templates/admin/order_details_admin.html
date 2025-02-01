@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -10,6 +11,7 @@
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
     <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}">
 </head>
+
 <body>
     <div class="container-scroller">
         {% include 'admin/sidebar.html' %}
@@ -34,17 +36,23 @@
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
-                                    <a href="{% url 'order_management' %}" class="btn btn-secondary mb-3">Back to Order Management</a>
+                                    <a href="{% url 'order_management' %}" class="btn btn-secondary mb-3">Back to Order
+                                        Management</a>
                                     <h4 class="card-title">Order Details - {{ order.id }}</h4>
                                     <div class="table-responsive">
-                                        <table class="table">
+                                        <!-- Update the table in admin_order_details.html -->
+                                        <!-- <table class="table">
                                             <thead>
                                                 <tr>
                                                     <th>Product</th>
                                                     <th>Variant</th>
                                                     <th>Quantity</th>
-                                                    <th>Price</th>
+                                                    <th>Listed Price</th>
+                                                    <th>Selling Price</th>
+                                                    <th>Image</th>
                                                     <th>Status</th>
+                                                    <th>Cancel Reason</th>
+                                                    <th>Return Reason</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
@@ -54,26 +62,153 @@
                                                     <td>{{ item.product.name }}</td>
                                                     <td>{{ item.product_variant.color }} - {{ item.product_variant.size }}</td>
                                                     <td>{{ item.quantity }}</td>
-                                                    <td>₹{{ item.price }}</td>
-                                                    <td>{{ item.get_status_display }}</td>
+                                                    <td>₹{{ item.product.price }}</td>
                                                     <td>
-                                                        <form class="update-status-form" method="post" action="{% url 'update_order_status' order.id %}" style="display: inline;">
+                                                        ₹{% if item.product.offer %}
+                                                            {{ item.product.offer }}
+                                                        {% else %}
+                                                            {{ item.product.price }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td><img src="{{ item.product.images.first.image.url }}"
+                                                            class="product-image" alt="{{ item.product.name }}"></td>
+                                                    <td>{{ item.get_status_display }}</td>
+                                                    <td>{{ item.cancel_reason }}</td>
+                                                    <td>{{ item.return_reason }}</td>
+                                                    <td>
+                                                        <form class="update-status-form" method="post"
+                                                            action="{% url 'update_order_status' order.id %}"
+                                                            style="display: inline;">
                                                             {% csrf_token %}
                                                             <input type="hidden" name="item_id" value="{{ item.id }}">
                                                             <select name="status" class="form-control form-control-sm">
                                                                 {% for status in status_choices %}
-                                                                    {% if status.0 != 'canceled' %}
-                                                                        <option value="{{ status.0 }}" {% if item.status == status.0 %}selected{% endif %}>{{ status.1 }}</option>
-                                                                    {% endif %}
+                                                                {% if status.0 != 'canceled' %}
+                                                                <option value="{{ status.0 }}" 
+                                                                {% if item.status == status.0 %}selected{% endif %}>{{ status.1 }}</option>
+                                                                {% endif %}
                                                                 {% endfor %}
                                                             </select>
-                                                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                                                            <button type="submit"
+                                                                class="btn btn-primary btn-sm">Update</button>
                                                         </form>
                                                     </td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
-                                        </table>
+                                        </table> -->
+                                        <!-- Update the table in admin_order_details.html -->
+<table class="table">
+    <thead>
+        <tr>
+            <th>Image</th>
+            <th>Product</th>
+            <th>Variant</th>
+            <th>Quantity</th>
+            <th>Listed Price</th>
+            <th>Selling Price</th>
+            <th>Status</th>
+            <th>Cancel Reason</th>
+            <th>Return Reason</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in order_items %}
+        <tr>
+            <td><img src="{{ item.product.images.first.image.url }}" class="product-image" alt="{{ item.product.name }}"></td>
+            <td>{{ item.product.name|truncatechars:50 }}</td>
+            <td>{{ item.product_variant.color }} - {{ item.product_variant.size }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>₹{{ item.product.price }}</td>
+            <td>
+                ₹{% if item.product.offer %}
+                    {{ item.product.offer }}
+                {% else %}
+                    {{ item.product.price }}
+                {% endif %}
+            </td>
+            <td>{{ item.get_status_display }}</td>
+            <td>
+                {% if item.cancel_reason %}
+                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#cancelReasonModal{{ item.id }}">
+                        View Reason
+                    </button>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                {% if item.return_reason %}
+                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#returnReasonModal{{ item.id }}">
+                        View Reason
+                    </button>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                <form class="update-status-form" method="post" action="{% url 'update_order_status' order.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <select name="status" class="form-control form-control-sm">
+                        {% for status in status_choices %}
+                            {% if status.0 != 'canceled' %}
+                                <option value="{{ status.0 }}" {% if item.status == status.0 %}selected{% endif %}>{{ status.1 }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modals for Cancel and Return Reasons -->
+{% for item in order_items %}
+    <!-- Cancel Reason Modal -->
+    <div class="modal fade" id="cancelReasonModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="cancelReasonModalLabel{{ item.id }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelReasonModalLabel{{ item.id }}">Cancel Reason</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {{ item.cancel_reason }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Reason Modal -->
+    <div class="modal fade" id="returnReasonModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="returnReasonModalLabel{{ item.id }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="returnReasonModalLabel{{ item.id }}">Return Reason</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {{ item.return_reason }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -85,7 +220,8 @@
     </div>
 
     <!-- Modal for Success/Error Messages -->
-    <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -106,10 +242,10 @@
 
     <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const statusForms = document.querySelectorAll('.update-status-form');
             statusForms.forEach(form => {
-                form.addEventListener('submit', function(event) {
+                form.addEventListener('submit', function (event) {
                     event.preventDefault();
                     const formData = new FormData(form);
 
@@ -120,28 +256,29 @@
                             'X-CSRFToken': formData.get('csrfmiddlewaretoken')
                         }
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Show success message in modal
-                            document.getElementById('statusModalBody').innerText = data.message;
-                            $('#statusModal').modal('show');
-                            // Redirect after a short delay
-                            setTimeout(() => {
-                                window.location.href = data.redirect_url;
-                            }, 2000);
-                        } else {
-                            // Show error message in modal
-                            document.getElementById('statusModalBody').innerText = data.error;
-                            $('#statusModal').modal('show');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Show success message in modal
+                                document.getElementById('statusModalBody').innerText = data.message;
+                                $('#statusModal').modal('show');
+                                // Redirect after a short delay
+                                setTimeout(() => {
+                                    window.location.href = data.redirect_url;
+                                }, 2000);
+                            } else {
+                                // Show error message in modal
+                                document.getElementById('statusModalBody').innerText = data.error;
+                                $('#statusModal').modal('show');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
                 });
             });
         });
     </script>
 </body>
+
 </html>

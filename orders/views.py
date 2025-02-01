@@ -1,17 +1,16 @@
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-import json
 from decimal import Decimal
 from cart.models import Cart, CartItem
 from orders.models import Order, OrderItem
 from user_profile.models import Address
 from productsapp.models import ProductVariant
 from django.urls import reverse
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.utils import timezone
+from django.contrib import messages
+
 
 @login_required
 def place_order(request):
@@ -190,6 +189,10 @@ def user_order_details(request, item_id):
     # Exclude the particular product to get other products
     other_products_in_order = order_items.exclude(id=particular_product.id)
 
+    # Pass the current time to the template
+    current_time = timezone.now()
+    days_since_delivery = (current_time - particular_product.updated_at).days
+
     return render(request, 'user/order_details.html', {
         'order': order,
         'particular_product': particular_product,
@@ -199,6 +202,7 @@ def user_order_details(request, item_id):
         'discounted_amount': discounted_amount,
         'delivery_charge': delivery_charge,
         'grand_total': grand_total,
+        'days_since_delivery': days_since_delivery,  # Add this line
     })
 
 
@@ -226,9 +230,6 @@ def cancel_order_item(request, item_id):
             order_item.cancel_reason = cancel_reason
             order_item.save()
 
-            # Update the order status based on the product statuses
-            update_order_status_based_on_items(order_item.order)
-
             # Return a JSON response with success message and redirect URL
             return JsonResponse({
                 "success": True,
@@ -240,6 +241,34 @@ def cancel_order_item(request, item_id):
 
     # Render the cancellation reason form template
     return render(request, 'user/cancel_reason.html', {'order_item': order_item})
+
+
+@login_required
+def request_return(request, item_id):
+    order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+
+    # Check if the item is eligible for return (delivered within 7 days)
+    if order_item.status != 'delivered' or (timezone.now() - order_item.updated_at).days > 7:
+        messages.error(request, "This item is not eligible for return.")
+        return redirect('user_order_details', item_id=item_id)
+
+    if request.method == "POST":
+        return_reason = request.POST.get("return_reason")
+        if return_reason:
+            # Update the order item status
+            order_item.status = 'return_requested'
+            order_item.return_reason = return_reason
+            order_item.return_requested_at = timezone.now()
+            order_item.save()
+
+            messages.success(request, "Return request submitted successfully.")
+            return redirect('user_order_details', item_id=item_id)
+        else:
+            messages.error(request, "Please provide a reason for return.")
+            return redirect('request_return', item_id=item_id)
+
+    # Render the return reason form template
+    return render(request, 'user/return_reason.html', {'order_item': order_item})
 
 
 def is_admin(user):
@@ -283,27 +312,40 @@ def update_order_status(request, order_id):
 
     # Define the allowed status transitions
     allowed_transitions = {
-        'order_placed': ['shipped'],
-        'shipped': ['out_for_delivery'],
-        'out_for_delivery': ['delivered'],
-        'delivered': [],
-        'canceled': [],
-        'return': []
+        'order_placed': ['shipped', 'canceled'],
+        'shipped': ['out_for_delivery', 'canceled'],
+        'out_for_delivery': ['delivered', 'canceled'],
+        'delivered': ['return_requested'],  # Only users can request returns
+        'canceled': [],  # No further transitions after canceled
+        'return_requested': ['returned', 'return_denied'],  # Admin can approve or deny return
+        'returned': [],  # No further transitions after returned
+        'return_denied': [],  # No further transitions after return denied
     }
 
     current_status = order_item.status
+
+    # Check if the new status is allowed
     if new_status not in allowed_transitions.get(current_status, []):
         return JsonResponse({"error": f"Cannot update status from {current_status} to {new_status}."}, status=400)
 
+    # Prevent admins from directly changing status to 'return_requested'
+    if new_status == 'return_requested':
+        return JsonResponse({"error": "Admins cannot directly request returns. Only users can request returns."}, status=400)
+
     # Update the item status
     order_item.status = new_status
+
+    # Refill stock if the status is updated to 'returned'
+    if new_status == 'returned':
+        product_variant = order_item.product_variant
+        product_variant.stock += order_item.quantity
+        product_variant.save()
+        order_item.returned_at = timezone.now()  # Set the returned_at timestamp
+
     order_item.save()
 
     # Debug: Print the updated item status
     print(f"Updated OrderItem {order_item.id} status to {order_item.status}")
-
-    # Update the order status based on the product statuses
-    update_order_status_based_on_items(order)
 
     # Return a success response
     return JsonResponse({
@@ -311,28 +353,3 @@ def update_order_status(request, order_id):
         "message": "Order item status updated successfully.",
         "redirect_url": reverse('admin_order_details', args=[order.id])
     })
-
-
-def update_order_status_based_on_items(order):
-    order_items = order.items.all()
-    
-    # Debug: Print all item statuses
-    print("Order Items Statuses:", [item.status for item in order_items])
-    
-    # Case 1: All items are canceled
-    if all(item.status == 'canceled' for item in order_items):
-        print("All items are canceled. Updating order status to 'canceled'.")
-        order.status = 'canceled'
-    
-    # Case 2: All items are either delivered or canceled
-    elif all(item.status in ['delivered', 'canceled'] for item in order_items):
-        print("All items are delivered or canceled. Updating order status to 'completed'.")
-        order.status = 'completed'
-    
-    # Case 3: Some items are still in progress
-    else:
-        print("Some items are still in progress. Keeping order status as 'order_placed'.")
-        order.status = 'order_placed'
-    
-    order.save()
-    print("Updated Order Status:", order.status)

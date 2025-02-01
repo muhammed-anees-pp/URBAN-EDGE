@@ -42,7 +42,6 @@
                                                     <th>Order ID</th>
                                                     <th>User</th>
                                                     <th>Total Amount</th>
-                                                    <th>Status</th>
                                                     <th>Created At</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -53,7 +52,6 @@
                                                     <td>{{ order.id }}</td>
                                                     <td>{{ order.user.username }}</td>
                                                     <td>₹{{ order.total_price }}</td>
-                                                    <td>{{ order.get_status_display }}</td>
                                                     <td>{{ order.created_at }}</td>
                                                     <td>
                                                         <a href="{% url 'admin_order_details' order.id %}" class="btn btn-primary btn-sm">View Details</a>

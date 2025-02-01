@@ -182,17 +182,20 @@
     }
 
     .timeline-step.active .icon {
-        background-color: #088178; /* Green for active steps */
+        background-color: #088178;
+        /* Green for active steps */
         color: white;
     }
 
     .timeline-step.completed .icon {
-        background-color: #088178; /* Green for completed steps */
+        background-color: #088178;
+        /* Green for completed steps */
         color: white;
     }
 
     .timeline-step.canceled .icon {
-        background-color: #dc3545; /* Red for canceled steps */
+        background-color: #dc3545;
+        /* Red for canceled steps */
         color: white;
     }
 
@@ -227,11 +230,13 @@
     }
 
     .timeline-line.completed {
-        background-color: #088178; /* Green for completed steps */
+        background-color: #088178;
+        /* Green for completed steps */
     }
 
     .timeline-line.canceled {
-        background-color: #dc3545; /* Red for canceled steps */
+        background-color: #dc3545;
+        /* Red for canceled steps */
     }
 
     /* Responsive adjustments */
@@ -279,12 +284,12 @@
                         <a class="nav-link active" href="{% url 'user_orders' %}">
                             <i class="bi bi-box"></i> My Orders
                         </a>
-                        <a class="nav-link" href="#">
+                        <!-- <a class="nav-link" href="#">
                             <i class="bi bi-credit-card"></i> My Payments
                         </a>
                         <a class="nav-link" href="#">
                             <i class="bi bi-wallet"></i> My Wallet
-                        </a>
+                        </a> -->
                         <a class="nav-link logout-link" href="{% url 'userlogout' %}">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </a>
@@ -307,25 +312,23 @@
                     </div>
                 </div>
 
-                <!-- Status Timeline -->
+                <!-- templates/user/order_details.html -->
                 <div class="timeline">
                     {% for status, display in particular_product.ORDER_ITEM_STATUS_CHOICES %}
-                        {% if status != 'return' and status != 'canceled' %} <!-- Remove 'Return' and 'Canceled' statuses -->
-                            <div class="timeline-step 
-                                {% if particular_product.status == 'delivered' %}completed
-                                {% elif particular_product.status == 'canceled' and status == 'shipped' %}completed
-                                {% elif particular_product.status == 'canceled' and status == 'out_for_delivery' %}canceled
-                                {% elif particular_product.status == status %}active
-                                {% endif %}">
-                                <div class="icon">
-                                    <i class="bi bi-{% if status == 'order_placed' %}cart{% elif status == 'shipped' %}truck{% elif status == 'out_for_delivery' %}box-seam{% elif status == 'delivered' %}check-circle{% endif %}"></i>
-                                </div>
-                                <p>
-                                    {% if particular_product.status == 'canceled' and status == 'out_for_delivery' %}Canceled
-                                    {% else %}{{ display }}{% endif %}
-                                </p>
-                            </div>
-                        {% endif %}
+                    {% if status != 'canceled' %} <!-- Remove 'Canceled' status -->
+                    <div class="timeline-step 
+                {% if particular_product.status == 'delivered' %}completed
+                {% elif particular_product.status == 'returned' and status == 'return_requested' %}completed
+                {% elif particular_product.status == 'returned' and status == 'delivered' %}completed
+                {% elif particular_product.status == status %}active
+                {% endif %}">
+                        <div class="icon">
+                            <i
+                                class="bi bi-{% if status == 'order_placed' %}cart{% elif status == 'shipped' %}truck{% elif status == 'out_for_delivery' %}box-seam{% elif status == 'delivered' %}check-circle{% elif status == 'return_requested' %}arrow-return-left{% elif status == 'returned' %}arrow-return-right{% endif %}"></i>
+                        </div>
+                        <p>{{ display }}</p>
+                    </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
 
@@ -372,15 +375,21 @@
                     </div>
                 </div>
 
-                <!-- Back Button and Cancel Button -->
+                <!-- Update the button section in order_details.html -->
+                <!-- Update the button section in order_details.html -->
                 <div class="mt-4 d-flex gap-3">
                     <a href="{% url 'user_orders' %}" class="back-btn">
                         <i class="bi me-2 back"></i>Back to Orders
                     </a>
-                    {% if particular_product.status != 'out_for_delivery' and particular_product.status != 'delivered' and particular_product.status != 'canceled' %}
+                    {% if particular_product.status != 'out_for_delivery' and particular_product.status != 'delivered' and particular_product.status != 'canceled' and particular_product.status != 'return_requested' and particular_product.status != 'returned' and particular_product.status != 'return_denied' %}
                     <a href="{% url 'cancel_order_item' particular_product.id %}" class="cancel-btn">
                         <i class="bi me-2 cancel"></i>Cancel Product
                     </a>
+                    {% endif %}
+                    {% if particular_product.status == 'delivered' and days_since_delivery <= 7 and particular_product.status != 'return_requested' %} <a
+                        href="{% url 'request_return' particular_product.id %}" class="btn btn-warning btn-sm">
+                        <i class="bi bi-arrow-return-left"></i> Request Return
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -476,4 +485,36 @@
         </div>
     </div>
 </div>
+
+<!-- Add this modal at the end of the order_details.html template -->
+<div class="modal fade" id="returnModal" tabindex="-1" role="dialog" aria-labelledby="returnModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="returnModalLabel">Return Request</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Your return request has been submitted successfully.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this script to show the modal if there is a success message -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Check if there are any success messages
+        const successMessages = "{{ messages|escapejs }}"; // Pass messages to JavaScript
+        if (successMessages.includes("success")) { // Check if any message has the 'success' tag
+            $('#returnModal').modal('show'); // Show the modal
+        }
+    });
+</script>
 {% endblock %}

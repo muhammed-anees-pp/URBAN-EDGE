@@ -1,0 +1,19 @@
+<!-- templates/user/return_reason.html -->
+{% extends "base.html" %}
+
+{% block title %}Return Product{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2>Return Product</h2>
+    <p>You are requesting to return: <strong>{{ order_item.product.name }}</strong></p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="return_reason">Reason for Return</label>
+            <textarea class="form-control" id="return_reason" name="return_reason" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Return Request</button>
+    </form>
+</div>
+{% endblock %}
