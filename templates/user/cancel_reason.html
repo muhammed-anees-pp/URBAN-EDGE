@@ -14,18 +14,70 @@
                 </div>
                 <div class="card-body">
                     <p>You are canceling: <strong>{{ order_item.product.name }}</strong></p>
-                    <form method="POST" action="{% url 'cancel_order_item' order_item.id %}">
+                    <form id="cancelForm" method="POST" action="{% url 'cancel_order_item' order_item.id %}">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="cancel_reason">Reason for Cancellation:</label>
                             <textarea class="form-control" id="cancel_reason" name="cancel_reason" rows="4" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-danger mt-3">Confirm Cancellation</button>
-                        <a href="{% url 'user_orders' %}" class="btn btn-secondary mt-3">Go Back</a>
+                        <a href="{% url 'user_order_details' order_item.id %}" class="btn btn-secondary mt-3">Go Back</a>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal for Success Message -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Cancellation Successful</h5>
+                <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button> -->
+            </div>
+            <div class="modal-body">
+                <p id="successMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="okButton">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#cancelForm').on('submit', function(e) {
+        e.preventDefault();  // Prevent the default form submission
+
+        $.ajax({
+            type: 'POST',
+            url: $(this).attr('action'),
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    // Show the success message in the modal
+                    $('#successMessage').text(response.message);
+                    $('#successModal').modal('show');
+
+                    // Redirect to the order details page when the user clicks "OK"
+                    $('#okButton').on('click', function() {
+                        window.location.href = response.redirect_url;
+                    });
+                } else {
+                    alert(response.error);  // Show an error message if something went wrong
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('An error occurred while processing your request.');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

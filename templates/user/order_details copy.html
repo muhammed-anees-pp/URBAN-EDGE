@@ -139,10 +139,99 @@
         color: white;
     }
 
-
     .back-btn:hover {
         background-color: #066c65;
         color: white;
+    }
+
+    /* Status Timeline Styles */
+    .timeline {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin: 20px 0;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #e9ecef;
+        z-index: 1;
+    }
+
+    .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 2;
+    }
+
+    .timeline-step .icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .timeline-step.active .icon {
+        background-color: #088178; /* Green for active steps */
+        color: white;
+    }
+
+    .timeline-step.completed .icon {
+        background-color: #088178; /* Green for completed steps */
+        color: white;
+    }
+
+    .timeline-step.canceled .icon {
+        background-color: #dc3545; /* Red for canceled steps */
+        color: white;
+    }
+
+    .timeline-step p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #666;
+    }
+
+    .timeline-step.active p {
+        color: #088178;
+        font-weight: 500;
+    }
+
+    .timeline-step.completed p {
+        color: #088178;
+    }
+
+    .timeline-step.canceled p {
+        color: #dc3545;
+    }
+
+    /* Timeline Line Styles */
+    .timeline-line {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #e9ecef;
+        z-index: 1;
+    }
+
+    .timeline-line.completed {
+        background-color: #088178; /* Green for completed steps */
+    }
+
+    .timeline-line.canceled {
+        background-color: #dc3545; /* Red for canceled steps */
     }
 
     /* Responsive adjustments */
@@ -150,6 +239,15 @@
         .sidebar {
             position: static;
             margin-bottom: 30px;
+        }
+
+        .timeline {
+            flex-wrap: wrap;
+        }
+
+        .timeline-step {
+            width: 50%;
+            margin-bottom: 20px;
         }
     }
 </style>
@@ -209,6 +307,28 @@
                     </div>
                 </div>
 
+                <!-- Status Timeline -->
+                <div class="timeline">
+                    {% for status, display in particular_product.ORDER_ITEM_STATUS_CHOICES %}
+                        {% if status != 'return' and status != 'canceled' %} <!-- Remove 'Return' and 'Canceled' statuses -->
+                            <div class="timeline-step 
+                                {% if particular_product.status == 'delivered' %}completed
+                                {% elif particular_product.status == 'canceled' and status == 'shipped' %}completed
+                                {% elif particular_product.status == 'canceled' and status == 'out_for_delivery' %}canceled
+                                {% elif particular_product.status == status %}active
+                                {% endif %}">
+                                <div class="icon">
+                                    <i class="bi bi-{% if status == 'order_placed' %}cart{% elif status == 'shipped' %}truck{% elif status == 'out_for_delivery' %}box-seam{% elif status == 'delivered' %}check-circle{% endif %}"></i>
+                                </div>
+                                <p>
+                                    {% if particular_product.status == 'canceled' and status == 'out_for_delivery' %}Canceled
+                                    {% else %}{{ display }}{% endif %}
+                                </p>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
                 <!-- Particular Product -->
                 <div class="table-responsive">
                     <table class="table">
@@ -233,10 +353,10 @@
                                 <td>{{ particular_product.product_variant.color }}</td>
                                 <td>{{ particular_product.product_variant.size }}</td>
                                 {% if particular_product.product.offer %}
-                                <td>{{ particular_product.product.price }}</td>
-                                <td>{{ particular_product.product.offer }}</td>
+                                <td>₹{{ particular_product.product.price }}</td>
+                                <td>₹{{ particular_product.product.offer }}</td>
                                 {% else %}
-                                <td>{{ particular_product.product.price }}</td>
+                                <td>₹{{ particular_product.product.price }}</td>
                                 <td>No offer</td>
                                 {% endif %}
                             </tr>
@@ -257,14 +377,10 @@
                     <a href="{% url 'user_orders' %}" class="back-btn">
                         <i class="bi me-2 back"></i>Back to Orders
                     </a>
-                    {% if particular_product.status != 'canceled' %}
-                    <!-- <a href="{% url 'cancel_order_item' particular_product.id %}" class="cancel-btn">
-                        <i class="bi me-2 cancel"></i>Cancel Product
-                    </a> -->
+                    {% if particular_product.status != 'out_for_delivery' and particular_product.status != 'delivered' and particular_product.status != 'canceled' %}
                     <a href="{% url 'cancel_order_item' particular_product.id %}" class="cancel-btn">
                         <i class="bi me-2 cancel"></i>Cancel Product
                     </a>
-                    
                     {% endif %}
                 </div>
             </div>
@@ -303,8 +419,8 @@
                                 <td>{{ item.product_variant.color }}</td>
                                 <td>{{ item.product_variant.size }}</td>
                                 {% if item.product.offer %}
-                                <td>{{ item.product.price }}</td>
-                                <td>{{ item.product.offer }}</td>
+                                <td>₹{{ item.product.price }}</td>
+                                <td>₹{{ item.product.offer }}</td>
                                 {% else %}
                                 <td>{{ item.product.price }}</td>
                                 <td>No offer</td>
@@ -320,23 +436,41 @@
 
             <!-- 3rd Container: Price Details -->
             <div class="details-card">
-                <h5 class="mb-3">Price Details (Order)</h5>
-                <div class="price-details">
-                    <div class="price-row">
-                        <span>Selling Price</span>
-                        <span>₹{{ order.total_price }}</span>
-                    </div>
-                    <div class="price-row">
-                        <span>Delivery Charge</span>
-                        <span>
-                            {% if order.total_price < 500 %} ₹40 {% else %} <span class="text-success">Free</span>
-                        {% endif %}
-                        </span>
-                    </div>
-                    <div class="price-row total-row">
-                        <span>Total Amount</span>
-                        <span>₹{{ order.total_price }}</span>
-                    </div>
+                <h5 class="mb-3">Price Details</h5>
+                <div class="price-details"></div>
+
+                <!-- Total Listed Price -->
+                <div class="price-row">
+                    <span>Total Listed Price</span>
+                    <span>₹{{ total_listed_price }}</span>
+                </div>
+
+                <!-- Total Offer Price -->
+                <div class="price-row">
+                    <span>Total Offer Price</span>
+                    <span>₹{{ total_offer_price }}</span>
+                </div>
+
+                <!-- Discounted Amount -->
+                <div class="price-row">
+                    <span>You Save</span>
+                    <span class="text-success">-₹{{ discounted_amount }}</span>
+                </div>
+
+                <!-- Delivery Charge -->
+                <div class="price-row">
+                    <span>Delivery Charge</span>
+                    {% if delivery_charge %}
+                    <span>₹{{ delivery_charge }}</span>
+                    {% else %}
+                    <span class="text-success">Free</span>
+                    {% endif %}
+                </div>
+
+                <!-- Grand Total -->
+                <div class="price-row total-row">
+                    <span>Total Amount</span>
+                    <span>₹{{ grand_total }}</span>
                 </div>
             </div>
         </div>

@@ -24,16 +24,12 @@
         </a> -->
         <a href="{% url 'order_management' %}" class="nav-item {% if request.path == '/coupons/' %}active{% endif %}">
             <i class="lucide-ticket" style="color: #ff5722;"></i>
-            <span>Orders</span>
-        </a>
-        <!-- <a href="{% url 'order_management' %}" class="nav-item {% if request.path == '/coupons/' %}active{% endif %}">
-            <i class="lucide-ticket" style="color: #ff5722;"></i>
             <span>Coupon</span>
         </a>
         <a href="#" class="nav-item {% if request.path == '/settings/' %}active{% endif %}">
             <i class="lucide-settings" style="color: #607d8b;"></i>
             <span>Settings</span>
-        </a> -->
+        </a>
     </div>
     <a href="{% url 'logout' %}" class="nav-item logout">
         <i class="lucide-log-out" style="color: #ff4d4d;"></i>
