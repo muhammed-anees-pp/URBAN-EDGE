@@ -1,19 +1,3 @@
-# # from django.urls import path
-# # from . import views
-
-# # urlpatterns = [
-# #     path('product/<int:product_id>/review/', views.add_review, name='add_review'),
-# #     path('review/<int:review_id>/edit/', views.edit_review, name='edit_review'),
-# # ]
-
-# from django.urls import path
-# from . import views
-
-# urlpatterns = [
-#     path('product/<int:product_id>/review/', views.add_review, name='add_review'),
-#     path('review/<int:review_id>/edit/', views.edit_review, name='edit_review'),
-# ]
-
 from django.urls import path
 from . import views
 

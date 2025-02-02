@@ -5,34 +5,6 @@ from productsapp.models import Product
 from reviews.models import Review
 from orders.models import OrderItem
 
-# @login_required
-# def add_review(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-    
-#     if not OrderItem.objects.filter(order__user=request.user, product=product, status='delivered').exists():
-#         messages.error(request, "You must purchase this product to leave a review.")
-#         return redirect('product_details', product_id=product.id)
-    
-#     if Review.objects.filter(user=request.user, product=product).exists():
-#         messages.error(request, "You have already reviewed this product.")
-#         return redirect('product_details', product_id=product.id)
-    
-#     if request.method == 'POST':
-#         rating = request.POST.get('rating')
-#         review_text = request.POST.get('review_text')
-        
-#         Review.objects.create(
-#             user=request.user,
-#             product=product,
-#             rating=rating,
-#             review_text=review_text
-#         )
-        
-#         messages.success(request, "Your review has been submitted successfully.")
-#         return redirect('product_details', product_id=product.id)
-    
-#     return render(request, 'add_review.html', {'product': product})
-
 @login_required
 def add_review(request, product_id):
     product = get_object_or_404(Product, id=product_id)

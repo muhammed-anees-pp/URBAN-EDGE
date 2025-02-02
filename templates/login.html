@@ -45,12 +45,22 @@
                         <button type="submit" class="btn-primary">Sign In</button>
                     </form>
 
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <a href="{% url 'google_login' %}" class="btn-google">
+                        <img src="{% static 'assets/img/google-logo.svg' %}" alt="Google logo" class="google-icon">
+                        <span> Sign up with Google</span>
+                    </a>
                     <a href="{% url 'register' %}" class="signup-link">
                         Don't have an account? <span>Sign up</span>
                     </a>
+                    
                     <a href="{% url 'forgot_password' %}" class="forgot-password-link">
                         Forgot your password? <span>Reset it</span>
                     </a>
+                    
                 </div>
             </div>
         </div>

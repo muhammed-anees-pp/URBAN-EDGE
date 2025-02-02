@@ -61,6 +61,15 @@
                         <button type="submit" class="btn-primary">Create Account</button>
                     </form>
 
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <a href="{% url 'google_login' %}" class="btn-google">
+                        <img src="{% static 'assets/img/google-logo.svg' %}" alt="Google logo" class="google-icon">
+                        <span> Sign up with Google</span>
+                    </a>
+
                     <a href="{% url 'userlogin' %}" class="login-link">
                         Already have an account? <span>Log in</span>
                     </a>
