@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .review-container {
+      max-width: 800px;
+      margin: 0 auto;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .review-form {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .star-rating {
+      display: inline-flex;
+      flex-direction: row-reverse;
+      gap: 4px;
+    }
+
+    .star-rating input {
+      display: none;
+    }
+
+    .star-rating label {
+      color: #ddd;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .star-rating label:before {
+      content: '★';
+    }
+
+    .star-rating input:checked ~ label {
+      color: #ffd700;
+    }
+
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+      color: #ffed4a;
+    }
+
+    .review-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin: 8px 0;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .submit-btn {
+      background: #007bff;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .submit-btn:hover {
+      background: #0056b3;
+    }
+
+    .reviews-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .review-card {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      font-size: 14px;
+      position: relative;
+      height: 150px;
+      overflow: hidden;
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .reviewer-name {
+      font-weight: bold;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .review-date {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .review-stars {
+      color: #ffd700;
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    .review-text {
+      color: #555;
+      line-height: 1.4;
+      margin: 0;
+      position: relative;
+      max-height: 60px;
+      overflow: hidden;
+    }
+
+    .review-text::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 100%;
+      height: 20px;
+      background: linear-gradient(transparent, white);
+    }
+
+    .read-more {
+      position: absolute;
+      bottom: 10px;
+      right: 15px;
+      background: white;
+      color: #007bff;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 5px;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .reviews-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="review-container">
+    <!-- Review Form Section -->
+    <div class="review-form">
+      <h3>Write a Review</h3>
+      <form>
+        <div class="star-rating">
+          <input type="radio" id="star5" name="rating" value="5">
+          <label for="star5"></label>
+          <input type="radio" id="star4" name="rating" value="4">
+          <label for="star4"></label>
+          <input type="radio" id="star3" name="rating" value="3">
+          <label for="star3"></label>
+          <input type="radio" id="star2" name="rating" value="2">
+          <label for="star2"></label>
+          <input type="radio" id="star1" name="rating" value="1">
+          <label for="star1"></label>
+        </div>
+        <textarea class="review-input" placeholder="Share your experience..."></textarea>
+        <button type="submit" class="submit-btn">Submit Review</button>
+      </form>
+    </div>
+
+    <!-- Reviews List Section -->
+    <div class="reviews-list">
+      <!-- Sample Review Card -->
+      <div class="review-card">
+        <div class="review-header">
+          <span class="reviewer-name">John Doe</span>
+          <span class="review-date">Jan 15</span>
+        </div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">
+          Amazing product! Exceeded my expectations in every way. The quality is outstanding and the customer service was excellent. Would definitely recommend to anyone looking for a reliable solution.
+        </p>
+        <button class="read-more">Read More</button>
+      </div>
+
+      <!-- Additional Sample Review Cards -->
+      <div class="review-card">
+        <div class="review-header">
+          <span class="reviewer-name">Jane Smith</span>
+          <span class="review-date">Jan 10</span>
+        </div>
+        <div class="review-stars">★★★★</div>
+        <p class="review-text">
+          Very good product overall. Would recommend to others. The delivery was quick and the packaging was excellent. Everything arrived in perfect condition.
+        </p>
+        <button class="read-more">Read More</button>
+      </div>
+
+      <div class="review-card">
+        <div class="review-header">
+          <span class="reviewer-name">Mike Johnson</span>
+          <span class="review-date">Jan 8</span>
+        </div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">
+          Great value for money. Will definitely purchase again! The features are exactly what I needed and the price point is perfect.
+        </p>
+        <button class="read-more">Read More</button>
+      </div>
+
+      <div class="review-card">
+        <div class="review-header">
+          <span class="reviewer-name">Sarah Wilson</span>
+          <span class="review-date">Jan 5</span>
+        </div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">
+          Perfect fit for my needs. The product quality is exceptional and the support team was very helpful with my questions.
+        </p>
+        <button class="read-more">Read More</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Add click event listeners to all "Read More" buttons
+    document.querySelectorAll('.read-more').forEach(button => {
+      button.addEventListener('click', function() {
+        const card = this.closest('.review-card');
+        const text = card.querySelector('.review-text');
+        
+        if (card.style.height === 'auto') {
+          card.style.height = '150px';
+          text.style.maxHeight = '60px';
+          this.textContent = 'Read More';
+          text.style.mask = 'linear-gradient(180deg, black 60%, transparent 100%)';
+        } else {
+          card.style.height = 'auto';
+          text.style.maxHeight = 'none';
+          this.textContent = 'Show Less';
+          text.style.mask = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

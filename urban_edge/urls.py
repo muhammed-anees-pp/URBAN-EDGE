@@ -18,6 +18,7 @@ urlpatterns = [
     path('products/',include('productsapp.urls')),
     path('cart/', include('cart.urls')),
     path('orders/', include('orders.urls')),
+    path('review/', include('reviews.urls')),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root = settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

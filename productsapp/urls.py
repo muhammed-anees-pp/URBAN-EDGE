@@ -25,4 +25,5 @@ urlpatterns = [
 
     # Category Products
     path('category/<int:category_id>/', views.category_products, name='category_products'),
+    path('check_stock/', views.check_stock, name='check_stock'),
 ]

@@ -11,6 +11,9 @@ from django.core.files.base import ContentFile
 from django.db.models import Q
 import json
 import random
+from reviews.models import Review
+from django.http import JsonResponse
+from .models import ProductVariant
 
 
 # Product List View
@@ -348,7 +351,11 @@ def product_details(request, product_id):
     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
     
     # Randomly select 4 related products (if there are more than 4)
-    related_products = random.sample(list(related_products), min(len(related_products), 4))
+    related_products = random.sample(list(related_products), min(len(related_products), 5))
+    can_review = False
+
+    if request.user.is_authenticated:
+        can_review = Review.can_review(request.user, product)
 
     context = {
         'product': product,
@@ -356,6 +363,7 @@ def product_details(request, product_id):
         'color_size_dict': json.dumps(color_size_dict),  # Convert to JSON string
         'product_images': product_images,
         'related_products': related_products,
+        'can_review': can_review,
     }
     return render(request, 'product_details.html', context)
 
@@ -396,3 +404,14 @@ def category_products(request, category_id):
     }
     return render(request, 'category_products.html', context)
 
+
+
+
+def check_stock(request):
+    if request.method == "POST":
+        color = request.POST.get('color')
+        size = request.POST.get('size')
+        variants = ProductVariant.objects.filter(product__is_listed=True)
+        variant_data = [{'color': variant.color, 'size': variant.size, 'stock': variant.stock} for variant in variants]
+        return JsonResponse({'variants': variant_data})
+    return JsonResponse({'error': 'Invalid request'}, status=400)

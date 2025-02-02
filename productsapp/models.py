@@ -1,5 +1,6 @@
 from django.db import models
 from category.models import Category
+from django.db.models import Avg, Count
 
 class Product(models.Model):
     name = models.CharField(max_length=500)
@@ -12,6 +13,14 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def average_rating(self):
+        return self.review_set.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    @property
+    def review_count(self):
+        return self.review_set.aggregate(Count('id'))['id__count'] or 0
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
