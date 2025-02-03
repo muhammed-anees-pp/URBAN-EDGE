@@ -38,6 +38,7 @@ def validate_password(password):
         return False, "Password must contain at least one special character."
     return True, ""
 
+
 def user_login(request):
     """Login user."""
     if request.user.is_authenticated:
@@ -55,6 +56,8 @@ def user_login(request):
 
         user = authenticate(request, username=username, password=password)
         if user:
+            # Specify the backend explicitly (optional, as authenticate already handles this)
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             # messages.success(request, 'Successfully logged in.')
             return redirect('home')
@@ -169,6 +172,8 @@ def verify_otp(request):
             for key in ['otp', 'otp_expires_at', 'username', 'email', 'password', 'first_name', 'last_name']:
                 request.session.pop(key, None)
 
+            # Specify the backend explicitly
+            user.backend = 'django.contrib.auth.backends.ModelBackend'  # Use the appropriate backend
             login(request, user)
             # messages.success(request, 'Registration successful. Welcome!')
             return redirect('home')

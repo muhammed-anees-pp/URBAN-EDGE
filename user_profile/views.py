@@ -19,13 +19,6 @@ def user_profile(request):
     context = {'addresses': addresses}
     return render(request, 'user/profile.html', context)
 
-
-# @login_required
-# def view_addresses(request):
-#     """View all addresses."""
-#     addresses = Address.objects.filter(user=request.user, is_deleted=False)
-#     return render(request, 'user/address.html', {'addresses': addresses})
-
 @login_required
 def view_addresses(request):
     """View all addresses."""
@@ -159,15 +152,13 @@ def edit_address(request):
         messages.success(request, "Address updated successfully!")
         return redirect('addresses')
 
-
 @login_required
 def delete_address(request, address_id):
-    """Delete an address."""
+    """Delete an address permanently."""
     address = get_object_or_404(Address, id=address_id, user=request.user)
 
     if request.method == 'POST':
-        address.is_deleted = True  # Mark as deleted instead of actual deletion
-        address.save()
+        address.delete()  # Permanently delete the address
         messages.success(request, 'Address deleted successfully!')
         return redirect('addresses')
 
