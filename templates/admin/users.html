@@ -22,6 +22,112 @@
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
     <!-- End layout styles -->
     <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}" />
+    <!-- Internal CSS for dark theme -->
+    <style>
+        body {
+            background-color: #1e2227;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .container-fluid.page-body-wrapper {
+            margin-left: 240px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-panel {
+            background-color: #1e2227;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #2d3035;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .table {
+            color: #ffffff;
+        }
+
+        .table thead th {
+            border-bottom: 2px solid #3699ff;
+            color: #3699ff;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid #444;
+        }
+
+        .table tbody tr:hover {
+            background-color: #3a3f45;
+        }
+
+        .btn-outline-primary {
+            color: #3699ff;
+            border-color: #3699ff;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #3699ff;
+            color: #ffffff;
+        }
+
+        .btn-outline-success {
+            color: #4caf50;
+            border-color: #4caf50;
+        }
+
+        .btn-outline-success:hover {
+            background-color: #4caf50;
+            color: #ffffff;
+        }
+
+        .messages {
+            list-style: none;
+            padding: 0;
+        }
+
+        .messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .messages .success {
+            background-color: #4caf50;
+            color: #ffffff;
+        }
+
+        .messages .error {
+            background-color: #ff4d4d;
+            color: #ffffff;
+        }
+
+        .messages .warning {
+            background-color: #ff9800;
+            color: #ffffff;
+        }
+
+        .messages .info {
+            background-color: #03a9f4;
+            color: #ffffff;
+        }
+
+        @media (max-width: 991px) {
+            .container-fluid.page-body-wrapper {
+                margin-left: 0;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container-scroller">

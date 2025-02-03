@@ -10,6 +10,151 @@
     <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <!-- Internal CSS for dark theme -->
+    <style>
+        body {
+            background-color: #1e2227;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .container-fluid.page-body-wrapper {
+            margin-left: 240px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-panel {
+            background-color: #1e2227;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #2d3035;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .table {
+            color: #ffffff;
+        }
+
+        .table thead th {
+            border-bottom: 2px solid #3699ff;
+            color: #3699ff;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid #444;
+        }
+
+        .table tbody tr:hover {
+            background-color: #3a3f45;
+        }
+
+        .btn-success {
+            background-color: #4caf50;
+            border-color: #4caf50;
+        }
+
+        .btn-success:hover {
+            background-color: #45a049;
+            border-color: #45a049;
+        }
+
+        .btn-primary {
+            background-color: #3699ff;
+            border-color: #3699ff;
+        }
+
+        .btn-primary:hover {
+            background-color: #2d82d6;
+            border-color: #2d82d6;
+        }
+
+        .btn-danger {
+            background-color: #ff4d4d;
+            border-color: #ff4d4d;
+        }
+
+        .btn-danger:hover {
+            background-color: #e04444;
+            border-color: #e04444;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #5a6268;
+        }
+
+        .modal-content {
+            background-color: #2d3035;
+            color: #ffffff;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #444;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #444;
+        }
+
+        .form-control {
+            background-color: #3a3f45;
+            border: 1px solid #444;
+            color: #ffffff;
+        }
+
+        .form-control:focus {
+            background-color: #3a3f45;
+            border-color: #3699ff;
+            color: #ffffff;
+        }
+
+        .alert-container .alert {
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .alert-success {
+            background-color: #4caf50;
+            color: #ffffff;
+        }
+
+        .alert-danger {
+            background-color: #ff4d4d;
+            color: #ffffff;
+        }
+
+        .alert-warning {
+            background-color: #ff9800;
+            color: #ffffff;
+        }
+
+        .alert-info {
+            background-color: #03a9f4;
+            color: #ffffff;
+        }
+
+        @media (max-width: 991px) {
+            .container-fluid.page-body-wrapper {
+                margin-left: 0;
+            }
+        }
+    </style>
 </head>
 
 <body>

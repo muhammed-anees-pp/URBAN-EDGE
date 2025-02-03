@@ -10,33 +10,108 @@
     <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
     <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}">
+    <!-- Internal CSS for dark theme -->
     <style>
-        .error-message {
-            color: red;
-            font-size: 0.9rem;
+        body {
+            background-color: #1e2227;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
-        /* New styles for input and select fields */
+        .container-fluid.page-body-wrapper {
+            margin-left: 240px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-panel {
+            background-color: #1e2227;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #2d3035;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
         .form-control {
-            background-color: white;
-            color: black;
-            border: 1px solid #ced4da;
+            background-color: #3a3f45;
+            border: 1px solid #444;
+            color: #ffffff;
         }
 
         .form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
+            background-color: #3a3f45;
+            border-color: #3699ff;
+            color: #ffffff;
         }
 
-        select.form-control {
-            background-color: white;
-            color: black;
-            border: 1px solid #ced4da;
+        .form-group label {
+            color: #ffffff;
         }
 
-        select.form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
+        .error-message {
+            color: #ff4d4d;
+            font-size: 0.9rem;
+        }
+
+        .btn-success {
+            background-color: #4caf50;
+            border-color: #4caf50;
+        }
+
+        .btn-success:hover {
+            background-color: #45a049;
+            border-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        .alert-container .alert {
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .alert-success {
+            background-color: #4caf50;
+            color: #ffffff;
+        }
+
+        .alert-danger {
+            background-color: #ff4d4d;
+            color: #ffffff;
+        }
+
+        .alert-warning {
+            background-color: #ff9800;
+            color: #ffffff;
+        }
+
+        .alert-info {
+            background-color: #03a9f4;
+            color: #ffffff;
+        }
+
+        @media (max-width: 991px) {
+            .container-fluid.page-body-wrapper {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
@@ -47,10 +122,11 @@
         <div class="container-fluid page-body-wrapper">
             <div class="main-panel">
                 <div class="content-wrapper">
-                    <!-- {% if messages %}
+                    <!-- Messages Block -->
+                    {% if messages %}
                     <div class="alert-container">
                         {% for message in messages %}
-                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show"
+                        <div class="alert alert-dismissible fade show {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}"
                             role="alert">
                             {{ message }}
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -61,6 +137,7 @@
                     </div>
                     {% endif %}
 
+                    <!-- Error Messages Block -->
                     {% if errors %}
                     <div class="alert alert-danger">
                         <ul>
@@ -69,7 +146,7 @@
                             {% endfor %}
                         </ul>
                     </div>
-                    {% endif %} -->
+                    {% endif %}
 
                     <div class="row">
                         <div class="col-12 grid-margin">

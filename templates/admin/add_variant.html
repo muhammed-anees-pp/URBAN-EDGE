@@ -9,6 +9,109 @@
     <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
     <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}" />
+    <!-- Internal CSS for dark theme -->
+    <style>
+        body {
+            background-color: #1e2227;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .container-fluid.page-body-wrapper {
+            margin-left: 240px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-panel {
+            background-color: #1e2227;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #2d3035;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            color: #ffffff;
+        }
+
+        .form-control {
+            background-color: #3a3f45;
+            border: 1px solid #444;
+            color: #ffffff;
+        }
+
+        .form-control:focus {
+            background-color: #3a3f45;
+            border-color: #3699ff;
+            color: #ffffff;
+        }
+
+        .btn-primary {
+            background-color: #3699ff;
+            border-color: #3699ff;
+        }
+
+        .btn-primary:hover {
+            background-color: #2d82d6;
+            border-color: #2d82d6;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        .alert-container .alert {
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .alert-success {
+            background-color: #4caf50;
+            color: #ffffff;
+        }
+
+        .alert-danger {
+            background-color: #ff4d4d;
+            color: #ffffff;
+        }
+
+        .alert-warning {
+            background-color: #ff9800;
+            color: #ffffff;
+        }
+
+        .alert-info {
+            background-color: #03a9f4;
+            color: #ffffff;
+        }
+
+        .text-danger {
+            color: #ff4d4d;
+        }
+
+        @media (max-width: 991px) {
+            .container-fluid.page-body-wrapper {
+                margin-left: 0;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -75,7 +178,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
