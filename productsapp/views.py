@@ -311,16 +311,11 @@ def update_variant(request, variant_id):
 def delete_variant(request, variant_id):
     # Get the variant object or 404 if not found
     variant = get_object_or_404(ProductVariant, id=variant_id)
-
-    # Delete the variant
     variant.delete()
-
-    # Redirect back to the variants list page for the product
     return redirect('variant', product_id=variant.product.id)
 
 
 
-# Toggle Product Listing
 @user_passes_test(is_admin)
 def toggle_product_listing(request, product_id):
     try:
@@ -332,6 +327,8 @@ def toggle_product_listing(request, product_id):
     except Product.DoesNotExist:
         messages.error(request, "Product not found")
     return redirect('product_management')
+
+
 
 def product_details(request, product_id):
     product = get_object_or_404(Product, id=product_id)

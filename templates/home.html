@@ -385,6 +385,25 @@
         margin-bottom: 30px;
     }
 
+    .rating-stars {
+        display: inline-block;
+        font-size: 1.2rem;
+        color: #ffc107;
+        margin-bottom: 10px;
+    }
+
+    .rating-stars .star {
+        cursor: pointer;
+    }
+
+    .rating-stars .star.filled {
+        color: #ffc107;
+    }
+
+    .rating-stars .star.empty {
+        color: #e4e5e9;
+    }
+
 
     @media (max-width: 768px) {
         .product-card {
@@ -452,7 +471,7 @@
 <hr class="section-divider">
 
 <!-- Latest Products Section -->
-<section class="ftco-section">
+<!-- <section class="ftco-section">
     <div class="container">
         <div class="row">
             <div class="col-md-12 text-center">
@@ -471,16 +490,60 @@
                     {% endif %}
                     <div class="product-details">
                         <h5>{{ product.name }}</h5>
-                        <!-- <p class="price">
+                         <p class="price">
                             <span style="color: black; text-decoration: line-through;">MRP: ₹{{ product.price }}</span>
                             <span style="color: red;">Offer: ₹{{ product.offer }}</span>
-                        </p> -->
+                        </p> 
                         <p class="price">
                             {% if product.offer %}
                                 <span style="color: black; text-decoration: line-through;">₹{{ product.price }}</span>
                                 <span style="color: red;">₹{{ product.offer }}</span>
                             {% else %}
                                 <span style="color: black;" >₹{{ product.price }}</span>
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'product_details' product.id %}" class="view-details-btn">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section> -->
+
+<!-- Latest Products Section -->
+<section class="ftco-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h2 class="section-title">Latest Products</h2>
+                <p class="section-description">Discover our newest arrivals. Trendy, stylish, and just for you!</p>
+            </div>
+        </div>
+        <div class="row">
+            {% for product in random_products %}
+            <div class="col-sm-6 col-md-3 ftco-animate">
+                <div class="product-card">
+                    {% if product.images.first %}
+                    <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                    <img src="{% static 'images/placeholder.png' %}" alt="No image available">
+                    {% endif %}
+                    <div class="product-details">
+                        <!-- Add the average rating here -->
+                        <div class="rating-stars">
+                            {% for i in "12345" %}
+                            <span class="star {% if i <= product.average_rating|floatformat:0 %}filled{% else %}empty{% endif %}">&#9733;</span>
+                            {% endfor %}
+                            <span>({{ product.review_count }} reviews)</span>
+                        </div>
+                        <h5>{{ product.name }}</h5>
+                        <p class="price">
+                            {% if product.offer %}
+                                <span style="color: black; text-decoration: line-through;">₹{{ product.price }}</span>
+                                <span style="color: red;">₹{{ product.offer }}</span>
+                            {% else %}
+                                <span style="color: black;">₹{{ product.price }}</span>
                             {% endif %}
                         </p>
                         <a href="{% url 'product_details' product.id %}" class="view-details-btn">View Details</a>

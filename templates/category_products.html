@@ -46,6 +46,12 @@
             <img src="{% static 'images/placeholder.png' %}" alt="No image available" />
             {% endif %}
             <div class="product-details">
+                <div class="rating-stars">
+                    {% for i in "12345" %}
+                    <span class="star {% if i <= item.product.average_rating|floatformat:0 %}filled{% else %}empty{% endif %}">&#9733;</span>
+                    {% endfor %}
+                    <span>({{ item.product.review_count }} reviews)</span>
+                </div>
                 <h3>{{ item.product.name }}</h3>
                
                 <p class="price">
@@ -210,6 +216,25 @@
         font-size: 1.25rem;
         color: #777;
         margin-top: 20px;
+    }
+
+    .rating-stars {
+        display: inline-block;
+        font-size: 1.2rem;
+        color: #ffc107;
+        margin-bottom: 10px;
+    }
+
+    .rating-stars .star {
+        cursor: pointer;
+    }
+
+    .rating-stars .star.filled {
+        color: #ffc107;
+    }
+
+    .rating-stars .star.empty {
+        color: #e4e5e9;
     }
 
     /* Responsive design */
