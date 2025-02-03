@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.contrib import messages
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
 
 
 @login_required
@@ -278,6 +279,18 @@ def is_admin(user):
 @user_passes_test(is_admin)
 def order_management(request):
     orders = Order.objects.all().order_by('-created_at')
+
+    # Pagination
+    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
+    paginator = Paginator(orders, 10)  # Show 10 products per page
+
+    try:
+        orders = paginator.page(page)
+    except PageNotAnInteger:
+        orders = paginator.page(1)
+    except EmptyPage:
+        orders = paginator.page(paginator.num_pages)
+
     return render(request, 'admin/order_admin.html', {'orders': orders})
 
 
@@ -290,6 +303,17 @@ def admin_order_details(request, order_id):
         item.subtotal = item.quantity * item.price
 
     status_choices = OrderItem.ORDER_ITEM_STATUS_CHOICES
+
+    # Pagination
+    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
+    paginator = Paginator(order_items, 10)  # Show 10 products per page
+
+    try:
+        order_items = paginator.page(page)
+    except PageNotAnInteger:
+        order_items = paginator.page(1)
+    except EmptyPage:
+        order_items = paginator.page(paginator.num_pages)
 
     return render(request, 'admin/order_details_admin.html', {
         'order': order,

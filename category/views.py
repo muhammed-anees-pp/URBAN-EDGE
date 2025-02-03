@@ -4,7 +4,7 @@ from .models import Category
 from django.utils import timezone
 from admin_side.views import is_admin
 from django.contrib.auth.decorators import user_passes_test
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
 
 @user_passes_test(is_admin)
 def category_management(request):
@@ -29,11 +29,6 @@ def category_management(request):
 
         # Return the modal with the error message
         categories = Category.objects.all()
-        return render(request, 'admin/category.html', {
-            'categories': categories,
-            'form_data': {'category_name': category_name},
-            'error_message': error_message
-        })
 
     # Search categories based on the search query
     if search_query:
@@ -41,7 +36,21 @@ def category_management(request):
     else:
         categories = Category.objects.all()  # No search query, display all categories
 
-    return render(request, 'admin/category.html', {'categories': categories, 'search_query': search_query})
+    # Pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(categories, 10)  # Show 10 categories per page
+
+    try:
+        categories = paginator.page(page)
+    except PageNotAnInteger:
+        categories = paginator.page(1)
+    except EmptyPage:
+        categories = paginator.page(paginator.num_pages)
+
+    return render(request, 'admin/category.html', {
+        'categories': categories,
+        'search_query': search_query,
+    })
 
 
 @user_passes_test(is_admin)

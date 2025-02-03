@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.contrib import messages
 from django.views.decorators.cache import never_cache
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
 
 
 
@@ -40,6 +41,18 @@ def admin_dashboard(request):
 @user_passes_test(is_admin)
 def user_manage(request):
     users = User.objects.filter(is_superuser=False).order_by('-date_joined')
+
+    # Pagination
+    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
+    paginator = Paginator(users, 10)  # Show 10 products per page
+
+    try:
+        users = paginator.page(page)
+    except PageNotAnInteger:
+        users = paginator.page(1)
+    except EmptyPage:
+        users = paginator.page(paginator.num_pages)
+
 
     return render(request,'admin/users.html',{'users':users})
 

@@ -116,13 +116,15 @@
         /* Ensure dropdown options are white */
         select.form-control option {
             color: #ffffff;
-            background-color: #2d3035; /* Match the dropdown background */
+            background-color: #2d3035;
+            /* Match the dropdown background */
         }
 
         /* Ensure selected option is visible */
         select.form-control:focus option:checked {
             color: #ffffff;
-            background-color: #3699ff; /* Highlight color for selected option */
+            background-color: #3699ff;
+            /* Highlight color for selected option */
         }
 
         .alert-container .alert {
@@ -168,6 +170,22 @@
             height: 50px;
             object-fit: cover;
             border-radius: 4px;
+        }
+
+        /* Center the pagination controls */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination .step-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pagination .step-links .btn {
+            margin: 0 5px;
         }
 
         @media (max-width: 991px) {
@@ -271,8 +289,8 @@
                                                             <select name="status" class="form-control form-control-sm">
                                                                 {% for status in status_choices %}
                                                                 {% if status.0 != 'canceled' %}
-                                                                <option value="{{ status.0 }}"
-                                                                    {% if item.status == status.0 %}selected{% endif %}>
+                                                                <option value="{{ status.0 }}" 
+                                                                {% if item.status == status.0 %}selected{% endif %}>
                                                                     {{ status.1 }}</option>
                                                                 {% endif %}
                                                                 {% endfor %}
@@ -285,6 +303,24 @@
                                                 {% endfor %}
                                             </tbody>
                                         </table>
+                                    </div>
+                                    <!-- Pagination -->
+                                    <div class="pagination mt-4">
+                                        <span class="step-links">
+                                            {% if order_items.has_previous %}
+                                            <a href="?page={{ order_items.previous_page_number }}"
+                                                class="btn btn-primary">Previous</a>
+                                            {% endif %}
+
+                                            <span class="current">
+                                                Page {{ order_items.number }} of {{ order_items.paginator.num_pages }}
+                                            </span>
+
+                                            {% if order_items.has_next %}
+                                            <a href="?page={{ order_items.next_page_number }}"
+                                                class="btn btn-primary">Next</a>
+                                            {% endif %}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

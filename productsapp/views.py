@@ -14,7 +14,7 @@ import random
 from reviews.models import Review
 from django.http import JsonResponse
 from .models import ProductVariant
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
 
 # Product List View
 @user_passes_test(is_admin)
@@ -24,6 +24,17 @@ def product_list(request):
 
     if query:  # If there is a search query
         products = products.filter(name__icontains=query)  # Search for product names that contain the query (case-insensitive)
+
+    # Pagination
+    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
+    paginator = Paginator(products, 8)  # Show 8 products per page
+
+    try:
+        products = paginator.page(page)
+    except PageNotAnInteger:
+        products = paginator.page(1)
+    except EmptyPage:
+        products = paginator.page(paginator.num_pages)
 
     categories = Category.objects.all()
     return render(request, 'admin/product_list.html', {
@@ -259,6 +270,18 @@ def add_variant(request, product_id):
 def variant_list(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     variants = product.variants.all()  # Get related variants
+
+    # Pagination
+    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
+    paginator = Paginator(variants, 10)  # Show 10 products per page
+
+    try:
+        variants = paginator.page(page)
+    except PageNotAnInteger:
+        variants = paginator.page(1)
+    except EmptyPage:
+        variants = paginator.page(paginator.num_pages)
+
     return render(request, 'admin/variant.html', {'product': product, 'variants': variants})
 
 

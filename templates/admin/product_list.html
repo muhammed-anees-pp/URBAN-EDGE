@@ -12,6 +12,8 @@
     <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}">
     <!-- Internal CSS for dark theme -->
     <style>
+        /* Your existing CSS styles */
+
         body {
             background-color: #1e2227;
             color: #ffffff;
@@ -136,6 +138,22 @@
             color: #ffffff;
         }
 
+        /* Center the pagination controls */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination .step-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pagination .step-links .btn {
+            margin: 0 5px;
+        }
+
         @media (max-width: 991px) {
             .container-fluid.page-body-wrapper {
                 margin-left: 0;
@@ -182,7 +200,7 @@
 
                     <!-- Display search results summary -->
                     {% if query %}
-                    <p class="text-muted">Search results for "{{ query }}": {{ products|length }} found</p>
+                    <p class="text-muted">Search results for "{{ query }}": {{ products.paginator.count }} found</p>
                     {% endif %}
 
                     <div class="row">
@@ -265,6 +283,23 @@
                                                 {% endif %}
                                             </tbody>
                                         </table>
+                                    </div>
+
+                                    <!-- Pagination -->
+                                    <div class="pagination mt-4">
+                                        <span class="step-links">
+                                            {% if products.has_previous %}
+                                                <a href="?page={{ products.previous_page_number }}&q={{ query }}" class="btn btn-primary">Previous</a>
+                                            {% endif %}
+
+                                            <span class="current">
+                                                Page {{ products.number }} of {{ products.paginator.num_pages }}
+                                            </span>
+
+                                            {% if products.has_next %}
+                                                <a href="?page={{ products.next_page_number }}&q={{ query }}" class="btn btn-primary">Next</a>
+                                            {% endif %}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

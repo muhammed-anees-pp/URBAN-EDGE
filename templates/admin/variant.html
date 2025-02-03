@@ -149,6 +149,22 @@
             color: #ffffff;
         }
 
+         /* Center the pagination controls */
+         .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination .step-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pagination .step-links .btn {
+            margin: 0 5px;
+        }
+
         @media (max-width: 991px) {
             .container-fluid.page-body-wrapper {
                 margin-left: 0;
@@ -225,6 +241,22 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                    <!-- Pagination -->
+                                    <div class="pagination mt-4">
+                                        <span class="step-links">
+                                            {% if variants.has_previous %}
+                                                <a href="?page={{ variants.previous_page_number }}&q={{ query }}" class="btn btn-primary">Previous</a>
+                                            {% endif %}
+
+                                            <span class="current">
+                                                Page {{ variants.number }} of {{ variants.paginator.num_pages }}
+                                            </span>
+
+                                            {% if variants.has_next %}
+                                                <a href="?page={{ variants.next_page_number }}&q={{ query }}" class="btn btn-primary">Next</a>
+                                            {% endif %}
+                                        </span>
                                     </div>
                                     <div class="mb-4">
                                         <!-- Link to the product list page -->
