@@ -27,13 +27,11 @@ def place_order(request):
             return JsonResponse({"error": "Your cart is empty. Please add items to checkout."}, status=400)
 
         for item in cart_items:
-            if item.quantity < 1:
-                return JsonResponse({"error": f"Invalid quantity for {item.product_variant.product.name}. Please update your cart."}, status=400)
             
             if item.quantity > item.product_variant.stock:
-                return JsonResponse({
-                    "error": f"Requested quantity for {item.product_variant.product.name} exceeds available stock."
-                }, status=400)
+                messages.error(request, 'Please remove the out of stock products')
+                return redirect('cart_view')
+            
         
         total_listed_price = Decimal('0.00')
         total_offer_price = Decimal('0.00')

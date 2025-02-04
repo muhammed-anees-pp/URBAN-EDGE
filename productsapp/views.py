@@ -413,7 +413,7 @@ def category_products(request, category_id):
         products = products.order_by('-offer')
 
     # Pagination
-    paginator = Paginator(products, 8)  # Show 12 products per page
+    paginator = Paginator(products, 12)  # Show 12 products per page
     page = request.GET.get('page')
     try:
         products = paginator.page(page)

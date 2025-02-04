@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger(__name__)
 
+@login_required
 def cart_view(request):
     if not request.user.is_authenticated:
         return render(request, 'cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Please log in to add items.'})
@@ -18,17 +19,33 @@ def cart_view(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.all()
 
+    # Check stock availability for each item in the cart
+    out_of_stock_items = []
+    for item in cart_items:
+        if item.product_variant.stock < item.quantity:
+            out_of_stock_items.append({
+                'product_name': item.product_variant.product.name,
+                'variant': f"{item.product_variant.color} / {item.product_variant.size}",
+                'available_stock': item.product_variant.stock,
+            })
+
     # Calculate total price for each cart item
     for item in cart_items:
         item.total_price_value = item.total_price()  # Call the total_price method
 
     grand_total = sum(item.total_price_value for item in cart_items)
-    
+
     if not cart_items.exists():
         return render(request, 'cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Start shopping now!'})
 
-    return render(request, 'cart.html', {'cart_items': cart_items, 'grand_total': grand_total, 'cart_empty': False})
+    context = {
+        'cart_items': cart_items,
+        'grand_total': grand_total,
+        'cart_empty': False,
+        'out_of_stock_items': out_of_stock_items,  # Pass out-of-stock items to the template
+    }
 
+    return render(request, 'cart.html', context)
 
 @login_required(login_url='/login/')
 def add_to_cart(request):
@@ -84,8 +101,6 @@ def add_to_cart(request):
     except Exception as e:
         logger.error(f"Error adding to cart: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
-
-
 
 
 @login_required(login_url='/login/')

@@ -9,7 +9,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-    body {
+
+body {
         font-family: Arial, sans-serif;
         background-color: #f5f5f5;
     }
@@ -325,7 +326,19 @@
         box-shadow: 0 10px 20px rgba(46, 204, 113, 0.2);
         color: white;
     }
+    /* Add this CSS for out-of-stock items */
+    .out-of-stock-message {
+        color: #ff4d4f;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-left: 10px;
+    }
+
+    .out-of-stock-message i {
+        margin-right: 5px;
+    }
 </style>
+
 <div class="cart-wrapper">
     <!-- New error message structure -->
     <div id="error-message" class="error-message" style="display: none;">
@@ -337,7 +350,14 @@
     </div>
 
     <h1 class="cart-heading">Your Shopping Cart</h1>
-
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if 'error' in message.tags %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}">
+        {{ message }}
+    </div>
+    
+    {% endfor %}
+    {% endif %}
 
     {% if cart_empty %}
     <div class="empty-cart-container">
@@ -354,23 +374,21 @@
         {% endif %}
     </div>
     {% else %}
-    <div class="cart-table">
-        <table class="table mb-0">
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Name</th>
-                    <th>Size & Color</th>
-                    <th>Original Price</th>
-                    <th>Offer Price</th>
-                    <th>Quantity</th>
-                    <th>Total Price</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <form action="{% url 'cart_view' %}" method="post">
-                    {% csrf_token %}
+        <div class="cart-table">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Name</th>
+                        <th>Size & Color</th>
+                        <th>Original Price</th>
+                        <th>Offer Price</th>
+                        <th>Quantity</th>
+                        <th>Total Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {% for item in cart_items %}
                     <tr>
                         <td>
@@ -379,9 +397,17 @@
                         </td>
                         <td>
                             <div class="product-details mb-2">{{ item.product_variant.product.name }}</div>
-                            <a href="{% url 'product_details' item.product_variant.product.id %}" class="view-btn">
-                                <i class="fas fa-eye me-2"></i>Details
-                            </a>
+                            <div style="display: flex; align-items: center;">
+                                <a href="{% url 'product_details' item.product_variant.product.id %}" class="view-btn">
+                                    <i class="fas fa-eye me-2"></i>Details
+                                </a>
+                                <!-- Display out-of-stock message next to the "View Details" button -->
+                                {% if item.product_variant.stock < item.quantity %}
+                                <span class="out-of-stock-message">
+                                    <i class="fas fa-exclamation-triangle"></i>Out of Stock
+                                </span>
+                                {% endif %}
+                            </div>
                         </td>
                         <td>{{ item.product_variant.size }} / {{ item.product_variant.color }}</td>
                         <td>
@@ -390,7 +416,6 @@
                         <td>
                             <div class="offer-price">₹{{ item.product_variant.product.offer }}</div>
                         </td>
-
                         <td>
                             <div class="quantity-controls">
                                 <button type="button" class="qty-btn"
@@ -407,7 +432,6 @@
                         <td>
                             <div class="offer-price">₹{{ item.total_price_value }}</div>
                         </td>
-
                         <td>
                             <button type="button" class="remove-btn" onclick="removeFromCart('{{ item.id }}', event)">
                                 <i class="fas fa-trash-alt me-2"></i>
@@ -415,20 +439,19 @@
                         </td>
                     </tr>
                     {% endfor %}
-            </tbody>
-
-        </table>
-    </div>
-    <div class="summary-section">
-        <div class="totals-group">
-            <div class="total-label">Grand Total</div>
-            <h2 class="grand-total">₹{{ grand_total }}</h2>
+                </tbody>
+            </table>
         </div>
-        <a href="{% url 'place_order' %}" class="checkout-btn">
-            <i class="fas fa-lock me-2"></i>Proceed to Checkout
-        </a>
-    </div>
-    </form>
+
+        <div class="summary-section">
+            <div class="totals-group">
+                <div class="total-label">Grand Total</div>
+                <h2 class="grand-total">₹{{ grand_total }}</h2>
+            </div>
+            <a href="{% url 'place_order' %}" class="checkout-btn">
+                <i class="fas fa-lock me-2"></i>Proceed to Checkout
+            </a>
+        </div>
     {% endif %}
 </div>
 
@@ -514,6 +537,5 @@
         }
     });
 </script>
-
 
 {% endblock %}
