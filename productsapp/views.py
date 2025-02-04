@@ -412,6 +412,18 @@ def category_products(request, category_id):
     elif sort_option == 'offer-desc':  # Sort by Offer Price High to Low
         products = products.order_by('-offer')
 
+    # Pagination
+    paginator = Paginator(products, 8)  # Show 12 products per page
+    page = request.GET.get('page')
+    try:
+        products = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        products = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        products = paginator.page(paginator.num_pages)
+
     # Prepare context data
     context = {
         'category': category,
@@ -421,9 +433,9 @@ def category_products(request, category_id):
         } for product in products],
         'search_query': search_query,
         'sort_option': sort_option,
+        'page_obj': products,  # Add pagination object to context
     }
-    return render(request, 'category_products.html', context)
-
+    return render(request, 'user/category_products.html', context)
 
 
 

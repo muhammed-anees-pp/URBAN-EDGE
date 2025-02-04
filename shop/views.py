@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponse
 from productsapp.models import Product, ProductImage
 from category.models import Category
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
 
 def all_products(request):
     # Get all listed products and categories
@@ -27,6 +28,17 @@ def all_products(request):
         products = products.order_by('offer')
     elif sort_option == 'offer-desc':
         products = products.order_by('-offer')
+    # Pagination
+    paginator = Paginator(products, 12)  # Show 12 products per page
+    page = request.GET.get('page')
+    try:
+        products = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        products = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        products = paginator.page(paginator.num_pages)
 
     # Prepare context data
     context = {
@@ -38,6 +50,7 @@ def all_products(request):
         'selected_categories': [int(cat) for cat in selected_categories],
         'search_query': search_query,
         'sort_option': sort_option,
+        'page_obj': products,  # Add pagination object to context
     }
 
     return render(request, 'user/all_products.html', context)

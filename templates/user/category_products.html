@@ -23,15 +23,12 @@
         <div class="sort">
             <h3>Sort By</h3>
             <form method="GET">
-                <input type="hidden" name="search" value="{{ search_query }}">  <!-- Preserve search query -->
+                <input type="hidden" name="search" value="{{ search_query }}"> <!-- Preserve search query -->
                 <select name="sort" onchange="this.form.submit()">
                     <option value="name-asc" {% if sort_option == "name-asc" %}selected{% endif %}>Name: A to Z</option>
                     <option value="name-desc" {% if sort_option == "name-desc" %}selected{% endif %}>Name: Z to A</option>
                     <option value="offer-asc" {% if sort_option == "offer-asc" %}selected{% endif %}>Offer Price: Low to High</option>
                     <option value="offer-desc" {% if sort_option == "offer-desc" %}selected{% endif %}>Offer Price: High to Low</option>
-
-                    <!-- <option value="price-asc" {% if sort_option == "price-asc" %}selected{% endif %}>Price: Low to High</option>
-                    <option value="price-desc" {% if sort_option == "price-desc" %}selected{% endif %}>Price: High to Low</option> -->
                 </select>
             </form>
         </div>
@@ -53,15 +50,14 @@
                     <span>({{ item.product.review_count }} reviews)</span>
                 </div>
                 <h3>{{ item.product.name }}</h3>
-               
                 <p class="price">
                     {% if item.product.offer %}
-                        <span style="color: black; text-decoration: line-through;">₹{{ item.product.price }}</span>
-                        <span style="color: red;">₹{{ item.product.offer }}</span>
+                    <span style="color: black; text-decoration: line-through;">₹{{ item.product.price }}</span>
+                    <span style="color: red;">₹{{ item.product.offer }}</span>
                     {% else %}
-                        <span>₹{{ item.product.price }}</span>
+                    <span>₹{{ item.product.price }}</span>
                     {% endif %}
-                </p>                
+                </p>
                 <a href="{% url 'product_details' item.product.id %}" class="view-details-btn">View Details</a>
             </div>
         </div>
@@ -69,6 +65,27 @@
         <p class="no-products-message">No products found under this category.</p>
         {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.count > 0 %}
+    <div class="pagination-container">
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&sort={{ sort_option }}" class="btn btn-primary">Previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&sort={{ sort_option }}" class="btn btn-primary">Next</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <style>
@@ -93,6 +110,7 @@
     .products-container {
         display: flex;
         margin-top: 20px;
+        position: relative;
     }
 
     .sidebar {
@@ -100,6 +118,9 @@
         padding: 20px;
         background-color: #f7f7f7;
         border-right: 2px solid #ddd;
+        display: flex;
+        flex-direction: column;
+        /*justify-content: space-between;*/
     }
 
     .search-form {
@@ -146,6 +167,7 @@
         gap: 20px;
         width: 80%;
         padding: 20px;
+        margin-bottom: 100px;
     }
 
     .product-card {
@@ -159,7 +181,7 @@
         flex-direction: column;
         justify-content: space-between;
         text-align: center;
-        height: 500px; /* Increased card height */
+        height: 500px;
     }
 
     .product-card:hover {
@@ -178,8 +200,8 @@
         padding: 15px;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start; /* Align content properly */
-        height: 100%; /* Ensure consistent layout */
+        justify-content: flex-start;
+        height: 100%;
     }
 
     .product-details h3 {
@@ -203,8 +225,8 @@
         background-color: #dbcc8f;
         text-decoration: none;
         border-radius: 5px;
-        margin-top: auto; /* Keep the button at the bottom */
-        align-self: center; /* Center the button horizontally */
+        margin-top: auto;
+        align-self: center;
     }
 
     .view-details-btn:hover {
@@ -235,6 +257,37 @@
 
     .rating-stars .star.empty {
         color: #e4e5e9;
+    }
+
+    .pagination-container {
+        position: absolute;
+        bottom: 0;
+        left: 20%;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+        padding: 20px;
+        background-color: #f7f7f7;
+        border-top: 2px solid #ddd;
+    }
+
+    .pagination {
+        text-align: center;
+    }
+
+    .pagination a {
+        margin: 0 5px;
+        text-decoration: none;
+        color: white;
+    }
+
+    /* .pagination a:hover {
+        text-decoration: underline;
+    } */
+
+    .pagination .current {
+        font-weight: bold;
     }
 
     /* Responsive design */
