@@ -507,6 +507,14 @@
     .modal button:hover {
         background-color: #0056b3;
     }
+
+    .alert-success {
+    color: green;
+}
+
+.alert-error {
+    color: red;
+}
 </style>
 
 <div class="container">
@@ -585,7 +593,10 @@
             <div id="cart-message" style="display: none; margin-bottom: 10px; padding: 10px; border-radius: 5px;"></div>
             <div class="wishlist-cart">
                 <button class="add-to-cart" onclick="addToCart('{{ product.id }}')">Add to Cart</button>
-                <button class="add-to-wishlist">Add to Wishlist</button>
+                <button onclick="addToWishlist('{{ product.id }}')" class="add-to-wishlist">
+                    <i class="fas fa-heart"></i> Add to Wishlist
+                </button>
+                <!-- <button class="add-to-wishlist">Add to Wishlist</button> -->
             </div>
         </div>
     </div>
@@ -877,6 +888,48 @@
             });
     }
 
+//     function addToWishlist(productId) {
+//     fetch(`/wishlist/add/${productId}/`, {
+//         method: 'POST',
+//         headers: {
+//             'X-CSRFToken': '{{ csrf_token }}',
+//             'Content-Type': 'application/json'
+//         }
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if (data.success) {
+//             alert(data.message);
+//         } else {
+//             alert(data.message);
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//         alert('An error occurred while adding to wishlist.');
+//     });
+// }
+
+
+function addToWishlist(productId) {
+    fetch(`/wishlist/add/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            console.error('Error:', response.statusText);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
 
     let currentImageIndex = 0;
 

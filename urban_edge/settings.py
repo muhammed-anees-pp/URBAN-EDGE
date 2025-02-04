@@ -41,12 +41,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'django.contrib.sites',  # Required for allauth
+    #google auth
+    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',  # Google provider for OAuth
+    'allauth.socialaccount.providers.google',
     
+    #my apps
     'accounts',
     'home',
     'admin_side',
@@ -57,6 +59,7 @@ INSTALLED_APPS = [
     'cart',
     'orders',
     'reviews',
+    'wishlist',
 ]
 
 MIDDLEWARE = [

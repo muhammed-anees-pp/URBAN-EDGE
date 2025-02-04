@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from .models import Cart, CartItem
@@ -6,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 import logging
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 
@@ -30,19 +32,52 @@ def cart_view(request):
             })
 
     # Calculate total price for each cart item
-    for item in cart_items:
-        item.total_price_value = item.total_price()  # Call the total_price method
+    # for item in cart_items:
+    #     item.total_price_value = item.total_price()  # Call the total_price method
 
-    grand_total = sum(item.total_price_value for item in cart_items)
+    # grand_total = sum(item.total_price_value for item in cart_items)
+    total_listed_price = Decimal('0.00')
+    total_offer_price = Decimal('0.00')
+    for item in cart_items:
+        price = Decimal(str(item.product_variant.product.offer if item.product_variant.product.offer else item.product_variant.product.price))
+        quantity = Decimal(str(item.quantity))
+        item.subtotal = price * quantity
+        listed_price = Decimal(str(item.product_variant.product.price))
+        offer_price = Decimal(str(item.product_variant.product.offer)) if item.product_variant.product.offer else listed_price
+        item.subtotal_listed_price = listed_price * quantity
+        item.subtotal_offer_price = offer_price * quantity
+        total_listed_price += item.subtotal_listed_price
+        total_offer_price += item.subtotal_offer_price
+
+        discounted_amount = total_listed_price - total_offer_price
+        delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
+        grand_total = total_offer_price + delivery_charge  # Grand total including delivery charge
 
     if not cart_items.exists():
         return render(request, 'cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Start shopping now!'})
+    # Pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(cart_items, 10)  # Show 10 items per page
+
+    try:
+        cart_items = paginator.page(page)
+    except PageNotAnInteger:
+        cart_items = paginator.page(1)
+    except EmptyPage:
+        cart_items = paginator.page(paginator.num_pages)
+
 
     context = {
         'cart_items': cart_items,
-        'grand_total': grand_total,
+        # 'grand_total': grand_total,
         'cart_empty': False,
         'out_of_stock_items': out_of_stock_items,  # Pass out-of-stock items to the template
+        'cart_count': cart_items.paginator.count,  # Total count of items
+        'total_listed_price': total_listed_price,
+        'total_offer_price': total_offer_price,
+        'discounted_amount': discounted_amount,
+        'delivery_charge': delivery_charge,
+        'grand_total': grand_total,
     }
 
     return render(request, 'cart.html', context)

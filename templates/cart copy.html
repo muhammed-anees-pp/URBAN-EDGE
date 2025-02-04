@@ -1,0 +1,541 @@
+{% extends 'base.html' %}
+{% block title %}Cart{% endblock %}
+{% block content %}
+<!-- Add custom fonts -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+<!-- Add Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+
+body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+    }
+
+    .cart-wrapper {
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+
+
+    .error-message {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #fff1f0;
+        border: 1px solid #ffccc7;
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        min-width: 300px;
+        max-width: 80%;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(-100%) translateX(-50%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0) translateX(-50%);
+            opacity: 1;
+        }
+    }
+
+    .error-message i {
+        color: #ff4d4f;
+        font-size: 1.2rem;
+    }
+
+    .error-message-text {
+        color: #ff4d4f;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin: 0;
+        flex-grow: 1;
+    }
+
+    .error-close {
+        background: none;
+        border: none;
+        color: #ff4d4f;
+        cursor: pointer;
+        padding: 4px;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+    .error-close:hover {
+        opacity: 1;
+    }
+
+
+
+
+
+    .cart-heading {
+        font-family: 'Playfair Display', serif;
+        color: #1a1a1a;
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 1rem;
+        text-align: center;
+    }
+
+    .cart-table {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    .cart-table thead {
+        background: #1a1a1a;
+        color: white;
+    }
+
+    .cart-table th {
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        padding: 1.2rem 1rem;
+        border: none;
+    }
+
+    .cart-table td {
+        padding: 1.5rem 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+
+    .product-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-details {
+        font-weight: 500;
+        color: #1a1a1a;
+    }
+
+    .view-btn {
+        background: #1a1a1a;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 0.5rem 1.2rem;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .view-btn:hover {
+        background: #333;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        background: #f8f9fa;
+        padding: 0.5rem;
+        border-radius: 25px;
+        width: fit-content;
+    }
+
+    .qty-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
+        background: white;
+        color: #1a1a1a;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .qty-btn:hover {
+        background: #1a1a1a;
+        color: white;
+    }
+
+    .original-price {
+        color: #999;
+        text-decoration: line-through;
+        font-size: 0.9rem;
+    }
+
+    .offer-price {
+        color: #2ecc71;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .remove-btn {
+        background: #fff1f0;
+        color: #ff4d4f;
+        border: none;
+        border-radius: 25px;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .remove-btn:hover {
+        background: #ff4d4f;
+        color: white;
+    }
+
+    .summary-section {
+        background: #1a1a1a;
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-top: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .grand-total {
+        font-size: 2rem;
+        font-family: Arial, sans-serif;
+        margin: 0;
+    }
+
+    .checkout-btn {
+        background: linear-gradient(145deg, #2ecc71, #27ae60);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .checkout-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(46, 204, 113, 0.2);
+        color: white;
+    }
+
+    .total-label {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 0.5rem;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .totals-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Empty cart styles */
+    .empty-cart-container {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    .empty-cart-icon {
+        font-size: 4rem;
+        color: #1a1a1a;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-cart-message {
+        font-size: 1.5rem;
+        color: #1a1a1a;
+        margin-bottom: 2rem;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .start-shopping-btn {
+        background: #1a1a1a;
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .start-shopping-btn:hover {
+        background: #333;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .login-btn {
+        background: linear-gradient(145deg, #2ecc71, #27ae60);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(46, 204, 113, 0.2);
+        color: white;
+    }
+    /* Add this CSS for out-of-stock items */
+    .out-of-stock-message {
+        color: #ff4d4f;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-left: 10px;
+    }
+
+    .out-of-stock-message i {
+        margin-right: 5px;
+    }
+</style>
+
+<div class="cart-wrapper">
+    <!-- New error message structure -->
+    <div id="error-message" class="error-message" style="display: none;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="error-message-text" class="error-message-text"></span>
+        <button class="error-close" onclick="hideError()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <h1 class="cart-heading">Your Shopping Cart</h1>
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if 'error' in message.tags %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}">
+        {{ message }}
+    </div>
+    
+    {% endfor %}
+    {% endif %}
+
+    {% if cart_empty %}
+    <div class="empty-cart-container">
+        <i class="fas fa-shopping-cart empty-cart-icon"></i>
+        <p class="empty-cart-message">{{ message }}</p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'all_products' %}" class="start-shopping-btn">
+            <i class="fas fa-shopping-bag me-2"></i>Start Shopping
+        </a>
+        {% else %}
+        <a href="{% url 'userlogin' %}" class="login-btn">
+            <i class="fas fa-sign-in-alt me-2"></i>Login
+        </a>
+        {% endif %}
+    </div>
+    {% else %}
+        <div class="cart-table">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Name</th>
+                        <th>Size & Color</th>
+                        <th>Original Price</th>
+                        <th>Offer Price</th>
+                        <th>Quantity</th>
+                        <th>Total Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr>
+                        <td>
+                            <img src="{{ item.product_variant.product.images.first.image.url }}" class="product-img"
+                                alt="Product">
+                        </td>
+                        <td>
+                            <div class="product-details mb-2">{{ item.product_variant.product.name }}</div>
+                            <div style="display: flex; align-items: center;">
+                                <a href="{% url 'product_details' item.product_variant.product.id %}" class="view-btn">
+                                    <i class="fas fa-eye me-2"></i>Details
+                                </a>
+                                <!-- Display out-of-stock message next to the "View Details" button -->
+                                {% if item.product_variant.stock < item.quantity %}
+                                <span class="out-of-stock-message">
+                                    <i class="fas fa-exclamation-triangle"></i>Out of Stock
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ item.product_variant.size }} / {{ item.product_variant.color }}</td>
+                        <td>
+                            <div class="original-price">₹{{ item.product_variant.product.price }}</div>
+                        </td>
+                        <td>
+                            <div class="offer-price">₹{{ item.product_variant.product.offer }}</div>
+                        </td>
+                        <td>
+                            <div class="quantity-controls">
+                                <button type="button" class="qty-btn"
+                                    onclick="updateCart('{{ item.id }}', 'decrease', event)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span>{{ item.quantity }}</span>
+                                <button type="button" class="qty-btn"
+                                    onclick="updateCart('{{ item.id }}', 'increase', event)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="offer-price">₹{{ item.total_price_value }}</div>
+                        </td>
+                        <td>
+                            <button type="button" class="remove-btn" onclick="removeFromCart('{{ item.id }}', event)">
+                                <i class="fas fa-trash-alt me-2"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="summary-section">
+            <div class="totals-group">
+                <div class="total-label">Grand Total</div>
+                <h2 class="grand-total">₹{{ grand_total }}</h2>
+            </div>
+            <a href="{% url 'place_order' %}" class="checkout-btn">
+                <i class="fas fa-lock me-2"></i>Proceed to Checkout
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        const errorText = document.getElementById('error-message-text');
+        errorText.textContent = message;
+        errorDiv.style.display = 'flex';
+
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+            hideError();
+        }, 3000);
+    }
+
+    function hideError() {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.style.display = 'none';
+    }
+
+    function updateCart(itemId, action, event) {
+        // Prevent default button behavior
+        if (event) {
+            event.preventDefault();
+        }
+
+        fetch(`/cart/update_cart/${itemId}/${action}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'error') {
+                    showError(data.message);
+                } else {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('An unexpected error occurred');
+            });
+    }
+
+    function removeFromCart(itemId, event) {
+        // Prevent default button behavior
+        if (event) {
+            event.preventDefault();
+        }
+
+        fetch(`/cart/remove_from_cart/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'error') {
+                    showError(data.message);
+                } else {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('An unexpected error occurred');
+            });
+    }
+
+    // Add event listener to handle clicks outside error message
+    document.addEventListener('click', function (event) {
+        const errorMessage = document.getElementById('error-message');
+        const isClickInside = errorMessage.contains(event.target);
+
+        if (!isClickInside && errorMessage.style.display === 'flex') {
+            hideError();
+        }
+    });
+</script>
+
+{% endblock %}
