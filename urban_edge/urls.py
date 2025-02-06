@@ -18,6 +18,7 @@ urlpatterns = [
     path('orders/', include('orders.urls')),
     path('review/', include('reviews.urls')),
     path('wishlist/', include('wishlist.urls')),
+    path('payments/', include('payments.urls')),
 
 ]
 urlpatterns += static(settings.STATIC_URL, document_root = settings.STATIC_ROOT)

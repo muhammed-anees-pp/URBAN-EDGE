@@ -111,21 +111,16 @@ def place_order(request):
     }
     return render(request, 'user/checkout.html', context)
 
-
 def order_success(request):
-    # Fetch the latest order for the logged-in user
     latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
     
     if not latest_order:
-        # Handle case where no order exists (e.g., redirect to home or show an error)
         return render(request, 'user/order_confirm.html', {
             'error': 'No order found.'
         })
     
-    # Fetch order items for the latest order
     order_items = OrderItem.objects.filter(order=latest_order)
     
-    # Calculate total listed price, total offer price, and discounted amount
     total_listed_price = Decimal('0.00')
     total_offer_price = Decimal('0.00')
     for item in order_items:
@@ -139,19 +134,18 @@ def order_success(request):
     delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
     grand_total = total_offer_price + delivery_charge
     
-    # Prepare data for the template
     context = {
-        'order_number': latest_order.id,  # Use the custom order ID
+        'order_number': latest_order.id,
         'order_items': order_items,
         'total_listed_price': total_listed_price,
         'total_offer_price': total_offer_price,
         'discounted_amount': discounted_amount,
         'delivery_charge': delivery_charge,
         'grand_total': grand_total,
+        'payment_status': latest_order.payment_status,
     }
     
     return render(request, 'user/order_confirm.html', context)
-
 
 @login_required
 def user_orders(request):
@@ -356,6 +350,11 @@ def update_order_status(request, order_id):
 
     # Update the item status
     order_item.status = new_status
+
+    # If the order is delivered and payment method is COD, update payment status to 'Paid'
+    if new_status == 'delivered' and order.payment_method == 'COD':
+        order.payment_status = 'Paid'
+        order.save()
 
     # Refill stock if the status is updated to 'returned'
     if new_status == 'returned':

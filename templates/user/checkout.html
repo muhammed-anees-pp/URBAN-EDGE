@@ -290,6 +290,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     let selectedAddressId = "{{ default_address.id|default:'' }}";
     const addressModal = new bootstrap.Modal(document.getElementById('addressModal'));

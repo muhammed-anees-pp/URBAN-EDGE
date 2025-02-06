@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'orders',
     'reviews',
     'wishlist',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -158,7 +159,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-# settings.py
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Use your email provider's SMTP
 EMAIL_PORT = 587
@@ -207,3 +208,6 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {'access_type': 'online',}
     }
 }
+
+RAZOR_KEY_ID = config('RAZOR_KEY_ID'),
+RAZOR_KEY_SECRET = config('RAZOR_KEY_SECRET'),
