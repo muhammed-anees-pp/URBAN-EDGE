@@ -399,29 +399,233 @@
         }
     });
 
-    function placeOrder() {
-        const paymentMethodElements = document.getElementsByName("payment_method");
-        let paymentMethod;
+    // function placeOrder() {
+    //     const paymentMethodElements = document.getElementsByName("payment_method");
+    //     let paymentMethod;
 
-        for (const element of paymentMethodElements) {
-            if (element.checked) {
-                paymentMethod = element.value;
-                break;
-            }
+    //     for (const element of paymentMethodElements) {
+    //         if (element.checked) {
+    //             paymentMethod = element.value;
+    //             break;
+    //         }
+    //     }
+
+    //     if (!paymentMethod) {
+    //         document.getElementById("error-message").innerText = "Please select a payment method.";
+    //         return;
+    //     }
+
+    //     if (!selectedAddressId) {
+    //         document.getElementById("error-message").innerText = "Please select an address.";
+    //         return;
+    //     }
+
+    //     document.getElementById('payment-method-hidden').value = paymentMethod;
+    //     document.getElementById('place-order-form').submit();
+    // }
+
+
+//     function placeOrder() {
+//     const paymentMethodElements = document.getElementsByName("payment_method");
+//     let paymentMethod;
+
+//     for (const element of paymentMethodElements) {
+//         if (element.checked) {
+//             paymentMethod = element.value;
+//             break;
+//         }
+//     }
+
+//     if (!paymentMethod) {
+//         document.getElementById("error-message").innerText = "Please select a payment method.";
+//         return;
+//     }
+
+//     if (!selectedAddressId) {
+//         document.getElementById("error-message").innerText = "Please select an address.";
+//         return;
+//     }
+
+//     document.getElementById('payment-method-hidden').value = paymentMethod;
+
+//     if (paymentMethod === "razorpay") {
+//         const placeOrderButton = document.querySelector('#place-order-form button');
+//         placeOrderButton.disabled = true;
+
+//         fetch("{% url 'initiate_payment' %}", {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/x-www-form-urlencoded",
+//                 "X-CSRFToken": "{{ csrf_token }}"
+//             },
+//             body: new URLSearchParams(new FormData(document.getElementById('place-order-form')))
+//         })
+//             .then(response => response.json())
+//             .then(data => {
+//                 if (data.razorpay_order_id) {
+//                     const options = {
+//                         key: data.razorpay_merchant_key,
+//                         amount: data.razorpay_amount,
+//                         currency: data.currency,
+//                         name: "URBAN EDGE",
+//                         order_id: data.razorpay_order_id,
+//                         handler: function (response) {
+//                             // Ensure all required parameters are sent
+//                             const formData = new URLSearchParams({
+//                                 'razorpay_payment_id': response.razorpay_payment_id,
+//                                 'razorpay_order_id': response.razorpay_order_id,
+//                                 'razorpay_signature': response.razorpay_signature,
+//                                 'csrfmiddlewaretoken': "{{ csrf_token }}"
+//                             });
+
+//                             fetch("{% url 'paymenthandler' %}", {
+//                                 method: "POST",
+//                                 headers: {
+//                                     "Content-Type": "application/x-www-form-urlencoded",
+//                                     "X-CSRFToken": "{{ csrf_token }}"
+//                                 },
+//                                 body: formData
+//                             })
+//                                 .then(() => {
+//                                     window.location.href = data.callback_url;
+//                                 })
+//                                 .catch(error => {
+//                                     console.error('Error:', error);
+//                                     document.getElementById("error-message").innerText = "Error processing payment.";
+//                                 });
+//                         },
+//                         prefill: {
+//                             name: "{{ request.user.username }}",
+//                             email: "{{ request.user.email }}",
+//                             contact: "9995160852"
+//                         },
+//                         theme: {
+//                             color: "#0d6efd"
+//                         },
+//                         method: {
+//                             netbanking: true,
+//                             card: true,
+//                             wallet: true,
+//                             upi: true
+//                         }
+//                     };
+//                     const rzp1 = new Razorpay(options);
+//                     rzp1.open();
+//                 } else {
+//                     document.getElementById("error-message").innerText = "Error initiating payment.";
+//                 }
+//             })
+//             .catch(error => {
+//                 console.error('Error:', error);
+//                 document.getElementById("error-message").innerText = "Error initiating payment.";
+//             })
+//             .finally(() => {
+//                 placeOrderButton.disabled = false;
+//             });
+//     } else {
+//         document.getElementById('place-order-form').submit();
+//     }
+// }
+
+
+function placeOrder() {
+    const paymentMethodElements = document.getElementsByName("payment_method");
+    let paymentMethod;
+
+    for (const element of paymentMethodElements) {
+        if (element.checked) {
+            paymentMethod = element.value;
+            break;
         }
+    }
 
-        if (!paymentMethod) {
-            document.getElementById("error-message").innerText = "Please select a payment method.";
-            return;
-        }
+    if (!paymentMethod) {
+        document.getElementById("error-message").innerText = "Please select a payment method.";
+        return;
+    }
 
-        if (!selectedAddressId) {
-            document.getElementById("error-message").innerText = "Please select an address.";
-            return;
-        }
+    if (!selectedAddressId) {
+        document.getElementById("error-message").innerText = "Please select an address.";
+        return;
+    }
 
-        document.getElementById('payment-method-hidden').value = paymentMethod;
+    document.getElementById('payment-method-hidden').value = paymentMethod;
+
+    if (paymentMethod === "razorpay") {
+        const placeOrderButton = document.querySelector('#place-order-form button');
+        placeOrderButton.disabled = true;
+
+        fetch("{% url 'initiate_payment' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: new URLSearchParams(new FormData(document.getElementById('place-order-form')))
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.razorpay_order_id) {
+                    const options = {
+                        key: data.razorpay_merchant_key,
+                        amount: data.razorpay_amount,
+                        currency: data.currency,
+                        name: "URBAN EDGE",
+                        order_id: data.razorpay_order_id,
+                        handler: function (response) {
+                            fetch("{% url 'paymenthandler' %}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/x-www-form-urlencoded",
+                                    "X-CSRFToken": "{{ csrf_token }}"
+                                },
+                                body: new URLSearchParams({
+                                    'razorpay_payment_id': response.razorpay_payment_id,
+                                    'razorpay_order_id': response.razorpay_order_id,
+                                    'razorpay_signature': response.razorpay_signature
+                                })
+                            })
+                                .then(() => {
+                                    window.location.href = data.callback_url;
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    document.getElementById("error-message").innerText = "Error processing payment.";
+                                });
+                        },
+                        prefill: {
+                            name: "{{ request.user.username }}",
+                            email: "{{ request.user.email }}",
+                            contact: "9995160852"
+                        },
+                        theme: {
+                            color: "#0d6efd"
+                        },
+                        method: {
+                            netbanking: true,
+                            card: true,
+                            wallet: true,
+                            upi: true
+                        }
+                    };
+                    const rzp1 = new Razorpay(options);
+                    rzp1.open();
+                } else {
+                    document.getElementById("error-message").innerText = "Error initiating payment.";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById("error-message").innerText = "Error initiating payment.";
+            })
+            .finally(() => {
+                placeOrderButton.disabled = false;
+            });
+    } else {
         document.getElementById('place-order-form').submit();
     }
+}
+
+
 </script>
 {% endblock %}
