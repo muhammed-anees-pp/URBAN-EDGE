@@ -70,6 +70,17 @@
         max-height: 70vh;
         overflow-y: auto;
     }
+
+    .coupon-section {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        background-color: #f8f9fa;
+    }
+
+    .coupon-section .alert {
+        margin-bottom: 0;
+    }
 </style>
 {% endblock %}
 
@@ -151,6 +162,38 @@
                 </div>
             </div>
 
+            <!-- Coupon Section -->
+            <div class="mb-4">
+                <h4 class="mb-3">Apply Coupon</h4>
+                <div class="coupon-section">
+                    <form method="post" action="{% url 'apply_coupon' %}" class="d-flex gap-2 mb-2">
+                        {% csrf_token %}
+                        <input type="text" name="coupon_code" class="form-control" placeholder="Enter coupon code"
+                            value="{{ entered_coupon_code }}" required>
+                        <button type="submit" class="btn btn-primary">Apply</button>
+                    </form>
+
+                    {% if coupon_discount %}
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-success">Coupon Applied: {{ request.session.coupon_code }} (₹{{ coupon_discount }} off)</span>
+                        <a href="{% url 'remove_coupon' %}" class="btn btn-sm btn-outline-danger">Remove</a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Display messages -->
+                    {% if messages %}
+                    <div class="mt-2">
+                        {% for message in messages %}
+                        <div
+                            class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Order Summary -->
             <div class="summary-card">
                 <h4 class="mb-3">Order Summary</h4>
@@ -167,10 +210,18 @@
                     <span>₹{{ total_offer_price }}</span>
                 </div>
 
+                <!-- Coupon applied -->
+                {% if coupon_discount %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Coupon Discount</span>
+                    <span class="text-success">₹{{ coupon_discount }}</span>
+                </div>
+                {% endif %}
+
                 <!-- Discounted Amount -->
                 <div class="d-flex justify-content-between mb-2">
                     <span>You Save</span>
-                    <span class="text-success">-₹{{ discounted_amount }}</span>
+                    <span class="text-success">₹{{ discounted_amount }}</span>
                 </div>
 
                 <!-- Delivery Charge -->

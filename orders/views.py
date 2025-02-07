@@ -6,12 +6,15 @@ from cart.models import Cart, CartItem
 from orders.models import Order, OrderItem
 from user_profile.models import Address
 from productsapp.models import ProductVariant
+from couponsapp.models import Coupon, CouponUsage
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
 
+def is_admin(user):
+    return user.is_authenticated and user.is_superuser
 
 @login_required
 def place_order(request):
@@ -27,11 +30,9 @@ def place_order(request):
             return JsonResponse({"error": "Your cart is empty. Please add items to checkout."}, status=400)
 
         for item in cart_items:
-            
             if item.quantity > item.product_variant.stock:
                 messages.error(request, 'Please remove the out of stock products')
                 return redirect('cart_view')
-            
         
         total_listed_price = Decimal('0.00')
         total_offer_price = Decimal('0.00')
@@ -48,8 +49,26 @@ def place_order(request):
 
         discounted_amount = total_listed_price - total_offer_price
         delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
-        grand_total = total_offer_price + delivery_charge  # Grand total including delivery charge
-        
+        grand_total = total_offer_price + delivery_charge
+
+        # Store cart total in session for coupon validation
+        request.session['cart_total'] = str(total_offer_price)
+
+        # Apply coupon discount if any
+        coupon_discount = Decimal('0.00')
+        coupon_code = request.session.get('coupon_code', None)
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(coupon_code=coupon_code, is_active=True)
+                if coupon.is_valid() and total_offer_price >= coupon.minimum_purchase_amount:
+                    if not CouponUsage.objects.filter(user=user, coupon=coupon).exists():
+                        coupon_discount = (coupon.discount_percentage / Decimal('100.00')) * total_offer_price
+                        grand_total -= coupon_discount
+                        # Add coupon discount to the total discount amount
+                        discounted_amount += coupon_discount
+            except Coupon.DoesNotExist:
+                pass
+
     except Cart.DoesNotExist:
         cart_items = []
         total_listed_price = Decimal('0.00')
@@ -73,6 +92,7 @@ def place_order(request):
                 address=address,
                 payment_method=payment_method,
                 total_price=grand_total,
+                coupon=coupon if coupon_code else None,
             )
 
             for item in cart_items:
@@ -87,18 +107,29 @@ def place_order(request):
                     OrderItem.objects.create(
                         order=order,
                         product=item.product_variant.product,
-                        product_variant=item.product_variant,  # Add this line to include product_variant
+                        product_variant=item.product_variant,
                         quantity=1,
                         price=price,
                     )
 
+            # Record coupon usage
+            if coupon_code:
+                CouponUsage.objects.create(user=user, coupon=coupon)
+                del request.session['coupon_code']
+
             cart_items.delete()
+
+            # Clear the entered coupon code from the session after placing the order
+            if 'entered_coupon_code' in request.session:
+                del request.session['entered_coupon_code']
 
             return redirect(reverse('order_success'))
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
     
+    # Retrieve the entered coupon code from the session
+    entered_coupon_code = request.session.get('entered_coupon_code', '')
     context = {
         'addresses': addresses,
         'default_address': default_address,
@@ -108,8 +139,12 @@ def place_order(request):
         'discounted_amount': discounted_amount,
         'delivery_charge': delivery_charge,
         'grand_total': grand_total,
+        'coupon_discount': coupon_discount,
+        'entered_coupon_code': entered_coupon_code,  # Pass the entered coupon code to the template
     }
     return render(request, 'user/checkout.html', context)
+
+
 
 def order_success(request):
     latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
@@ -133,6 +168,16 @@ def order_success(request):
     discounted_amount = total_listed_price - total_offer_price
     delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
     grand_total = total_offer_price + delivery_charge
+
+    # Calculate coupon discount
+    coupon_discount = Decimal('0.00')
+    if latest_order.coupon:
+        coupon_discount = (latest_order.coupon.discount_percentage / Decimal('100.00')) * total_offer_price
+        grand_total -= coupon_discount
+    
+    # Clear the entered coupon code from the session after the order is successfully placed
+    if 'entered_coupon_code' in request.session:
+        del request.session['entered_coupon_code']
     
     context = {
         'order_number': latest_order.id,
@@ -142,10 +187,12 @@ def order_success(request):
         'discounted_amount': discounted_amount,
         'delivery_charge': delivery_charge,
         'grand_total': grand_total,
+        'coupon_discount': coupon_discount,
         'payment_status': latest_order.payment_status,
     }
     
     return render(request, 'user/order_confirm.html', context)
+
 
 @login_required
 def user_orders(request):
@@ -156,14 +203,11 @@ def user_orders(request):
 
 @login_required
 def user_order_details(request, item_id):
-    # Get the clicked order item
     particular_product = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
-    order = particular_product.order  # Get the order from the item
+    order = particular_product.order
 
-    # Get all items in the same order
     order_items = order.items.all()
 
-    # Calculate subtotal for each item
     total_listed_price = Decimal('0.00')
     total_offer_price = Decimal('0.00')
     for item in order_items:
@@ -179,10 +223,14 @@ def user_order_details(request, item_id):
     delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
     grand_total = total_offer_price + delivery_charge
 
-    # Exclude the particular product to get other products
+    # Calculate coupon discount
+    coupon_discount = Decimal('0.00')
+    if order.coupon:
+        coupon_discount = (order.coupon.discount_percentage / Decimal('100.00')) * total_offer_price
+        grand_total -= coupon_discount
+
     other_products_in_order = order_items.exclude(id=particular_product.id)
 
-    # Pass the current time to the template
     current_time = timezone.now()
     days_since_delivery = (current_time - particular_product.updated_at).days
 
@@ -195,7 +243,8 @@ def user_order_details(request, item_id):
         'discounted_amount': discounted_amount,
         'delivery_charge': delivery_charge,
         'grand_total': grand_total,
-        'days_since_delivery': days_since_delivery,  # Add this line
+        'coupon_discount': coupon_discount,
+        'days_since_delivery': days_since_delivery,
     })
 
 
@@ -264,10 +313,6 @@ def request_return(request, item_id):
     return render(request, 'user/return_reason.html', {'order_item': order_item})
 
 
-def is_admin(user):
-    return user.is_authenticated and user.is_superuser
-
-
 @user_passes_test(is_admin)
 def order_management(request):
     orders = Order.objects.all().order_by('-created_at')
@@ -296,9 +341,14 @@ def admin_order_details(request, order_id):
 
     status_choices = OrderItem.ORDER_ITEM_STATUS_CHOICES
 
+    # Calculate coupon discount
+    coupon_discount = Decimal('0.00')
+    if order.coupon:
+        coupon_discount = (order.coupon.discount_percentage / Decimal('100.00')) * order.total_price
+
     # Pagination
-    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
-    paginator = Paginator(order_items, 10)  # Show 10 products per page
+    page = request.GET.get('page', 1)
+    paginator = Paginator(order_items, 10)
 
     try:
         order_items = paginator.page(page)
@@ -311,6 +361,7 @@ def admin_order_details(request, order_id):
         'order': order,
         'order_items': order_items,
         'status_choices': status_choices,
+        'coupon_discount': coupon_discount,
     })
 
 

@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from productsapp.models import Product, ProductVariant
+from couponsapp.models import Coupon, CouponUsage
 from user_profile.models import Address
 from django.utils import timezone
 
@@ -17,8 +18,8 @@ class Order(models.Model):
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
     payment_method = models.CharField(max_length=20)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    # status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='order_placed')
     payment_status = models.CharField(max_length=20, default='Pending')  # Add this line
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
