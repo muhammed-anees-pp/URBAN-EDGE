@@ -26,6 +26,10 @@
             <i class="mdi mdi-cart-outline" style="color: #ff5722;"></i>
             <span>Orders</span>
         </a>
+        <a href="{% url 'coupon_list' %}" class="nav-item {% if request.path == '/coupon_list/' %}active{% endif %}">
+            <i class="mdi mdi-cart-outline" style="color: #ff5722;"></i>
+            <span>Coupons</span>
+        </a>
         <!-- <a href="{% url 'order_management' %}" class="nav-item {% if request.path == '/coupons/' %}active{% endif %}">
             <i class="lucide-ticket" style="color: #ff5722;"></i>
             <span>Coupon</span>
