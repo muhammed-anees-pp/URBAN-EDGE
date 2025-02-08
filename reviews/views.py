@@ -31,7 +31,7 @@ def add_review(request, product_id):
         messages.success(request, "Your review has been submitted successfully.")
         return redirect('product_details', product_id=product.id)
     
-    return render(request, 'add_review.html', {'product': product})
+    return render(request, 'user/add_review.html', {'product': product})
 
 @login_required
 def edit_review(request, review_id):
@@ -48,4 +48,4 @@ def edit_review(request, review_id):
         messages.success(request, "Your review has been updated successfully.")
         return redirect('product_details', product_id=review.product.id)
     
-    return render(request, 'edit_review.html', {'review': review})
+    return render(request, 'user/edit_review.html', {'review': review})
