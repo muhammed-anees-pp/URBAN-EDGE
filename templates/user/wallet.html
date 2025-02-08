@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}My Wallet{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="breadcrumb">
+        <a href="{% url 'home' %}">Home</a>
+        <span>/</span>
+        <a href="{% url 'wallet_view' %}">My Wallet</a>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-lg-3">
+            <div class="sidebar">
+                <div class="bg-white rounded p-4">
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="{% url 'user_profile' %}">
+                            <i class="bi bi-person"></i> My Profile
+                        </a>
+                        <a class="nav-link" href="{% url 'addresses' %}">
+                            <i class="bi bi-geo-alt"></i> My Addresses
+                        </a>
+                        <a class="nav-link" href="{% url 'user_orders' %}">
+                            <i class="bi bi-box"></i> My Orders
+                        </a>
+                        <a class="nav-link active" href="{% url 'wallet_view' %}">
+                            <i class="bi bi-wallet"></i> My Wallet
+                        </a>
+                        <a class="nav-link logout-link" href="{% url 'userlogout' %}">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-header">
+                    <h4>My Wallet</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Balance: ₹{{ wallet.balance }}</h5>
+                    <h6>Transactions</h6>
+                    {% if transactions %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Order</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.created_at }}</td>
+                                <td>{{ transaction.transaction_type }}</td>
+                                <td>₹{{ transaction.amount }}</td>
+                                <td>{{ transaction.order.id }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>No transactions found.</p>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -12,6 +12,9 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
+from decimal import Decimal
+from wallet.models import Wallet, WalletTransaction
+
 
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
@@ -249,32 +252,46 @@ def user_order_details(request, item_id):
         'days_since_delivery': days_since_delivery,
     })
 
-
 @login_required
 def cancel_order_item(request, item_id):
     order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
 
-    # Check if the order item can be canceled (before "Out for Delivery")
     if order_item.status in ['out_for_delivery', 'delivered', 'canceled']:
         return JsonResponse({
             "error": "This item cannot be canceled as it is already out for delivery, delivered, or canceled."
         }, status=400)
 
     if request.method == "POST":
-        # Handle the cancellation reason form submission
         cancel_reason = request.POST.get("cancel_reason")
         if cancel_reason:
-            # Refill the product stock
             product_variant = order_item.product_variant
             product_variant.stock += order_item.quantity
             product_variant.save()
 
-            # Update the order item status
             order_item.status = 'canceled'
             order_item.cancel_reason = cancel_reason
             order_item.save()
 
-            # Return a JSON response with success message and redirect URL
+            # Credit amount to wallet if payment method is not COD
+            if order_item.order.payment_method != 'COD':
+                wallet, created = Wallet.objects.get_or_create(user=request.user)
+                amount_to_credit = order_item.price * order_item.quantity
+
+                # Deduct coupon discount if applicable
+                if order_item.order.coupon:
+                    coupon_discount = (order_item.order.coupon.discount_percentage / Decimal('100.00')) * order_item.price
+                    amount_to_credit -= coupon_discount
+
+                wallet.balance += amount_to_credit
+                wallet.save()
+
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    order=order_item.order,
+                    amount=amount_to_credit,
+                    transaction_type='credit'
+                )
+
             return JsonResponse({
                 "success": True,
                 "message": "Order item canceled successfully.",
@@ -283,9 +300,7 @@ def cancel_order_item(request, item_id):
         else:
             return JsonResponse({"error": "Please provide a reason for cancellation."}, status=400)
 
-    # Render the cancellation reason form template
     return render(request, 'user/cancel_reason.html', {'order_item': order_item})
-
 
 @login_required
 def request_return(request, item_id):
@@ -366,7 +381,6 @@ def admin_order_details(request, order_id):
         'coupon_discount': coupon_discount,
     })
 
-
 @user_passes_test(is_admin)
 @require_POST
 def update_order_status(request, order_id):
@@ -409,12 +423,31 @@ def update_order_status(request, order_id):
         order.payment_status = 'Paid'
         order.save()
 
-    # Refill stock if the status is updated to 'returned'
+    # Refill stock and credit amount to wallet if the status is updated to 'returned'
     if new_status == 'returned':
         product_variant = order_item.product_variant
         product_variant.stock += order_item.quantity
         product_variant.save()
         order_item.returned_at = timezone.now()  # Set the returned_at timestamp
+
+        # Credit amount to wallet for both online and COD returns
+        wallet, created = Wallet.objects.get_or_create(user=order.user)  # Corrected here
+        amount_to_credit = order_item.price * order_item.quantity
+
+        # Deduct coupon discount if applicable
+        if order_item.order.coupon:
+            coupon_discount = (order_item.order.coupon.discount_percentage / Decimal('100.00')) * order_item.price
+            amount_to_credit -= coupon_discount
+
+        wallet.balance += amount_to_credit
+        wallet.save()
+
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            order=order_item.order,
+            amount=amount_to_credit,
+            transaction_type='credit'
+        )
 
     order_item.save()
 
