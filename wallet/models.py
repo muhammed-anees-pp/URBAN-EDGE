@@ -14,6 +14,7 @@ class WalletTransaction(models.Model):
     order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     transaction_type = models.CharField(max_length=10, choices=[('credit', 'Credit'), ('debit', 'Debit')])
+    description = models.CharField(max_length=255, blank=True, null=True)  # Add this field
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

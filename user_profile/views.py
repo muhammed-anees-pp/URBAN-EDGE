@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Address
+from .models import Address, Referral
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import re
@@ -16,7 +16,11 @@ from django.contrib.auth.models import User
 def user_profile(request):
     """User profile view."""
     addresses = Address.objects.filter(user=request.user, is_deleted=False)
-    context = {'addresses': addresses}
+    referral = Referral.objects.filter(user=request.user).first()  # Get the referral code for the user
+    context = {
+        'addresses': addresses,
+        'referral': referral,  # Add referral to the context
+    }
     return render(request, 'user/profile.html', context)
 
 @login_required

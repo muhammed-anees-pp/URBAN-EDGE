@@ -210,7 +210,13 @@
                                     {% endif %}
                                     {{ transaction.transaction_type|title }}
                                 </span>
-                                <span class="ms-3">Order #{{ transaction.order.id }}</span>
+                                <span class="ms-3">
+                                    {% if transaction.order %}
+                                        Order #{{ transaction.order.id }}
+                                    {% else %}
+                                        {{ transaction.description }}  <!-- Display description for referral transactions -->
+                                    {% endif %}
+                                </span>
                             </div>
                             <small class="text-muted d-block mt-1">{{ transaction.created_at|date:"F d, Y H:i" }}</small>
                         </div>

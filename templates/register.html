@@ -58,6 +58,11 @@
                             <input type="password" name="confirm_password" class="form-control"
                                 placeholder="Confirm Password" required>
                         </div>
+                        <!-- Add the referral code input field here -->
+                        <div class="form-group">
+                            <input type="text" name="referral_code" class="form-control" placeholder="Referral Code (Optional)" 
+                                   value="{{ form_data.referral_code }}">
+                        </div>
                         <button type="submit" class="btn-primary">Create Account</button>
                     </form>
 

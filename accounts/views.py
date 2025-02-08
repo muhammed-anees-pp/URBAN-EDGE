@@ -8,6 +8,9 @@ import random
 import re
 from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
+from user_profile.models import Referral
+from wallet.models import Wallet, WalletTransaction
+
 
 def generate_otp():
     """Generate a random 4-digit OTP."""
@@ -75,8 +78,9 @@ def user_logout(request):
     # messages.success(request, 'Successfully logged out.')
     return redirect('home')
 
+
 def register(request):
-    """User registration with OTP."""
+    """User registration with OTP and referral code."""
     if request.user.is_authenticated:
         return redirect('home')
 
@@ -88,12 +92,14 @@ def register(request):
         email = request.POST.get('email').strip()
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
+        referral_code = request.POST.get('referral_code', '').strip()  # Get referral code
 
         form_data = {
             'username': username,
             'first_name': first_name,
             'last_name': last_name,
             'email': email,
+            'referral_code': referral_code,
         }
 
         errors = {}
@@ -111,6 +117,16 @@ def register(request):
                 messages.error(request, error)
             return render(request, 'register.html', {'form_data': form_data})
 
+        # Validate referral code
+        referred_by = None
+        if referral_code:
+            try:
+                referral = Referral.objects.get(referral_code=referral_code)
+                referred_by = referral.user
+            except Referral.DoesNotExist:
+                messages.error(request, "Invalid referral code.")
+                return render(request, 'register.html', {'form_data': form_data})
+
         otp = generate_otp()
         expires_at = django_timezone.now() + timedelta(minutes=1)
 
@@ -122,19 +138,19 @@ def register(request):
         request.session['password'] = password
         request.session['first_name'] = first_name
         request.session['last_name'] = last_name
+        request.session['referral_code'] = referral_code  # Store referral code in session
 
         if not send_otp_email(email, otp):
             messages.error(request, "Failed to send OTP email. Please try again.")
             return render(request, 'register.html', {'form_data': form_data})
 
-        # messages.success(request, "OTP sent successfully! Please verify your email.")
         return redirect('verify_otp')
 
     return render(request, 'register.html', {'form_data': form_data})
 
 
 def verify_otp(request):
-    """Verify OTP"""
+    """Verify OTP and complete registration."""
     email = request.session.get('email')
 
     if request.method == 'POST':
@@ -159,6 +175,7 @@ def verify_otp(request):
             password = request.session['password']
             first_name = request.session['first_name']
             last_name = request.session['last_name']
+            referral_code = request.session.get('referral_code')  # Get referral code from session
 
             user = User.objects.create_user(
                 username=username,
@@ -168,20 +185,52 @@ def verify_otp(request):
                 last_name=last_name
             )
 
+            # Create a referral entry for the new user
+            Referral.objects.create(user=user)
+
+            # Handle referral code
+            if referral_code:
+                try:
+                    referral = Referral.objects.get(referral_code=referral_code)
+                    referred_by = referral.user
+                    Referral.objects.filter(user=user).update(referred_by=referred_by)
+
+                    # Credit ₹50 to the new user's wallet
+                    wallet, _ = Wallet.objects.get_or_create(user=user)
+                    wallet.balance += 50
+                    wallet.save()
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        amount=50,
+                        transaction_type='credit',
+                        description='Referral bonus for new user'  # Add description
+                    )
+
+                    # Credit ₹100 to the referred user's wallet
+                    referred_wallet, _ = Wallet.objects.get_or_create(user=referred_by)
+                    referred_wallet.balance += 100
+                    referred_wallet.save()
+                    WalletTransaction.objects.create(
+                        wallet=referred_wallet,
+                        amount=100,
+                        transaction_type='credit',
+                        description='Referral bonus for referring user'  # Add description
+                    )
+                except Referral.DoesNotExist:
+                    pass  # Invalid referral code, ignore
+
             # Clear session data
-            for key in ['otp', 'otp_expires_at', 'username', 'email', 'password', 'first_name', 'last_name']:
+            for key in ['otp', 'otp_expires_at', 'username', 'email', 'password', 'first_name', 'last_name', 'referral_code']:
                 request.session.pop(key, None)
 
-            # Specify the backend explicitly
+            # Log in the user
             user.backend = 'django.contrib.auth.backends.ModelBackend'  # Use the appropriate backend
             login(request, user)
-            # messages.success(request, 'Registration successful. Welcome!')
             return redirect('home')
         else:
             return render(request, 'verify_otp.html', {'error': 'Invalid OTP. Please try again.', 'email': email})
 
     return render(request, 'verify_otp.html', {'email': email})
-
 
 def resend_otp(request):
     """Resend OTP functionality"""

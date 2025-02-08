@@ -58,7 +58,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     
     #my apps
-    'accounts',
+    #'accounts',
+    'accounts.apps.AccountsConfig',  # Ensure this is included
     'home',
     'admin_side',
     'category',

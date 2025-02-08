@@ -122,6 +122,39 @@
         color: #dc3545;
     }
 
+    .copy-btn {
+        background: none;
+        border: none;
+        color: #088178;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 5px;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: all 0.3s ease;
+    }
+
+    .copy-btn:hover {
+        color: #066660;
+    }
+
+    .copy-btn i {
+        font-size: 24px;
+    }
+
+    /* Add subtle feedback animation */
+    .copy-success {
+        animation: pulse 0.5s ease-in-out;
+    }
+
+    @keyframes pulse {
+        0% { transform: translateY(-50%) scale(1); }
+        50% { transform: translateY(-50%) scale(1.2); }
+        100% { transform: translateY(-50%) scale(1); }
+    }
+
     /* Password Input Styles */
     .password-input {
         position: relative;
@@ -175,12 +208,6 @@
                         <a class="nav-link" href="{% url 'wallet_view' %}">
                             <i class="bi bi-wallet"></i> My Wallet
                         </a>
-                        <!-- <a class="nav-link" href="#">
-                            <i class="bi bi-credit-card"></i> My Payments
-                        </a>
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-wallet"></i> My Wallet
-                        </a> -->
                         <a class="nav-link logout-link" href="{% url 'userlogout' %}">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </a>
@@ -220,6 +247,23 @@
                         </div>
                     </div>
                 </form>
+            </div>
+
+            <!-- Referral Code Section -->
+            <div class="profile-card">
+                <h4 class="mb-4">Referral Code</h4>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Your Referral Code</label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" value="{{ referral.referral_code }}" id="referralCode" readonly>
+                            <button class="copy-btn" onclick="copyReferralCode()" title="Copy referral code">
+                                <i class="bi bi-files"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Share this code with friends to earn rewards!</small>
+                    </div>
+                </div>
             </div>
 
             <!-- Change Password Card -->
@@ -277,7 +321,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<!-- <script>
     document.querySelectorAll('.toggle-password').forEach(button => {
         button.addEventListener('click', function () {
             const input = this.previousElementSibling;
@@ -288,5 +332,43 @@
             icon.classList.toggle('bi-eye-slash');
         });
     });
+</script> -->
+
+<script>
+    // Existing password toggle script
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function () {
+            const input = this.previousElementSibling;
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            const icon = this.querySelector('i');
+            icon.classList.toggle('bi-eye');
+            icon.classList.toggle('bi-eye-slash');
+        });
+    });
+
+    // Updated referral code copy function
+    function copyReferralCode() {
+        const referralCode = document.getElementById('referralCode');
+        referralCode.select();
+        document.execCommand('copy');
+        
+        const button = document.querySelector('.copy-btn');
+        const icon = button.querySelector('i');
+        
+        // Change icon and add success color
+        icon.classList.remove('bi-files');
+        icon.classList.add('bi-check2-circle');
+        button.style.color = '#22c55e'; // Bright green for success
+        button.classList.add('copy-success');
+        
+        // Reset after delay
+        setTimeout(() => {
+            icon.classList.remove('bi-check2-circle');
+            icon.classList.add('bi-files');
+            button.style.color = '#088178';
+            button.classList.remove('copy-success');
+        }, 1500);
+    }
 </script>
 {% endblock %}
