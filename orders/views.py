@@ -112,7 +112,7 @@ def place_order(request):
                         price=price,
                     )
 
-            # Record coupon usage
+            # Record coupon usage only after the order is successfully created
             if coupon_code:
                 CouponUsage.objects.create(user=user, coupon=coupon)
                 del request.session['coupon_code']
@@ -167,13 +167,15 @@ def order_success(request):
     
     discounted_amount = total_listed_price - total_offer_price
     delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
-    grand_total = total_offer_price + delivery_charge
 
-    # Calculate coupon discount
+    # Use the total_price from the Order model (already includes coupon discount)
+    grand_total = latest_order.total_price
+
+    # Calculate coupon discount only if a coupon was applied to this order
     coupon_discount = Decimal('0.00')
     if latest_order.coupon:
+        # Calculate the discount percentage applied
         coupon_discount = (latest_order.coupon.discount_percentage / Decimal('100.00')) * total_offer_price
-        grand_total -= coupon_discount
     
     # Clear the entered coupon code from the session after the order is successfully placed
     if 'entered_coupon_code' in request.session:
@@ -187,7 +189,7 @@ def order_success(request):
         'discounted_amount': discounted_amount,
         'delivery_charge': delivery_charge,
         'grand_total': grand_total,
-        'coupon_discount': coupon_discount,
+        'coupon_discount': coupon_discount if latest_order.coupon else Decimal('0.00'),  # Only show discount if coupon was applied
         'payment_status': latest_order.payment_status,
     }
     

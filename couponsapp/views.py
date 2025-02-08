@@ -31,7 +31,6 @@ def apply_coupon(request):
     return redirect('place_order')
 
 
-
 @login_required
 def remove_coupon(request):
     if 'coupon_code' in request.session:
