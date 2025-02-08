@@ -144,23 +144,7 @@
                 </div>
             </div>
 
-            <!-- Payment Methods -->
-            <div class="mb-4">
-                <h4 class="mb-3">Payment Method</h4>
-                <div class="payment-option">
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="payment_method" value="COD" id="cod" checked>
-                        <label class="form-check-label" for="cod">Cash on Delivery</label>
-                    </div>
-                </div>
-                <div class="payment-option">
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="payment_method" value="razorpay"
-                            id="razorpay">
-                        <label class="form-check-label" for="razorpay">Online Payment</label>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Coupon Section -->
             <div class="mb-4">
@@ -175,8 +159,9 @@
 
                     {% if coupon_discount %}
                     <div class="d-flex align-items-center gap-2">
-                        <span class="text-success">Coupon Applied: {{ request.session.coupon_code }} (₹{{ coupon_discount }} off)</span>
                         <a href="{% url 'remove_coupon' %}" class="btn btn-sm btn-outline-danger">Remove</a>
+                        <span class="text-success">Coupon Applied: {{ request.session.coupon_code }} ₹{{ coupon_discount }} off</span>
+
                     </div>
                     {% endif %}
 
@@ -191,6 +176,33 @@
                         {% endfor %}
                     </div>
                     {% endif %}
+                </div>
+            </div>
+            <!-- Payment Methods Section -->
+            <div class="mb-4">
+                <h4 class="mb-3">Payment Method</h4>
+                <div class="payment-option">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" value="COD" id="cod">
+                        <label class="form-check-label" for="cod">Cash on Delivery</label>
+                    </div>
+                </div>
+                <div class="payment-option">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" value="razorpay"
+                            id="razorpay">
+                        <label class="form-check-label" for="razorpay">Online Payment</label>
+                    </div>
+                </div>
+                <div class="payment-option">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" value="wallet"
+                            id="wallet">
+                        <label class="form-check-label" for="wallet">
+                            Wallet (Balance: ₹{{ request.user.wallet.balance }})
+                        </label>
+                    </div>
+                    <div id="wallet-error" class="text-danger mt-2"></div>
                 </div>
             </div>
 
@@ -399,232 +411,120 @@
         }
     });
 
-    // function placeOrder() {
-    //     const paymentMethodElements = document.getElementsByName("payment_method");
-    //     let paymentMethod;
+    function placeOrder() {
+        const paymentMethodElements = document.getElementsByName("payment_method");
+        let paymentMethod;
 
-    //     for (const element of paymentMethodElements) {
-    //         if (element.checked) {
-    //             paymentMethod = element.value;
-    //             break;
-    //         }
-    //     }
+        for (const element of paymentMethodElements) {
+            if (element.checked) {
+                paymentMethod = element.value;
+                break;
+            }
+        }
 
-    //     if (!paymentMethod) {
-    //         document.getElementById("error-message").innerText = "Please select a payment method.";
-    //         return;
-    //     }
+        if (!paymentMethod) {
+            document.getElementById("error-message").innerText = "Please select a payment method.";
+            return;
+        }
 
-    //     if (!selectedAddressId) {
-    //         document.getElementById("error-message").innerText = "Please select an address.";
-    //         return;
-    //     }
+        if (!selectedAddressId) {
+            document.getElementById("error-message").innerText = "Please select an address.";
+            return;
+        }
 
-    //     document.getElementById('payment-method-hidden').value = paymentMethod;
-    //     document.getElementById('place-order-form').submit();
-    // }
+        const grandTotal = parseFloat("{{ grand_total }}");
 
+        // Validate COD for orders above ₹1000
+        if (paymentMethod === "COD" && grandTotal > 1000) {
+            document.getElementById("error-message").innerText = "Orders above ₹1000 cannot be placed with Cash on Delivery.";
+            return;
+        }
 
-//     function placeOrder() {
-//     const paymentMethodElements = document.getElementsByName("payment_method");
-//     let paymentMethod;
+        // Validate wallet balance
+        if (paymentMethod === "wallet") {
+            const walletBalance = parseFloat("{{ request.user.wallet.balance }}");
+            if (walletBalance < grandTotal) {
+                document.getElementById("wallet-error").innerText = "Insufficient funds in wallet.";
+                return;
+            }
+        }
 
-//     for (const element of paymentMethodElements) {
-//         if (element.checked) {
-//             paymentMethod = element.value;
-//             break;
-//         }
-//     }
+        document.getElementById('payment-method-hidden').value = paymentMethod;
 
-//     if (!paymentMethod) {
-//         document.getElementById("error-message").innerText = "Please select a payment method.";
-//         return;
-//     }
+        if (paymentMethod === "razorpay") {
+            const placeOrderButton = document.querySelector('#place-order-form button');
+            placeOrderButton.disabled = true;
 
-//     if (!selectedAddressId) {
-//         document.getElementById("error-message").innerText = "Please select an address.";
-//         return;
-//     }
-
-//     document.getElementById('payment-method-hidden').value = paymentMethod;
-
-//     if (paymentMethod === "razorpay") {
-//         const placeOrderButton = document.querySelector('#place-order-form button');
-//         placeOrderButton.disabled = true;
-
-//         fetch("{% url 'initiate_payment' %}", {
-//             method: "POST",
-//             headers: {
-//                 "Content-Type": "application/x-www-form-urlencoded",
-//                 "X-CSRFToken": "{{ csrf_token }}"
-//             },
-//             body: new URLSearchParams(new FormData(document.getElementById('place-order-form')))
-//         })
-//             .then(response => response.json())
-//             .then(data => {
-//                 if (data.razorpay_order_id) {
-//                     const options = {
-//                         key: data.razorpay_merchant_key,
-//                         amount: data.razorpay_amount,
-//                         currency: data.currency,
-//                         name: "URBAN EDGE",
-//                         order_id: data.razorpay_order_id,
-//                         handler: function (response) {
-//                             // Ensure all required parameters are sent
-//                             const formData = new URLSearchParams({
-//                                 'razorpay_payment_id': response.razorpay_payment_id,
-//                                 'razorpay_order_id': response.razorpay_order_id,
-//                                 'razorpay_signature': response.razorpay_signature,
-//                                 'csrfmiddlewaretoken': "{{ csrf_token }}"
-//                             });
-
-//                             fetch("{% url 'paymenthandler' %}", {
-//                                 method: "POST",
-//                                 headers: {
-//                                     "Content-Type": "application/x-www-form-urlencoded",
-//                                     "X-CSRFToken": "{{ csrf_token }}"
-//                                 },
-//                                 body: formData
-//                             })
-//                                 .then(() => {
-//                                     window.location.href = data.callback_url;
-//                                 })
-//                                 .catch(error => {
-//                                     console.error('Error:', error);
-//                                     document.getElementById("error-message").innerText = "Error processing payment.";
-//                                 });
-//                         },
-//                         prefill: {
-//                             name: "{{ request.user.username }}",
-//                             email: "{{ request.user.email }}",
-//                             contact: "9995160852"
-//                         },
-//                         theme: {
-//                             color: "#0d6efd"
-//                         },
-//                         method: {
-//                             netbanking: true,
-//                             card: true,
-//                             wallet: true,
-//                             upi: true
-//                         }
-//                     };
-//                     const rzp1 = new Razorpay(options);
-//                     rzp1.open();
-//                 } else {
-//                     document.getElementById("error-message").innerText = "Error initiating payment.";
-//                 }
-//             })
-//             .catch(error => {
-//                 console.error('Error:', error);
-//                 document.getElementById("error-message").innerText = "Error initiating payment.";
-//             })
-//             .finally(() => {
-//                 placeOrderButton.disabled = false;
-//             });
-//     } else {
-//         document.getElementById('place-order-form').submit();
-//     }
-// }
-
-
-function placeOrder() {
-    const paymentMethodElements = document.getElementsByName("payment_method");
-    let paymentMethod;
-
-    for (const element of paymentMethodElements) {
-        if (element.checked) {
-            paymentMethod = element.value;
-            break;
+            fetch("{% url 'initiate_payment' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: new URLSearchParams(new FormData(document.getElementById('place-order-form')))
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.razorpay_order_id) {
+                        const options = {
+                            key: data.razorpay_merchant_key,
+                            amount: data.razorpay_amount,
+                            currency: data.currency,
+                            name: "URBAN EDGE",
+                            order_id: data.razorpay_order_id,
+                            handler: function (response) {
+                                fetch("{% url 'paymenthandler' %}", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/x-www-form-urlencoded",
+                                        "X-CSRFToken": "{{ csrf_token }}"
+                                    },
+                                    body: new URLSearchParams({
+                                        'razorpay_payment_id': response.razorpay_payment_id,
+                                        'razorpay_order_id': response.razorpay_order_id,
+                                        'razorpay_signature': response.razorpay_signature
+                                    })
+                                })
+                                    .then(() => {
+                                        window.location.href = data.callback_url;
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        document.getElementById("error-message").innerText = "Error processing payment.";
+                                    });
+                            },
+                            prefill: {
+                                name: "{{ request.user.username }}",
+                                email: "{{ request.user.email }}",
+                                contact: "9995160852"
+                            },
+                            theme: {
+                                color: "#0d6efd"
+                            },
+                            method: {
+                                netbanking: true,
+                                card: true,
+                                wallet: true,
+                                upi: true
+                            }
+                        };
+                        const rzp1 = new Razorpay(options);
+                        rzp1.open();
+                    } else {
+                        document.getElementById("error-message").innerText = "Error initiating payment.";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById("error-message").innerText = "Error initiating payment.";
+                })
+                .finally(() => {
+                    placeOrderButton.disabled = false;
+                });
+        } else {
+            document.getElementById('place-order-form').submit();
         }
     }
-
-    if (!paymentMethod) {
-        document.getElementById("error-message").innerText = "Please select a payment method.";
-        return;
-    }
-
-    if (!selectedAddressId) {
-        document.getElementById("error-message").innerText = "Please select an address.";
-        return;
-    }
-
-    document.getElementById('payment-method-hidden').value = paymentMethod;
-
-    if (paymentMethod === "razorpay") {
-        const placeOrderButton = document.querySelector('#place-order-form button');
-        placeOrderButton.disabled = true;
-
-        fetch("{% url 'initiate_payment' %}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "X-CSRFToken": "{{ csrf_token }}"
-            },
-            body: new URLSearchParams(new FormData(document.getElementById('place-order-form')))
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.razorpay_order_id) {
-                    const options = {
-                        key: data.razorpay_merchant_key,
-                        amount: data.razorpay_amount,
-                        currency: data.currency,
-                        name: "URBAN EDGE",
-                        order_id: data.razorpay_order_id,
-                        handler: function (response) {
-                            fetch("{% url 'paymenthandler' %}", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/x-www-form-urlencoded",
-                                    "X-CSRFToken": "{{ csrf_token }}"
-                                },
-                                body: new URLSearchParams({
-                                    'razorpay_payment_id': response.razorpay_payment_id,
-                                    'razorpay_order_id': response.razorpay_order_id,
-                                    'razorpay_signature': response.razorpay_signature
-                                })
-                            })
-                                .then(() => {
-                                    window.location.href = data.callback_url;
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    document.getElementById("error-message").innerText = "Error processing payment.";
-                                });
-                        },
-                        prefill: {
-                            name: "{{ request.user.username }}",
-                            email: "{{ request.user.email }}",
-                            contact: "9995160852"
-                        },
-                        theme: {
-                            color: "#0d6efd"
-                        },
-                        method: {
-                            netbanking: true,
-                            card: true,
-                            wallet: true,
-                            upi: true
-                        }
-                    };
-                    const rzp1 = new Razorpay(options);
-                    rzp1.open();
-                } else {
-                    document.getElementById("error-message").innerText = "Error initiating payment.";
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById("error-message").innerText = "Error initiating payment.";
-            })
-            .finally(() => {
-                placeOrderButton.disabled = false;
-            });
-    } else {
-        document.getElementById('place-order-form').submit();
-    }
-}
 
 
 </script>

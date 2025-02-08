@@ -90,6 +90,12 @@ def place_order(request):
 
             address = Address.objects.get(id=address_id, user=request.user)
             
+            # Check if payment method is wallet and if the user has sufficient balance
+            if payment_method == "wallet":
+                wallet = Wallet.objects.get(user=user)
+                if wallet.balance < grand_total:
+                    return JsonResponse({"error": "Insufficient funds in wallet."}, status=400)
+
             order = Order.objects.create(
                 user=user,
                 address=address,
@@ -114,6 +120,17 @@ def place_order(request):
                         quantity=1,
                         price=price,
                     )
+
+            # Deduct amount from wallet if payment method is wallet
+            if payment_method == "wallet":
+                wallet.balance -= grand_total
+                wallet.save()
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    order=order,
+                    amount=grand_total,
+                    transaction_type='debit'
+                )
 
             # Record coupon usage only after the order is successfully created
             if coupon_code:
@@ -252,6 +269,7 @@ def user_order_details(request, item_id):
         'days_since_delivery': days_since_delivery,
     })
 
+
 @login_required
 def cancel_order_item(request, item_id):
     order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
@@ -301,6 +319,7 @@ def cancel_order_item(request, item_id):
             return JsonResponse({"error": "Please provide a reason for cancellation."}, status=400)
 
     return render(request, 'user/cancel_reason.html', {'order_item': order_item})
+
 
 @login_required
 def request_return(request, item_id):
@@ -381,6 +400,7 @@ def admin_order_details(request, order_id):
         'coupon_discount': coupon_discount,
     })
 
+
 @user_passes_test(is_admin)
 @require_POST
 def update_order_status(request, order_id):
@@ -430,8 +450,8 @@ def update_order_status(request, order_id):
         product_variant.save()
         order_item.returned_at = timezone.now()  # Set the returned_at timestamp
 
-        # Credit amount to wallet for both online and COD returns
-        wallet, created = Wallet.objects.get_or_create(user=order.user)  # Corrected here
+        # Credit amount to wallet for online, COD, and wallet payment methods
+        wallet, created = Wallet.objects.get_or_create(user=order.user)
         amount_to_credit = order_item.price * order_item.quantity
 
         # Deduct coupon discount if applicable

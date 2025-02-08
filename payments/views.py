@@ -88,12 +88,18 @@ def initiate_payment(request):
                     "currency": currency,
                     "callback_url": request.build_absolute_uri(reverse('order_success')),
                 })
+            elif payment_method == "wallet":
+                # For wallet, create the order immediately
+                return create_order(request)
             else:
                 return JsonResponse({"error": "Invalid payment method."}, status=400)
 
         except Exception as e:
             logger.error(f"Error in initiate_payment: {str(e)}")
             return JsonResponse({"error": str(e)}, status=500)
+
+
+
 
 def create_order(request):
     try:
