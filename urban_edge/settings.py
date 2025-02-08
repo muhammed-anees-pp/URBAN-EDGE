@@ -9,10 +9,19 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-from pathlib import Path
+
 import os
-import environ
-from decouple import config
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+
+# from pathlib import Path
+# import os
+# import environ
+# from decouple import config
 
 
 
@@ -24,7 +33,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-k9vpbr*9i@+7(2936diy7t@_4%k$6^iaj&kbaf@h2c=j_nwf0r'
+SECRET_KEY = os.getenv('SECRET_KEY', 'default-secret-key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -111,11 +120,11 @@ WSGI_APPLICATION = 'urban_edge.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME'),
-        'USER': config('DATABASE_USER'),
-        'PASSWORD': config('DATABASE_PASSWORD'),
-        'HOST': config('DATABASE_HOST'),
-        'PORT': config('DATABASE_PORT', default=5432, cast=int),  # Default is 5432, cast to int
+        'NAME': os.getenv('DATABASE_NAME'),
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),  # Default is 5432, cast to int
     }
 }
 
@@ -165,8 +174,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Use your email provider's SMTP
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'urbanedge458@gmail.com' 
-EMAIL_HOST_PASSWORD = 'ntdy rwcu hhsf wmfv' 
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER') 
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD') 
 
 
 STATIC_URL = 'static/'
@@ -201,13 +210,17 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': config('CLIENT_ID'),
-            'secret': config('SECRET'),
+            'client_id': os.getenv('CLIENT_ID'),
+            'secret': os.getenv('SECRET'),
             'key': ''
         },
         'SCOPE': ['profile', 'email',],
         'AUTH_PARAMS': {'access_type': 'online',}
     }
 }
+
+
+RAZOR_KEY_ID = os.getenv('RAZOR_KEY_ID')
+RAZOR_KEY_SECRET = os.getenv('RAZOR_KEY_SECRET')
 
 
