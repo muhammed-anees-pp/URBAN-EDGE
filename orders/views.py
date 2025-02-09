@@ -418,11 +418,11 @@ def update_order_status(request, order_id):
         'order_placed': ['shipped', 'canceled'],
         'shipped': ['out_for_delivery', 'canceled'],
         'out_for_delivery': ['delivered', 'canceled'],
-        'delivered': ['return_requested'],  # Only users can request returns
-        'canceled': [],  # No further transitions after canceled
-        'return_requested': ['returned', 'return_denied'],  # Admin can approve or deny return
-        'returned': [],  # No further transitions after returned
-        'return_denied': [],  # No further transitions after return denied
+        'delivered': ['return_requested'],
+        'canceled': [],
+        'return_requested': ['returned', 'return_denied'],
+        'returned': [],
+        'return_denied': [],
     }
 
     current_status = order_item.status
