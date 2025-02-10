@@ -328,7 +328,7 @@
     /* Default button style */
     .status-button {
         background-color: white;
-        color:  white;
+        color: white;
         border: 1px solid gray;
     }
 
@@ -363,6 +363,21 @@
 
     .status-canceled {
         background-color: #dc3545;
+    }
+
+    .download-invoice-btn {
+        background-color: #088178;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 8px;
+        border: none;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .download-invoice-btn:hover {
+        background-color: #066c65;
+        color: white;
     }
 
 
@@ -428,12 +443,20 @@
         <div class="col-lg-9">
             <!-- 1st Container: Order Summary, Particular Product, Delivery Address, Back Button -->
             <div class="details-card mb-4">
+        
                 <!-- Order Summary -->
                 <div class="order-summary">
                     <div class="row align-items-center">
                         <div class="col-md-6">
                             <h5 class="mb-1">Order ID: <span class="order-id">#{{ order.id }}</span></h5>
                             <p class="mb-0 text-muted">Ordered on {{ order.created_at|date:"d M Y" }}</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            {% if particular_product.status in 'delivered,return_requested,returned,return_denied' %}
+                            <a href="{% url 'download_invoice' order.id %}" class="download-invoice-btn">
+                                Download Invoice
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -562,7 +585,7 @@
                         href="{% url 'request_return' particular_product.id %}" class="return-btn">
                         <i class="bi bi-arrow-return-left"></i> Request Return
                         </a>
-                    {% endif %}
+                        {% endif %}
                 </div>
             </div>
 

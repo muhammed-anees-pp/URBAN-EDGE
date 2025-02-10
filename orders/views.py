@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from decimal import Decimal
@@ -14,6 +14,9 @@ from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
 from decimal import Decimal
 from wallet.models import Wallet, WalletTransaction
+from django.template.loader import render_to_string
+from weasyprint import HTML
+
 
 
 def is_admin(user):
@@ -349,6 +352,72 @@ def request_return(request, item_id):
     return render(request, 'user/return_reason.html', {'order_item': order_item})
 
 
+def download_invoice(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order_items = order.items.all()
+    
+    # Check if invoice is allowed for this order
+    allowed_statuses = ['delivered', 'return_requested', 'return_denied', 'returned']
+    if not order_items.filter(status__in=allowed_statuses).exists():
+        return redirect('user_order_details')
+
+    # Calculate values for the invoice
+    total_listed_price = sum(item.product.price * item.quantity for item in order_items)
+    total_offer_price = sum(item.price * item.quantity for item in order_items)
+    delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
+    coupon_discount = Decimal('0.00')
+    
+    if order.coupon:
+        coupon_discount = total_offer_price * (order.coupon.discount_percentage / Decimal('100.00'))
+    
+    grand_total = (total_offer_price - coupon_discount) + delivery_charge
+
+    # Prepare order items with calculated values
+    processed_items = []
+    for item in order_items:
+        item_listed_price = item.product.price
+        item_offer_price = item.price
+        quantity = item.quantity
+        item_offer_total = item_offer_price * quantity
+        
+        # Calculate coupon discount for this item proportionally
+        item_coupon_discount = Decimal('0.00')
+        if total_offer_price > 0 and coupon_discount > 0:
+            item_coupon_discount = (item_offer_total / total_offer_price) * coupon_discount
+        
+        discounted_price = item_offer_price - (item_coupon_discount / quantity)
+        
+        processed_items.append({
+            'name': item.product.name,
+            'quantity': quantity,
+            'listed_price': item_listed_price,
+            'offer_price': item_offer_price,
+            'coupon_discount': item_coupon_discount.quantize(Decimal('0.00')),
+            'discount':discounted_price,
+            'subtotal': (item_offer_price * quantity) - item_coupon_discount,
+        })
+
+    context = {
+        'order': order,
+        'order_items': processed_items,
+        'delivery_charge': delivery_charge,
+        'coupon_discount': coupon_discount.quantize(Decimal('0.00')),
+        'grand_total': grand_total.quantize(Decimal('0.00')),
+        'total_offer_price': total_offer_price.quantize(Decimal('0.00')),
+        'total_listed_price': total_listed_price.quantize(Decimal('0.00')),
+    }
+
+    # Generate PDF
+    html_string = render_to_string('user/invoice_template.html', context)
+    html = HTML(string=html_string)
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="invoice_{order.id}.pdf"'
+    return response
+
+
+
 @user_passes_test(is_admin)
 def order_management(request):
     orders = Order.objects.all().order_by('-created_at')
@@ -480,3 +549,4 @@ def update_order_status(request, order_id):
         "message": "Order item status updated successfully.",
         "redirect_url": reverse('admin_order_details', args=[order.id])
     })
+

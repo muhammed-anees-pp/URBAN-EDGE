@@ -177,12 +177,6 @@
                         <a class="nav-link" href="{% url 'wallet_view' %}">
                             <i class="bi bi-wallet"></i> My Wallet
                         </a>
-                        <!-- <a class="nav-link" href="#">
-                            <i class="bi bi-credit-card"></i> My Payments
-                        </a>
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-wallet"></i> My Wallet
-                        </a> -->
                         <a class="nav-link logout-link" href="{% url 'userlogout' %}">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </a>
@@ -230,6 +224,7 @@
                             <a href="{% url 'user_order_details' item.id %}"
                                 class="btn btn-primary btn-view-details me-2">View Details</a>
                         </div>
+                        
                     </div>
                 </div>
                 {% endfor %}
