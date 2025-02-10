@@ -5,32 +5,21 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.contrib import messages
 from django.views.decorators.cache import never_cache
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import user_passes_test, login_required
-from django.views.decorators.cache import never_cache
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F, DecimalField, Case, When, Value
 from django.http import HttpResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 import csv
 from datetime import datetime, timedelta
-from orders.models import Order, OrderItem
 from productsapp.models import Product, ProductVariant
 from couponsapp.models import Coupon, CouponUsage
-from django.db.models import Sum, Count, F, DecimalField, Case, When, Value
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.template.loader import get_template
-from xhtml2pdf import pisa
 from openpyxl import Workbook
-from datetime import datetime, timedelta
 from orders.models import Order, OrderItem
 from decimal import Decimal
+from weasyprint import HTML 
+from openpyxl.styles import Font, Border, Side, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
 
 
 
@@ -136,7 +125,7 @@ def generate_sales_report(request):
             elif date_range == '1_month':
                 start_date = end_date - timedelta(days=30)
 
-        # Fetch orders within the date range that have at least one delivered item or at least one return_request or at least one return denied
+        # Fetch orders within the date range
         orders = Order.objects.filter(
             created_at__range=[start_date, end_date],
             items__status__in=['delivered', 'return_requested', 'return_denied']
@@ -148,69 +137,63 @@ def generate_sales_report(request):
         total_sales = Decimal('0.00')
 
         for order in orders:
-            # Get OrderItems with specific statuses (like the admin dashboard)
             order_items = OrderItem.objects.filter(
                 order=order,
                 status__in=['delivered', 'return_requested', 'return_denied']
             )
 
-            # Calculate original total from OrderItems (before discount)
             original_total = sum(
                 item.product.offer * item.quantity if item.product.offer else item.product.price * item.quantity
                 for item in order_items
             )
 
-            # Calculate discount based on original_total (not order.total_price)
             discounted_amount = Decimal('0.00')
             if order.coupon:
                 discounted_amount = original_total * (order.coupon.discount_percentage / Decimal('100.00'))
 
-            # Adjust the total price based on returned items
-            # Exclude returned items from the total price
             adjusted_total_price = sum(
                 item.product.offer * item.quantity if item.product.offer else item.product.price * item.quantity
                 for item in order_items.exclude(status='returned')
             )
 
-            # Apply coupon discount to the adjusted total price
             if order.coupon:
                 adjusted_total_price -= discounted_amount
 
-            # Accumulate totals
             total_discount_amount += discounted_amount
-            total_sales += adjusted_total_price  # Use adjusted total price
+            total_sales += adjusted_total_price
 
             order_data.append({
                 'id': order.id,
                 'user': order.user,
-                'total_before_coupon': original_total,  # Total before applying coupon
-                'total_price': adjusted_total_price,  # Final total after applying coupon
+                'total_before_coupon': original_total,
+                'total_price': adjusted_total_price,
                 'discounted_amount': discounted_amount,
                 'created_at': order.created_at
             })
 
-        # Calculate total number of orders
         total_orders = len(order_data)
+
+        # Add the current timestamp for the report generation time
+        report_generated_at = datetime.now()
 
         context = {
             'order_data': order_data,
             'total_sales': total_sales,
             'total_discount_amount': total_discount_amount,
-            'total_orders': total_orders,  # Add total number of orders
+            'total_orders': total_orders,
             'start_date': start_date.strftime('%Y-%m-%d'),
             'end_date': end_date.strftime('%Y-%m-%d'),
+            'report_generated_at': report_generated_at.strftime('%Y-%m-%d %H:%M:%S'),  # Add timestamp
         }
 
         report_format = request.POST.get('report_format')
         if report_format == 'pdf':
-            # Generate PDF
+            # Generate PDF using WeasyPrint
             template = get_template('admin/sales_report_pdf.html')
             html = template.render(context)
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="sales_report_{start_date}_{end_date}.pdf"'
-            pisa_status = pisa.CreatePDF(html, dest=response)
-            if pisa_status.err:
-                return HttpResponse('Error generating PDF: <pre>' + html + '</pre>')
+            HTML(string=html).write_pdf(response)
             return response
 
         elif report_format == 'excel':
@@ -221,32 +204,100 @@ def generate_sales_report(request):
             worksheet = workbook.active
             worksheet.title = 'Sales Report'
 
-            # Add summary section
-            worksheet.append(['Date Range', f'{start_date.strftime("%Y-%m-%d")} to {end_date.strftime("%Y-%m-%d")}'])
-            worksheet.append(['Total Orders', total_orders])
-            worksheet.append(['Total Sales', total_sales])
-            worksheet.append(['Total Discount', total_discount_amount])
-            worksheet.append([])  # Add an empty row for spacing
+            # Define styles
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+            border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+            alignment = Alignment(horizontal='center')
+            summary_left_fill = PatternFill(start_color="D3D3D3", end_color="D3D3D3", fill_type="solid")  # Light gray for left column
 
-            headers = ['Order ID', 'User', 'Total Before Coupon', 'Total Price', 'Discounted Amount', 'Date']
+            # Main heading styling
+            worksheet.merge_cells('A1:F1')
+            heading_cell = worksheet.cell(row=1, column=1, value="URBAN EDGE Sales Report")
+            heading_cell.font = Font(bold=True, size=16, name='Arial', underline='single')  # Increased size, font family, and underline
+            heading_cell.alignment = Alignment(horizontal='center')
+
+            # Period section styling
+            worksheet.merge_cells('A2:F2')
+            period_cell = worksheet.cell(row=2, column=1, value=f"Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
+            period_cell.font = Font(bold=True, size=12, name='Arial')  # Bold and larger font
+            period_cell.alignment = Alignment(horizontal='center')
+
+            # Side heading for Summary section
+            worksheet.cell(row=3, column=1, value="Summary").font = Font(bold=True, size=14, name='Arial')  # Bold and larger font
+            worksheet.merge_cells('A3:B3')  # Merge cells for the side heading
+
+            # Add summary section
+            summary_data = [
+                # ['Date Range', f'{start_date.strftime("%Y-%m-%d")} to {end_date.strftime("%Y-%m-%d")}'],
+                ['Total Orders', total_orders],
+                ['Total Sales', total_sales],
+                ['Total Discount', total_discount_amount],
+            ]
+
+            # Write summary data starting from row 4
+            for row_index, row in enumerate(summary_data, start=4):
+                worksheet.append(row)
+
+            # Apply styling to summary section
+            for row in worksheet.iter_rows(min_row=4, max_row=7, max_col=2):
+                for cell in row:
+                    cell.border = border
+                    cell.alignment = alignment
+                    if cell.column == 1:  # Left column (labels)
+                        cell.fill = summary_left_fill
+                        cell.font = Font(bold=True)
+
+            # Adjust column widths for the summary section
+            worksheet.column_dimensions['A'].width = 25  # Left column width
+            worksheet.column_dimensions['B'].width = 25  # Right column width
+
+            # Add an empty row for spacing
+            worksheet.append([])
+
+            # Side heading for Order Details section
+            worksheet.cell(row=9, column=1, value="Order Details").font = Font(bold=True, size=14, name='Arial')  # Bold and larger font
+            worksheet.merge_cells('A9:F9')  # Merge cells for the side heading
+
+            # Add headers for the order data
+            headers = ['Order ID', 'User', 'Price', 'Discounted Amount', 'Total Price', 'Date']
             worksheet.append(headers)
 
+            # Apply header styles
+            for col in range(1, len(headers) + 1):
+                cell = worksheet.cell(row=10, column=col)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.border = border
+                cell.alignment = alignment
+
+            # Add order data
             for order in order_data:
                 row = [
                     order['id'],
                     order['user'].username,
                     order['total_before_coupon'],
-                    order['total_price'],
                     order['discounted_amount'],
+                    order['total_price'],
                     order['created_at'].strftime('%Y-%m-%d %H:%M:%S'),
                 ]
                 worksheet.append(row)
+
+            # Apply border and alignment to data rows
+            for row in worksheet.iter_rows(min_row=11, max_row=worksheet.max_row, max_col=worksheet.max_column):
+                for cell in row:
+                    cell.border = border
+                    cell.alignment = alignment
+
+            # Set column widths for the order data section
+            column_widths = [25, 20, 15, 20, 15, 22]  # Adjust as needed
+            for i, column_width in enumerate(column_widths, 1):
+                worksheet.column_dimensions[get_column_letter(i)].width = column_width
 
             workbook.save(response)
             return response
 
     return render(request, 'admin/generate_sales_report.html')
-
 
 @user_passes_test(is_admin)
 def user_manage(request):
