@@ -13,7 +13,7 @@
     }
 
     .hero {
-        background: url('/static/assets/img/heroimg.jpg') no-repeat center center;
+        background: url('/static/assets/img/handsome.jpg') no-repeat center center;
         background-size: cover;
         height: 100vh;
         display: flex;
@@ -423,17 +423,17 @@
 <section class="hero">
     <div class="hero-content">
         <p>NEW ARRIVAL</p>
-        <h1>LATEST<br>SHOE COLLECTION</h1>
+        <h1>LATEST<br>COLLECTIONS</h1>
         <p>A small cool painted Dublin lines by their place and supplies it with the necessary regelialia. It is a
             paradisematic country.</p>
-        <a href="#" class="cta-button">Discover Now</a>
+        <a href="{% url 'all_products' %}" class="cta-button">Discover Now</a>
     </div>
 </section>
 
 <section class="features">
     <div class="feature-item">
         <img src="{% static 'assets/img/shipping.png' %}" alt="Free Shipping" />
-        <h3>Free Shipping</h3>
+        <h3>Shipping</h3>
         <p>Shop with us and enjoy free shipping across the country. Get your favourites delivered right to your
             doorstep.</p>
     </div>
