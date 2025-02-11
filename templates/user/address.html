@@ -78,6 +78,15 @@
             padding: 12px 30px;
             font-weight: 500;
             transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-link {
+            text-decoration: none !important;
+        }
+
+        .btn-link:hover {
+            text-decoration: none !important;
         }
 
         .add-address-btn:hover {
@@ -132,12 +141,6 @@
                             <a class="nav-link" href="{% url 'wallet_view' %}">
                                 <i class="bi bi-wallet"></i> My Wallet
                             </a>
-                            <!-- <a class="nav-link" href="#">
-                                <i class="bi bi-credit-card"></i> My Payments
-                            </a>
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-wallet"></i> My Wallet
-                            </a> -->
                             <a class="nav-link logout-link" href="{% url 'userlogout' %}">
                                 <i class="bi bi-box-arrow-right"></i> Logout
                             </a>
@@ -151,9 +154,10 @@
                 <div class="address-card">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="mb-0">My Addresses</h4>
-                        <button class="add-address-btn" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                        <!-- Add Address Button -->
+                        <a href="{% url 'add_address' %}" class="add-address-btn">
                             <i class="bi bi-plus"></i> Add New Address
-                        </button>
+                        </a>
                     </div>
 
                     {% if addresses %}
@@ -171,11 +175,10 @@
                             </form>
                             {% endif %}
 
-                            <!-- Edit Button -->
-                            <button class="btn btn-link p-0" data-bs-toggle="modal"
-                                data-bs-target="#editAddressModal-{{ address.id }}">
+                            <!-- Edit Address Button -->
+                            <a href="{% url 'edit_address' address.id %}" class="btn btn-link p-0">
                                 <i class="bi bi-pencil"></i>
-                            </button>
+                            </a>
 
                             <!-- Delete Form -->
                             <form action="{% url 'delete_address' address.id %}" method="post" style="display: inline;">
@@ -192,7 +195,6 @@
                         <p>{{ address.address }}<br>{{ address.city }}, {{ address.state }}, {{ address.country }}<br>
                             {{ address.postcode }}</p>
                         <p>{{ address.phone }}</p>
-                        <p>{{ address.email }}</p>
 
                         <!-- Default Address Badge -->
                         {% if address.is_default %}
@@ -200,110 +202,7 @@
                         {% endif %}
                     </div>
 
-                    <!-- Edit Address Modal -->
-                    <div class="modal fade {% if edit_errors and edit_data.id == address.id %}show{% endif %}"
-                        id="editAddressModal-{{ address.id }}" tabindex="-1"
-                        aria-labelledby="editAddressModalLabel-{{ address.id }}"
-                        aria-hidden="{% if edit_errors and edit_data.id == address.id %}false{% else %}true{% endif %}">
-                        {% if add_errors %}
-                        <div class="alert alert-danger">
-                            <ul>
-                                {% for error in add_errors %}
-                                <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endif %}
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="editAddressModalLabel-{{ address.id }}">Edit Address
-                                    </h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    {% if edit_errors and edit_data.id == address.id %}
-                                    <div class="alert alert-danger">
-                                        <ul>
-                                            {% for error in edit_errors %}
-                                            <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    {% endif %}
-                                    <form action="{% url 'edit_address' %}" method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="id" value="{{ address.id }}">
-                                        <div class="mb-3">
-                                            <label for="name" class="form-label">Name</label>
-                                            <input type="text" name="name" class="form-control"
-                                                id="name-{{ address.id }}"
-                                                value="{% if edit_data and edit_data.id == address.id %}{{ edit_data.name }}{% else %}{{ address.name }}{% endif %}"
-                                                required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="address" class="form-label">Address</label>
-                                            <input type="text" name="address" class="form-control"
-                                                id="address-{{ address.id }}"
-                                                value="{% if edit_data and edit_data.id == address.id %}{{ edit_data.address }}{% else %}{{ address.address }}{% endif %}"
-                                                required>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <label for="city" class="form-label">City</label>
-                                                <input type="text" name="city" class="form-control"
-                                                    id="city-{{ address.id }}"
-                                                    value="{% if edit_data and edit_data.id == address.id %}{{ edit_data.city }}{% else %}{{ address.city }}{% endif %}"
-                                                    required>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="state" class="form-label">State</label>
-                                                <input type="text" name="state" class="form-control"
-                                                    id="state-{{ address.id }}"
-                                                    value="{% if edit_data and edit_data.id == address.id %}{{ edit_data.state }}{% else %}{{ address.state }}{% endif %}"
-                                                    required>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="country" class="form-label">Country</label>
-                                                <input type="text" name="country" class="form-control"
-                                                    id="country-{{ address.id }}"
-                                                    value="{% if edit_data and edit_data.id == address.id %}{{ edit_data.country }}{% else %}{{ address.country }}{% endif %}"
-                                                    required>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="postcode" class="form-label">Postcode</label>
-                                            <input type="text" name="postcode" class="form-control"
-                                                id="postcode-{{ address.id }}"
-                                                value="{% if edit_data and edit_data.id == address.id %}{{ edit_data.postcode }}{% else %}{{ address.postcode }}{% endif %}"
-                                                required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="phone" class="form-label">Phone</label>
-                                            <input type="text" name="phone" class="form-control"
-                                                id="phone-{{ address.id }}"
-                                                value="{% if edit_data and edit_data.id == address.id %}{{ edit_data.phone }}{% else %}{{ address.phone }}{% endif %}"
-                                                required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="email" class="form-label">Email</label>
-                                            <input type="email" name="email" class="form-control"
-                                                id="email-{{ address.id }}"
-                                                value="{% if edit_data and edit_data.id == address.id %}{{ edit_data.email }}{% else %}{{ address.email }}{% endif %}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="additional_info" class="form-label">Additional Info</label>
-                                            <textarea name="additional_info" class="form-control"
-                                                id="additional_info-{{ address.id }}" rows="3">
-                                                {% if edit_data and edit_data.id == address.id %}{{ edit_data.additional_info }}{% else %}{{ address.additional_info }}{% endif %}
-                                            </textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                     {% endfor %}
                     {% else %}
                     <div class="text-center py-5">
@@ -317,89 +216,7 @@
         </div>
     </div>
 
-    <!-- Add Address Modal -->
-    <div class="modal fade {% if add_errors %}show{% endif %}" id="addAddressModal" tabindex="-1"
-        aria-labelledby="addAddressModalLabel" aria-hidden="{% if add_errors %}false{% else %}true{% endif %}">
-        {% if add_errors %}
-        <div class="alert alert-danger">
-            <ul>
-                {% for error in add_errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    {% if add_errors %}
-                    <div class="alert alert-danger">
-                        <ul>
-                            {% for error in add_errors %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    <form action="{% url 'add_address' %}" method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Name</label>
-                            <input type="text" name="name" class="form-control" id="name"
-                                value="{{ add_data.name|default:'' }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="address" class="form-label">Address</label>
-                            <input type="text" name="address" class="form-control" id="address"
-                                value="{{ add_data.address|default:'' }}" required>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label for="city" class="form-label">City</label>
-                                <input type="text" name="city" class="form-control" id="city"
-                                    value="{{ add_data.city|default:'' }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="state" class="form-label">State</label>
-                                <input type="text" name="state" class="form-control" id="state"
-                                    value="{{ add_data.state|default:'' }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="country" class="form-label">Country</label>
-                                <input type="text" name="country" class="form-control" id="country"
-                                    value="{{ add_data.country|default:'' }}" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="postcode" class="form-label">Postcode</label>
-                            <input type="text" name="postcode" class="form-control" id="postcode"
-                                value="{{ add_data.postcode|default:'' }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">Phone</label>
-                            <input type="text" name="phone" class="form-control" id="phone"
-                                value="{{ add_data.phone|default:'' }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" id="email"
-                                value="{{ add_data.email|default:'' }}">
-                        </div>
-                        <div class="mb-3">
-                            <label for="additional_info" class="form-label">Additional Info</label>
-                            <textarea name="additional_info" class="form-control" id="additional_info"
-                                rows="3">{{ add_data.additional_info|default:'' }}</textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Address</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     {% include 'includes/footer.html' %}
 
