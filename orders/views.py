@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from decimal import Decimal
 from cart.models import Cart, CartItem
 from orders.models import Order, OrderItem
-from user_profile.models import Address
+from user_profile.models import Address, ShippingAddress
 from productsapp.models import ProductVariant
 from couponsapp.models import Coupon, CouponUsage
 from django.urls import reverse
@@ -18,20 +18,19 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 
 
-
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
 
 @login_required
 def place_order(request):
     user = request.user
-    addresses = Address.objects.filter(user=user)
+    addresses = Address.objects.filter(user=user, is_deleted=False)
     default_address = addresses.filter(is_default=True).first()
 
     try:
         cart = Cart.objects.get(user=user)
         cart_items = CartItem.objects.filter(cart=cart)
-        
+
         if not cart_items.exists():
             return JsonResponse({"error": "Your cart is empty. Please add items to checkout."}, status=400)
 
@@ -39,7 +38,7 @@ def place_order(request):
             if item.quantity > item.product_variant.stock:
                 messages.error(request, 'Please remove the out of stock products')
                 return redirect('cart_view')
-        
+
         total_listed_price = Decimal('0.00')
         total_offer_price = Decimal('0.00')
         for item in cart_items:
@@ -82,7 +81,7 @@ def place_order(request):
         discounted_amount = Decimal('0.00')
         delivery_charge = Decimal('0.00')
         grand_total = Decimal('0.00')
-    
+
     if request.method == "POST":
         try:
             address_id = request.POST.get("address_id")
@@ -91,8 +90,33 @@ def place_order(request):
             if not address_id or not payment_method:
                 return JsonResponse({"error": "Address or payment method not provided."}, status=400)
 
-            address = Address.objects.get(id=address_id, user=request.user)
-            
+            # Handle address selection
+            if address_id == "new":
+                # If the user adds a new address, it should already be in the Address table
+                # So we fetch the latest address added by the user
+                address = Address.objects.filter(user=user).order_by('-id').first()
+            elif address_id:
+                # Fetch the selected address
+                address = Address.objects.get(id=address_id, user=user)
+            else:
+                # Use default address
+                address = default_address
+
+            if not address:
+                return JsonResponse({"error": "No valid address found."}, status=400)
+
+            # Copy the address to the ShippingAddress table
+            shipping_address = ShippingAddress.objects.create(
+                user=user,
+                name=address.name,
+                address=address.address,
+                city=address.city,
+                state=address.state,
+                country=address.country,
+                postcode=address.postcode,
+                phone=address.phone,
+            )
+
             # Check if payment method is wallet and if the user has sufficient balance
             if payment_method == "wallet":
                 wallet = Wallet.objects.get(user=user)
@@ -101,7 +125,7 @@ def place_order(request):
 
             order = Order.objects.create(
                 user=user,
-                address=address,
+                shipping_address=shipping_address,
                 payment_method=payment_method,
                 total_price=grand_total,
                 coupon=coupon if coupon_code else None,
@@ -150,7 +174,7 @@ def place_order(request):
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-    
+
     # Retrieve the entered coupon code from the session
     entered_coupon_code = request.session.get('entered_coupon_code', '')
     context = {

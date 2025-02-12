@@ -543,9 +543,6 @@
                                         <img src="{{ particular_product.product.images.first.image.url }}"
                                             class="product-image me-3" alt="{{ particular_product.product.name }}">
                                         <span>{{ particular_product.product.name }}</span>
-                                        <!-- <button class="status-button status-{{ particular_product.status }}">
-                                            {{ particular_product.get_status_display }}
-                                        </button> -->
 
                                     </div>
                                 </td>
@@ -567,7 +564,7 @@
                 <div class="mt-4">
                     <h5 class="mb-3">Delivery Address</h5>
                     <div class="p-3 bg-light rounded">
-                        {{ order.address|linebreaks }}
+                        {{ order.shipping_address|linebreaks }}
                     </div>
                 </div>
 

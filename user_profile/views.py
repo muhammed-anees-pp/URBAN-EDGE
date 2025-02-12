@@ -48,114 +48,6 @@ def set_default_address(request, address_id):
     messages.success(request, "Default address updated successfully!")
     return redirect('addresses')
 
-######################################################################################3
-# @login_required
-# def add_address(request):
-#     """Add a new address."""
-#     if request.method == 'POST':
-#         name = request.POST.get('name', '').strip()
-#         address = request.POST.get('address', '').strip()
-#         city = request.POST.get('city', '').strip()
-#         state = request.POST.get('state', '').strip()
-#         country = request.POST.get('country', '').strip()
-#         postcode = request.POST.get('postcode', '').strip()
-#         phone = request.POST.get('phone', '').strip()
-#         email = request.POST.get('email', '').strip()
-#         additional_info = request.POST.get('additional_info', '').strip()
-
-#         errors = []
-#         if not all([name, address, city, state, country, postcode, phone]):
-#             errors.append("All fields except additional info and email are required.")
-#         if not postcode.isdigit():
-#             errors.append("Postcode must be numeric.")
-#         phone_regex = re.compile(r'^\+?[1-9]\d{1,14}$')
-#         if not phone_regex.match(phone):
-#             errors.append("Invalid phone number format.")
-#         if email:
-#             if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-#                 errors.append("Invalid email address.")
-#             elif Address.objects.filter(email=email, is_deleted=False).exists():
-#                 errors.append("This email address is already associated with an address.")
-
-#         if errors:
-#             return render(
-#                 request,
-#                 'user/address.html',
-#                 {
-#                     'addresses': Address.objects.filter(user=request.user, is_deleted=False),
-#                     'add_errors': errors,
-#                 },
-#             )
-
-#         Address.objects.create(
-#             user=request.user,
-#             name=name,
-#             address=address,
-#             city=city,
-#             state=state,
-#             country=country,
-#             postcode=postcode,
-#             phone=phone,
-#             email=email,
-#             additional_info=additional_info,
-#         )
-#         messages.success(request, "Address added successfully!")
-#         return redirect('addresses')
-
-
-# @login_required
-# def edit_address(request):
-#     """Edit an existing address."""
-#     if request.method == 'POST':
-#         address_id = request.POST.get('id')
-#         address = get_object_or_404(Address, id=address_id, user=request.user)
-
-#         name = request.POST.get('name', '').strip()
-#         address_line = request.POST.get('address', '').strip()
-#         city = request.POST.get('city', '').strip()
-#         state = request.POST.get('state', '').strip()
-#         country = request.POST.get('country', '').strip()
-#         postcode = request.POST.get('postcode', '').strip()
-#         phone = request.POST.get('phone', '').strip()
-#         email = request.POST.get('email', '').strip()
-
-#         errors = []
-#         if not all([name, address_line, city, state, country, postcode, phone]):
-#             errors.append("All fields except email are required.")
-#         if not postcode.isdigit():
-#             errors.append("Postcode must be numeric.")
-#         phone_regex = re.compile(r'^\+?[1-9]\d{1,14}$')
-#         if not phone_regex.match(phone):
-#             errors.append("Invalid phone number format.")
-#         if email:
-#             if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-#                 errors.append("Invalid email address.")
-#             elif Address.objects.filter(email=email, is_deleted=False).exclude(id=address_id).exists():
-#                 errors.append("This email address is already associated with another address.")
-
-#         if errors:
-#             return render(
-#                 request,
-#                 'user/address.html',
-#                 {
-#                     'addresses': Address.objects.filter(user=request.user, is_deleted=False),
-#                     'edit_errors': errors,
-#                 },
-#             )
-
-#         address.name = name
-#         address.address = address_line
-#         address.city = city
-#         address.state = state
-#         address.country = country
-#         address.postcode = postcode
-#         address.phone = phone
-#         address.email = email
-#         address.save()
-
-#         messages.success(request, "Address updated successfully!")
-#         return redirect('addresses')
-##################################################################################3
 
 @login_required
 def add_address(request):
@@ -168,7 +60,6 @@ def add_address(request):
         country = request.POST.get('country', '').strip()
         postcode = request.POST.get('postcode', '').strip()
         phone = request.POST.get('phone', '').strip()
-        additional_info = request.POST.get('additional_info', '').strip()
 
         errors = []
         if not all([name, address, city, state, country, postcode, phone]):
@@ -206,7 +97,6 @@ def add_address(request):
                         'country': country,
                         'postcode': postcode,
                         'phone': phone,
-                        'additional_info': additional_info,
                     },
                 },
             )
@@ -220,7 +110,6 @@ def add_address(request):
             country=country,
             postcode=postcode,
             phone=phone,
-            additional_info=additional_info,
         )
         messages.success(request, "Address added successfully!")
         return redirect('addresses')
@@ -299,11 +188,6 @@ def edit_address(request, address_id):
     return render(request, 'user/edit_address.html', {'address': address})
 
 
-
-
-
-
-####################################3
 
 @login_required
 def delete_address(request, address_id):

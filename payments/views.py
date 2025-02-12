@@ -9,29 +9,82 @@ from orders.models import Order, OrderItem
 from cart.models import Cart, CartItem
 from productsapp.models import ProductVariant
 from couponsapp.models import Coupon, CouponUsage
-from user_profile.models import Address
+from wallet.models import Wallet
+from user_profile.models import Address, ShippingAddress
 import logging
 
 logger = logging.getLogger(__name__)
 
+# Initialize Razorpay client
 razorpay_client = razorpay.Client(auth=(settings.RAZOR_KEY_ID, settings.RAZOR_KEY_SECRET))
 
+@csrf_exempt
 def initiate_payment(request):
     if request.method == "POST":
         user = request.user
         address_id = request.POST.get("address_id")
         payment_method = request.POST.get("payment_method")
 
+        addresses = Address.objects.filter(user=user, is_deleted=False)
+        default_address = addresses.filter(is_default=True).first()
+
         if not address_id or not payment_method:
             return JsonResponse({"error": "Address or payment method not provided."}, status=400)
 
         try:
-            address = Address.objects.get(id=address_id, user=user)
+            # Handle address selection
+            if address_id == "new":
+                # Create a new shipping address from form data
+                shipping_address = ShippingAddress.objects.create(
+                    user=user,
+                    name=request.POST.get('name'),
+                    address=request.POST.get('address'),
+                    city=request.POST.get('city'),
+                    state=request.POST.get('state'),
+                    country=request.POST.get('country'),
+                    postcode=request.POST.get('postcode'),
+                    phone=request.POST.get('phone'),
+                )
+            elif address_id:
+                # Copy the selected address to the ShippingAddress table
+                address = Address.objects.get(id=address_id, user=user)
+                shipping_address = ShippingAddress.objects.create(
+                    user=user,
+                    name=address.name,
+                    address=address.address,
+                    city=address.city,
+                    state=address.state,
+                    country=address.country,
+                    postcode=address.postcode,
+                    phone=address.phone,
+                )
+            else:
+                # Use default address
+                if not default_address:
+                    return JsonResponse({"error": "No valid address found."}, status=400)
+                shipping_address = ShippingAddress.objects.create(
+                    user=user,
+                    name=default_address.name,
+                    address=default_address.address,
+                    city=default_address.city,
+                    state=default_address.state,
+                    country=default_address.country,
+                    postcode=default_address.postcode,
+                    phone=default_address.phone,
+                )
+
+            # Fetch cart and calculate totals
             cart = Cart.objects.get(user=user)
             cart_items = CartItem.objects.filter(cart=cart)
 
+            if not cart_items.exists():
+                return JsonResponse({"error": "Your cart is empty. Please add items to checkout."}, status=400)
+
             total_offer_price = Decimal('0.00')
             for item in cart_items:
+                if item.quantity > item.product_variant.stock:
+                    return JsonResponse({"error": f"Not enough stock for {item.product_variant.product.name}."}, status=400)
+
                 price = Decimal(str(item.product_variant.product.offer if item.product_variant.product.offer else item.product_variant.product.price))
                 quantity = Decimal(str(item.quantity))
                 total_offer_price += price * quantity
@@ -40,8 +93,8 @@ def initiate_payment(request):
             grand_total = total_offer_price + delivery_charge
 
             # Apply coupon discount if any
-            coupon_code = request.session.get('coupon_code', None)
             coupon_discount = Decimal('0.00')
+            coupon_code = request.session.get('coupon_code', None)
             if coupon_code:
                 try:
                     coupon = Coupon.objects.get(coupon_code=coupon_code, is_active=True)
@@ -54,7 +107,7 @@ def initiate_payment(request):
 
             # Store cart details in session
             request.session['cart_details'] = {
-                'address_id': address_id,
+                'shipping_address_id': shipping_address.id,
                 'payment_method': payment_method,
                 'total_price': str(grand_total),
                 'cart_items': [{'product_variant_id': item.product_variant.id, 'quantity': item.quantity} for item in cart_items],
@@ -62,15 +115,15 @@ def initiate_payment(request):
                 'coupon_discount': str(coupon_discount),
             }
 
+            # Handle payment methods
             if payment_method == "COD":
-                # For COD, create the order immediately
                 return create_order(request)
             elif payment_method == "razorpay":
                 amount = int(grand_total * 100)  # Convert to paise
                 currency = "INR"
-                receipt = f"order_{user.id}_{address_id}"
+                receipt = f"order_{user.id}_{shipping_address.id}"
                 notes = {
-                    "address_id": address_id,
+                    "shipping_address_id": shipping_address.id,
                     "user_id": user.id,
                 }
 
@@ -89,7 +142,9 @@ def initiate_payment(request):
                     "callback_url": request.build_absolute_uri(reverse('order_success')),
                 })
             elif payment_method == "wallet":
-                # For wallet, create the order immediately
+                wallet = Wallet.objects.get(user=user)
+                if wallet.balance < grand_total:
+                    return JsonResponse({"error": "Insufficient funds in wallet."}, status=400)
                 return create_order(request)
             else:
                 return JsonResponse({"error": "Invalid payment method."}, status=400)
@@ -108,19 +163,20 @@ def create_order(request):
             return JsonResponse({"error": "Cart details not found in session."}, status=400)
 
         user = request.user
-        address_id = cart_details['address_id']
+        shipping_address_id = cart_details['shipping_address_id']
         payment_method = cart_details['payment_method']
         total_price = Decimal(cart_details['total_price'])
         cart_items = cart_details['cart_items']
         coupon_code = cart_details.get('coupon_code', None)
         coupon_discount = Decimal(cart_details.get('coupon_discount', '0.00'))
 
-        address = Address.objects.get(id=address_id, user=user)
+        # Fetch the shipping address
+        shipping_address = ShippingAddress.objects.get(id=shipping_address_id, user=user)
 
         # Create the order
         order = Order.objects.create(
             user=user,
-            address=address,
+            shipping_address=shipping_address,
             payment_method=payment_method,
             total_price=total_price,
             payment_status='Paid' if payment_method != 'COD' else 'Pending',
@@ -147,10 +203,9 @@ def create_order(request):
         cart = Cart.objects.get(user=user)
         CartItem.objects.filter(cart=cart).delete()
 
-        # Record coupon usage only after the order is successfully created
+        # Record coupon usage
         if coupon_code:
-            coupon = Coupon.objects.get(coupon_code=coupon_code)
-            CouponUsage.objects.create(user=user, coupon=coupon)
+            CouponUsage.objects.create(user=user, coupon=Coupon.objects.get(coupon_code=coupon_code))
             del request.session['coupon_code']
 
         # Clear the session

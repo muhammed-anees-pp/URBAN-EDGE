@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from productsapp.models import Product, ProductVariant
 from couponsapp.models import Coupon, CouponUsage
-from user_profile.models import Address
+from user_profile.models import Address, ShippingAddress
 from django.utils import timezone
 
 def generate_order_id():
@@ -15,7 +15,7 @@ def generate_order_id():
 class Order(models.Model):
     id = models.CharField(primary_key=True, max_length=50, default=generate_order_id, editable=False)  # Custom order ID
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
+    shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True)
     payment_method = models.CharField(max_length=20)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.CharField(max_length=20, default='Pending')  # Add this line

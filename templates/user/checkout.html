@@ -196,8 +196,7 @@
                 </div>
                 <div class="payment-option">
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="payment_method" value="wallet"
-                            id="wallet">
+                        <input class="form-check-input" type="radio" name="payment_method" value="wallet" id="wallet">
                         <label class="form-check-label" for="wallet">
                             Wallet (Balance: ₹{{ request.user.wallet.balance }})
                         </label>
@@ -336,14 +335,6 @@
                         <label for="phone" class="form-label">Phone</label>
                         <input type="text" class="form-control" id="phone" name="phone" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email">
-                    </div>
-                    <div class="mb-3">
-                        <label for="additional_info" class="form-label">Additional Info</label>
-                        <textarea class="form-control" id="additional_info" name="additional_info" rows="3"></textarea>
-                    </div>
                     <button type="submit" class="btn btn-primary w-100">Save Address</button>
                 </form>
             </div>
@@ -410,6 +401,7 @@
             console.error('Error:', error);
         }
     });
+
 
     function placeOrder() {
         const paymentMethodElements = document.getElementsByName("payment_method");
