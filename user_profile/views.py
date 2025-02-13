@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 
+#PROFILE
 @login_required
 def user_profile(request):
     """User profile view."""
@@ -23,6 +24,7 @@ def user_profile(request):
     }
     return render(request, 'user/profile.html', context)
 
+#ADDRESS
 @login_required
 def view_addresses(request):
     """View all addresses."""
@@ -36,6 +38,7 @@ def view_addresses(request):
 
     return render(request, 'user/address.html', {'addresses': addresses})
 
+#DEFAULT ADDRESS
 @login_required
 def set_default_address(request, address_id):
     """Set an address as default."""
@@ -48,7 +51,7 @@ def set_default_address(request, address_id):
     messages.success(request, "Default address updated successfully!")
     return redirect('addresses')
 
-
+#ADD ADDRESS
 @login_required
 def add_address(request):
     """Add a new address."""
@@ -117,7 +120,7 @@ def add_address(request):
     return render(request, 'user/add_address.html')
 
 
-
+#EDIT ADDRESS
 @login_required
 def edit_address(request, address_id):
     """Edit an existing address."""
@@ -188,7 +191,7 @@ def edit_address(request, address_id):
     return render(request, 'user/edit_address.html', {'address': address})
 
 
-
+#DELETE ADDRESS
 @login_required
 def delete_address(request, address_id):
     """Delete an address permanently."""
@@ -201,7 +204,7 @@ def delete_address(request, address_id):
 
     return redirect('addresses')
 
-
+#CHANGE PASSWORD
 @login_required
 def change_password(request):
     """Change user's password."""
@@ -232,7 +235,7 @@ def change_password(request):
 
     return render(request, 'user/change_password.html')
 
-
+#PASSWORD VALIDATION
 def validate_password(password):
     """Validate password strength."""
     if len(password) < 8:
@@ -247,7 +250,7 @@ def validate_password(password):
         return False, "Password must contain at least one special character."
     return True, ""
 
-
+#EMAIL CHANGE
 @login_required
 def change_email(request):
     """Step 1: Render page to input new email and validate it."""
@@ -287,7 +290,7 @@ def change_email(request):
 
 
 
-
+#EMAIL VARIFICATION
 @login_required
 def verify_email(request):
     """Step 2: Verify the OTP and update the email."""

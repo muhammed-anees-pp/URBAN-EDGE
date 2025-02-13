@@ -5,6 +5,8 @@ from productsapp.models import Product
 from reviews.models import Review
 from orders.models import OrderItem
 
+
+#REVIEW ADDING
 @login_required
 def add_review(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -33,6 +35,7 @@ def add_review(request, product_id):
     
     return render(request, 'user/add_review.html', {'product': product})
 
+#REVIEW EDITING OPTION
 @login_required
 def edit_review(request, review_id):
     review = get_object_or_404(Review, id=review_id, user=request.user)

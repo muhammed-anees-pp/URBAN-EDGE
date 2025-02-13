@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
+#REFERAL SECTION
 class Referral(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='referral')
     referral_code = models.CharField(max_length=20, unique=True, blank=True)
@@ -20,7 +21,7 @@ class Referral(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.referral_code}"
 
-
+#ADDRESS
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
     name = models.CharField(max_length=100)
@@ -50,7 +51,7 @@ def set_default_address(sender, instance, **kwargs):
 models.signals.pre_save.connect(set_default_address, sender=Address)
 
 
-
+#SHIPPING ADDRESS
 class ShippingAddress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shipping_addresses')
     name = models.CharField(max_length=100)

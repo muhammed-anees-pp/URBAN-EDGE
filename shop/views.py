@@ -3,6 +3,8 @@ from productsapp.models import Product, ProductImage
 from category.models import Category
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
 
+
+#SHOP (ALL PRODUCT USER SIDE)
 def all_products(request):
     # Get all listed products and categories
     products = Product.objects.filter(is_listed=True).prefetch_related('images')

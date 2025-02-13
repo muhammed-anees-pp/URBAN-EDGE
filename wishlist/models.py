@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from productsapp.models import Product
 
+
+#WISHLIST
 class Wishlist(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -10,6 +12,7 @@ class Wishlist(models.Model):
     def __str__(self):
         return f'Wishlist of {self.user.username}'
 
+#WISHLIST ITEMS
 class WishlistItem(models.Model):
     wishlist = models.ForeignKey(Wishlist, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

@@ -108,8 +108,11 @@
                         </div>
                     </div>
                 </div>
+                <p class="text-warning">Refund amount may be adjusted if the return affects applied discounts.</p>
+
 
                 <form method="post">
+
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="return_reason" class="form-label">Reason for Return</label>

@@ -171,7 +171,8 @@ $(document).ready(function() {
                         window.location.href = response.redirect_url;
                     });
                 } else {
-                    alert(response.error);  // Show an error message if something went wrong
+                    //alert(response.error);  // Show an error message if something went wrong
+                    $('#cancelForm').append('<p class="text-danger">'+response.error+'</p>');
                 }
             },
             error: function(xhr, status, error) {

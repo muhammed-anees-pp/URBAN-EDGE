@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Wallet, WalletTransaction
 
+
+#WALLET VIEW
 @login_required
 def wallet_view(request):
     try:

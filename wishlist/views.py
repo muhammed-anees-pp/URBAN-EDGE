@@ -6,6 +6,7 @@ from productsapp.models import Product
 from cart.models import Cart, CartItem
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+#WISHLIST VIEW
 @login_required
 def wishlist_view(request):
     wishlist, created = Wishlist.objects.get_or_create(user=request.user)
@@ -13,7 +14,7 @@ def wishlist_view(request):
 
     # Pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(wishlist_items, 10)  # Show 10 items per page
+    paginator = Paginator(wishlist_items, 10)
 
     try:
         wishlist_items = paginator.page(page)
@@ -29,7 +30,7 @@ def wishlist_view(request):
     return render(request, 'user/wishlist.html', context)
 
 
-
+#ADD TO WISHLIST
 @login_required
 def add_to_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -44,6 +45,7 @@ def add_to_wishlist(request, product_id):
 
     return redirect(request.META.get('HTTP_REFERER', 'wishlist'))
 
+#REMOVE FROM WISHLIST
 @login_required
 def remove_from_wishlist(request, item_id):
     wishlist_item = get_object_or_404(WishlistItem, id=item_id, wishlist__user=request.user)
@@ -51,6 +53,8 @@ def remove_from_wishlist(request, item_id):
     messages.success(request, 'Product removed from wishlist.')
     return redirect('wishlist')
 
+
+#MOVE TO CART
 @login_required
 def move_to_cart(request, item_id):
     wishlist_item = get_object_or_404(WishlistItem, id=item_id, wishlist__user=request.user)

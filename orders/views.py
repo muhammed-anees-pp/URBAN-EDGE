@@ -12,10 +12,10 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
-from decimal import Decimal
 from wallet.models import Wallet, WalletTransaction
 from django.template.loader import render_to_string
 from weasyprint import HTML
+from django.http import JsonResponse
 
 
 def is_admin(user):
@@ -297,6 +297,7 @@ def user_order_details(request, item_id):
     })
 
 
+
 @login_required
 def cancel_order_item(request, item_id):
     order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
@@ -313,27 +314,67 @@ def cancel_order_item(request, item_id):
             product_variant.stock += order_item.quantity
             product_variant.save()
 
+            # Filter desired statuses
+            desired_statuses = [
+                'order_placed',
+                'shipped',
+                'out_for_delivery',
+                'delivered',
+                'return_requested',
+                'return_denied'
+            ]
+
+            # Filter full_order_items and remaining_order_items
+            full_order_items = OrderItem.objects.filter(
+                order=order_item.order,
+                status__in=desired_statuses
+            )
+            full_total_price = sum(item.price * item.quantity for item in full_order_items)
+
+            remaining_order_items = OrderItem.objects.filter(
+                order=order_item.order,
+                status__in=desired_statuses
+            ).exclude(id=order_item.id)
+            remaining_total_price = sum(item.price * item.quantity for item in remaining_order_items)
+
+            coupon = order_item.order.coupon
+            refund_amount = Decimal('0.00')
+
+            if coupon:
+                total_discount = (coupon.discount_percentage / Decimal('100.00')) * full_total_price
+
+                if remaining_total_price < coupon.minimum_purchase_amount:
+                    if not order_item.order.coupon_discount_applied:
+                        refund_amount = (order_item.price * order_item.quantity) - total_discount
+                        order_item.order.coupon_discount_applied = True
+                    else:
+                        refund_amount = order_item.price * order_item.quantity
+                else:
+                    refund_amount = (order_item.price * order_item.quantity) - (
+                        (coupon.discount_percentage / Decimal('100.00')) *
+                        order_item.price *
+                        order_item.quantity
+                    )
+                order_item.order.save()
+            else:
+                refund_amount = order_item.price * order_item.quantity
+
             order_item.status = 'canceled'
             order_item.cancel_reason = cancel_reason
             order_item.save()
 
-            # Credit amount to wallet if payment method is not COD
+            refund_amount = max(refund_amount, Decimal('0.00'))
+
+            # Credit wallet for non-COD payments
             if order_item.order.payment_method != 'COD':
                 wallet, created = Wallet.objects.get_or_create(user=request.user)
-                amount_to_credit = order_item.price * order_item.quantity
-
-                # Deduct coupon discount if applicable
-                if order_item.order.coupon:
-                    coupon_discount = (order_item.order.coupon.discount_percentage / Decimal('100.00')) * order_item.price
-                    amount_to_credit -= coupon_discount
-
-                wallet.balance += amount_to_credit
+                wallet.balance += refund_amount
                 wallet.save()
 
                 WalletTransaction.objects.create(
                     wallet=wallet,
                     order=order_item.order,
-                    amount=amount_to_credit,
+                    amount=refund_amount,
                     transaction_type='credit'
                 )
 
@@ -346,6 +387,10 @@ def cancel_order_item(request, item_id):
             return JsonResponse({"error": "Please provide a reason for cancellation."}, status=400)
 
     return render(request, 'user/cancel_reason.html', {'order_item': order_item})
+
+
+
+
 
 
 @login_required
@@ -374,6 +419,7 @@ def request_return(request, item_id):
 
     # Render the return reason form template
     return render(request, 'user/return_reason.html', {'order_item': order_item})
+
 
 
 def download_invoice(request, order_id):
@@ -538,30 +584,76 @@ def update_order_status(request, order_id):
 
     # Refill stock and credit amount to wallet if the status is updated to 'returned'
     if new_status == 'returned':
+        order_item.status = 'return_requested'
+        order_item.save()
         product_variant = order_item.product_variant
         product_variant.stock += order_item.quantity
         product_variant.save()
-        order_item.returned_at = timezone.now()  # Set the returned_at timestamp
+        order_item.returned_at = timezone.now()
 
-        # Credit amount to wallet for online, COD, and wallet payment methods
-        wallet, created = Wallet.objects.get_or_create(user=order.user)
-        amount_to_credit = order_item.price * order_item.quantity
+        # Filter desired statuses
+        desired_statuses = [
+            'order_placed',
+            'shipped',
+            'out_for_delivery',
+            'delivered',
+            'return_requested',
+            'return_denied'
+        ]
 
-        # Deduct coupon discount if applicable
-        if order_item.order.coupon:
-            coupon_discount = (order_item.order.coupon.discount_percentage / Decimal('100.00')) * order_item.price
-            amount_to_credit -= coupon_discount
-
-        wallet.balance += amount_to_credit
-        wallet.save()
-
-        WalletTransaction.objects.create(
-            wallet=wallet,
+        # Filter full_order_items and remaining_order_items
+        full_order_items = OrderItem.objects.filter(
             order=order_item.order,
-            amount=amount_to_credit,
-            transaction_type='credit'
+            status__in=desired_statuses
         )
+        full_total_price = sum(item.price * item.quantity for item in full_order_items)
 
+        remaining_order_items = OrderItem.objects.filter(
+            order=order_item.order,
+            status__in=desired_statuses
+        ).exclude(id=order_item.id)
+        remaining_total_price = sum(item.price * item.quantity for item in remaining_order_items)
+
+        coupon = order_item.order.coupon
+        refund_amount = Decimal('0.00')
+
+        if coupon:
+            total_discount = (coupon.discount_percentage / Decimal('100.00')) * full_total_price
+
+            if remaining_total_price < coupon.minimum_purchase_amount:
+                if not order_item.order.coupon_discount_applied:
+                    refund_amount = (order_item.price * order_item.quantity) - total_discount
+                    order_item.order.coupon_discount_applied = True
+                else:
+                    refund_amount = order_item.price * order_item.quantity
+            else:
+                refund_amount = (order_item.price * order_item.quantity) - (
+                    (coupon.discount_percentage / Decimal('100.00')) *
+                    order_item.price *
+                    order_item.quantity
+                )
+            order_item.order.save()
+        else:
+            refund_amount = order_item.price * order_item.quantity
+
+        
+
+        refund_amount = max(refund_amount, Decimal('0.00'))
+
+        # Credit wallet for non-COD payments
+        if order_item.order.payment_method != 'COD':
+            wallet, created = Wallet.objects.get_or_create(user=order.user)
+            wallet.balance += refund_amount
+            wallet.save()
+
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                order=order_item.order,
+                amount=refund_amount,
+                transaction_type='credit'
+            )
+
+    order_item.status = 'returned'
     order_item.save()
 
     # Debug: Print the updated item status
@@ -573,4 +665,3 @@ def update_order_status(request, order_id):
         "message": "Order item status updated successfully.",
         "redirect_url": reverse('admin_order_details', args=[order.id])
     })
-

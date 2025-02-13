@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from productsapp.models import Product
 from orders.models import OrderItem
 
+#REVIEW
 class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
