@@ -288,10 +288,11 @@
                                                             <input type="hidden" name="item_id" value="{{ item.id }}">
                                                             <select name="status" class="form-control form-control-sm">
                                                                 {% for status in status_choices %}
-                                                                {% if status.0 != 'canceled' %}
+                                                                {% if status.0 != 'returned' and status.0 != 'canceled' and status.0 != 'return_requested' %}
                                                                 <option value="{{ status.0 }}" 
                                                                 {% if item.status == status.0 %}selected{% endif %}>
-                                                                    {{ status.1 }}</option>
+                                                                    {{ status.1 }}
+                                                                </option>
                                                                 {% endif %}
                                                                 {% endfor %}
                                                             </select>

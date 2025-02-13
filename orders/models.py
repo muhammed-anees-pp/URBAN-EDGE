@@ -36,6 +36,7 @@ class OrderItem(models.Model):
         ('canceled', 'Canceled'),
         ('return_requested', 'Return Requested'),  # User requests return
         ('returned', 'Returned'),  # Admin approves return
+        ('return', 'Return'),
         ('return_denied', 'Return Denied'),  # Admin denies return
     ]
 
@@ -61,7 +62,8 @@ class OrderItem(models.Model):
             'out_for_delivery': ['delivered', 'canceled'],
             'delivered': ['return_requested'],
             'canceled': [],
-            'return_requested': ['returned', 'return_denied'],
+            'return_requested': ['return', 'return_denied'],
+            'return': ['returned'],
             'returned': [],
             'return_denied': [],
         }

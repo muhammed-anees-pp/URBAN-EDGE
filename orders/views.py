@@ -390,9 +390,6 @@ def cancel_order_item(request, item_id):
 
 
 
-
-
-
 @login_required
 def request_return(request, item_id):
     order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
@@ -539,7 +536,6 @@ def admin_order_details(request, order_id):
         'coupon_discount': coupon_discount,
     })
 
-
 @user_passes_test(is_admin)
 @require_POST
 def update_order_status(request, order_id):
@@ -552,40 +548,32 @@ def update_order_status(request, order_id):
 
     order_item = get_object_or_404(OrderItem, id=item_id, order=order)
 
-    # Define the allowed status transitions
-    allowed_transitions = {
-        'order_placed': ['shipped', 'canceled'],
-        'shipped': ['out_for_delivery', 'canceled'],
-        'out_for_delivery': ['delivered', 'canceled'],
-        'delivered': ['return_requested'],
-        'canceled': [],
-        'return_requested': ['returned', 'return_denied'],
-        'returned': [],
-        'return_denied': [],
-    }
+    # Debug: Log the current and new status
+    print(f"Current status of OrderItem {order_item.id}: {order_item.status}")
+    print(f"Requested new status: {new_status}")
 
-    current_status = order_item.status
+    # Check if the new status is allowed using the can_update_status method
+    if not order_item.can_update_status(new_status):
+        return JsonResponse({"error": f"Cannot update status from {order_item.status} to {new_status}."}, status=400)
 
-    # Check if the new status is allowed
-    if new_status not in allowed_transitions.get(current_status, []):
-        return JsonResponse({"error": f"Cannot update status from {current_status} to {new_status}."}, status=400)
-
-    # Prevent admins from directly changing status to 'return_requested'
     if new_status == 'return_requested':
         return JsonResponse({"error": "Admins cannot directly request returns. Only users can request returns."}, status=400)
 
     # Update the item status
     order_item.status = new_status
+    order_item.save()
+
+    # Debug: Log the status update
+    print(f"Updated status of OrderItem {order_item.id} to {order_item.status}")
 
     # If the order is delivered and payment method is COD, update payment status to 'Paid'
     if new_status == 'delivered' and order.payment_method == 'COD':
         order.payment_status = 'Paid'
         order.save()
 
-    # Refill stock and credit amount to wallet if the status is updated to 'returned'
-    if new_status == 'returned':
-        order_item.status = 'return_requested'
-        order_item.save()
+    # If the status is updated to 'return', process the refund logic
+    if new_status == 'return':
+        # Refill stock and credit amount to wallet if the status is updated to 'return'
         product_variant = order_item.product_variant
         product_variant.stock += order_item.quantity
         product_variant.save()
@@ -598,6 +586,7 @@ def update_order_status(request, order_id):
             'out_for_delivery',
             'delivered',
             'return_requested',
+            'return',
             'return_denied'
         ]
 
@@ -636,8 +625,8 @@ def update_order_status(request, order_id):
         else:
             refund_amount = order_item.price * order_item.quantity
 
-        
-
+        order_item.status = 'returned'
+        order_item.save()
         refund_amount = max(refund_amount, Decimal('0.00'))
 
         # Credit wallet for non-COD payments
@@ -652,14 +641,9 @@ def update_order_status(request, order_id):
                 amount=refund_amount,
                 transaction_type='credit'
             )
+    else:
+        pass
 
-    order_item.status = 'returned'
-    order_item.save()
-
-    # Debug: Print the updated item status
-    print(f"Updated OrderItem {order_item.id} status to {order_item.status}")
-
-    # Return a success response
     return JsonResponse({
         "success": True,
         "message": "Order item status updated successfully.",
