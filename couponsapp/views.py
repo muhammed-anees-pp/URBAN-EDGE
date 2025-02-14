@@ -81,14 +81,16 @@ def add_coupon(request):
 def edit_coupon(request, coupon_id):
     coupon = get_object_or_404(Coupon, coupon_id=coupon_id)
     if request.method == 'POST':
-        form = CouponForm(request.POST, instance=coupon)
+        form = CouponForm(request.POST, instance=coupon)  # Pass the instance here
         if form.is_valid():
             form.save()
             messages.success(request, 'Coupon updated successfully.')
             return redirect('coupon_list')
     else:
-        form = CouponForm(instance=coupon)
+        form = CouponForm(instance=coupon)  # Pass the instance here
     return render(request, 'admin/edit_coupon.html', {'form': form, 'coupon': coupon})
+
+
 
 # Activate/Deactivate Coupon
 def toggle_coupon_status(request, coupon_id):

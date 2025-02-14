@@ -214,6 +214,7 @@
                                                     <th>Coupon Code</th>
                                                     <th>Minimum Purchase</th>
                                                     <th>Discount (%)</th>
+                                                    <th>Maximum Discount</th>
                                                     <th>Valid From</th>
                                                     <th>Valid To</th>
                                                     <th>Status</th>
@@ -226,6 +227,7 @@
                                                     <td>{{ coupon.coupon_code }}</td>
                                                     <td>₹{{ coupon.minimum_purchase_amount }}</td>
                                                     <td>{{ coupon.discount_percentage }}%</td>
+                                                    <td>₹{{ coupon.max_discount_amount }}</td>
                                                     <td>{{ coupon.valid_from }}</td>
                                                     <td>{{ coupon.valid_to }}</td>
                                                     <td>
