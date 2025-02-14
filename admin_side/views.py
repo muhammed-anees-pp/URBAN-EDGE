@@ -77,7 +77,32 @@ def admin_dashboard(request):
         )
     )['total_discount'] or Decimal('0.00')
 
-    # Top Selling Products (only from delivered, return_requested, and return_denied orders)
+    # Count of orders in different statuses
+    order_status_counts = {
+        'pending': Order.objects.filter(status='pending').count(),
+        'completed': Order.objects.filter(status='completed').count(),
+        'canceled': Order.objects.filter(status='canceled').count(),
+        'returned': Order.objects.filter(status='returned').count(),
+    }
+
+    # Count of items in different statuses
+    item_status_counts = {
+        'delivered': OrderItem.objects.filter(status='delivered').count(),
+        'canceled': OrderItem.objects.filter(status='canceled').count(),
+        'return_requested': OrderItem.objects.filter(status='return_requested').count(),
+        'returned': OrderItem.objects.filter(status='returned').count(),
+    }
+
+    # Top 5 Selling Categories
+    top_selling_categories = (
+        OrderItem.objects.filter(status__in=['delivered', 'return_requested', 'return_denied'])
+        .values('product__category__category_name')
+        .annotate(total_sold=Sum('quantity'))
+        .order_by('-total_sold')[:5]
+    )
+
+
+    # Top Selling Products
     top_selling_products = Product.objects.annotate(
         total_sold=Sum(
             Case(
@@ -96,12 +121,14 @@ def admin_dashboard(request):
         'total_sales': total_sales,
         'total_orders': total_orders,
         'total_discount': total_discount,
+        'order_status_counts': order_status_counts,
+        'item_status_counts': item_status_counts,
+        'top_selling_categories': top_selling_categories,
         'top_selling_products': top_selling_products,
         'low_stock_products': low_stock_products,
     }
 
     return render(request, 'admin/dashboard.html', context)
-
 
 
 @user_passes_test(is_admin)

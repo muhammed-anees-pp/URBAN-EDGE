@@ -13,6 +13,13 @@ def generate_order_id():
     return f"ORD-{date_part}-{random_part}"
 
 class Order(models.Model):
+    ORDER_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('canceled', 'Canceled'),
+        ('returned', 'Returned')
+    ]
+
     id = models.CharField(primary_key=True, max_length=50, default=generate_order_id, editable=False)  # Custom order ID
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True)
@@ -21,11 +28,54 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=20, default='Pending')  # Add this line
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     coupon_discount_applied = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
+
+    def update_order(self):
+        order_items = self.items.all()
+        if not order_items.exists():
+            self.status = 'canceled'
+            self.save()
+            return
+
+        final_states = ['delivered', 'canceled', 'return_requested', 'returned', 'return_denied']
+        all_items_in_final_state = all(item.status in final_states for item in order_items)
+
+        print(f"All items in final state: {all_items_in_final_state}")
+
+        if all_items_in_final_state:
+            canceled_count = sum(1 for item in order_items if item.status == 'canceled')
+            delivered_count = sum(1 for item in order_items if item.status == 'delivered')
+            returned_count = sum(1 for item in order_items if item.status == 'returned')
+            total_items = len(order_items)
+
+            print(f"Canceled items: {canceled_count}, Delivered items: {delivered_count}, Returned items: {returned_count}")
+
+            if canceled_count == total_items:
+                print("All items are either canceled or returned. Setting order status to 'canceled'.")
+                self.status = 'canceled'
+            elif canceled_count + returned_count == total_items and returned_count >= 1 and canceled_count >= 1:
+                print("All items are either canceled or returned. Setting order status to 'canceled'.")
+                self.status = 'canceled'
+            elif returned_count == total_items:
+                print("All items are returned. Setting order status to 'returned'.")
+                self.status = 'returned'
+            elif delivered_count == total_items:
+                print("All items are delivered. Setting order status to 'completed'.")
+                self.status = 'completed'
+            else:
+                print("Mixed final states. Setting order status to 'completed'.")
+                self.status = 'completed'  # Or 'partially_completed' if you want to be more specific
+        else:
+            print("Not all items are in final states. Setting order status to 'pending'.")
+            self.status = 'pending'
+
+        self.save()
+        print(f"Updated order status: {self.status}")
 
 class OrderItem(models.Model):
     ORDER_ITEM_STATUS_CHOICES = [

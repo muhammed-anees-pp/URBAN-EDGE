@@ -217,11 +217,80 @@
                             </div>
                         </div>
 
+                        <div class="stats">
+                            <div class="stat-card">
+                                <i class="mdi mdi-cart stat-icon"></i>
+                                <h3 class="stat-title">Orders Pending</h3>
+                                <p class="stat-value">{{ order_status_counts.pending }}</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="mdi mdi-cart stat-icon"></i>
+                                <h3 class="stat-title">Orders Completed</h3>
+                                <p class="stat-value">{{ order_status_counts.completed }}</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="mdi mdi-cart stat-icon"></i>
+                                <h3 class="stat-title">Orders Canceled</h3>
+                                <p class="stat-value">{{ order_status_counts.canceled }}</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="mdi mdi-cart stat-icon"></i>
+                                <h3 class="stat-title">Orders Returned</h3>
+                                <p class="stat-value">{{ order_status_counts.returned }}</p>
+                            </div>
+                        </div>
+
+                        <div class="stats">
+                            <div class="stat-card">
+                                <i class="mdi mdi-package-variant-closed stat-icon"></i>
+                                <h3 class="stat-title">Items Delivered</h3>
+                                <p class="stat-value">{{ item_status_counts.delivered }}</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="mdi mdi-package-variant-closed stat-icon"></i>
+                                <h3 class="stat-title">Items Canceled</h3>
+                                <p class="stat-value">{{ item_status_counts.canceled }}</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="mdi mdi-package-variant-closed stat-icon"></i>
+                                <h3 class="stat-title">Items Return Requested</h3>
+                                <p class="stat-value">{{ item_status_counts.return_requested }}</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="mdi mdi-package-variant-closed stat-icon"></i>
+                                <h3 class="stat-title">Items Returned</h3>
+                                <p class="stat-value">{{ item_status_counts.returned }}</p>
+                            </div>
+                        </div>
+
                         <a href="{% url 'generate_sales_report' %}" class="btn btn-primary">
                             <i class="mdi mdi-download mr-2"></i>Generate Sales Report
                         </a>
 
                         <div class="table-container">
+
+                            <div class="table-card">
+                                <h2><i class="mdi mdi-star mr-2"></i>Top Selling Categories</h2>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Category Name</th>
+                                            <th>Total Items Sold</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for category in top_selling_categories %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ category.product__category__category_name }}</td>
+                                            <td>{{ category.total_sold }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
                             <div class="table-card">
                                 <h2><i class="mdi mdi-star mr-2"></i>Top Selling Products</h2>
                                 <table class="table">
@@ -247,6 +316,9 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            
+                            
 
                             <div class="table-card">
                                 <h2><i class="mdi mdi-alert-circle mr-2"></i>Low Stock Products</h2>

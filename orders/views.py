@@ -363,6 +363,9 @@ def cancel_order_item(request, item_id):
             order_item.cancel_reason = cancel_reason
             order_item.save()
 
+            # Update the order status
+            order_item.order.update_order()
+
             refund_amount = max(refund_amount, Decimal('0.00'))
 
             # Credit wallet for non-COD payments
@@ -643,6 +646,9 @@ def update_order_status(request, order_id):
             )
     else:
         pass
+
+    # Update the order status
+    order.update_order()
 
     return JsonResponse({
         "success": True,
