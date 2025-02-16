@@ -27,7 +27,7 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.CharField(max_length=20, default='Pending')  # Add this line
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
-    coupon_discount_applied = models.BooleanField(default=False)
+    discount_applied = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -74,7 +74,8 @@ class Order(models.Model):
             print("Not all items are in final states. Setting order status to 'pending'.")
             self.status = 'pending'
 
-        self.save()
+        # self.save()
+        self.save(update_fields=['status'])
         print(f"Updated order status: {self.status}")
 
 class OrderItem(models.Model):

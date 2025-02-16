@@ -344,9 +344,9 @@ def cancel_order_item(request, item_id):
                 total_discount = (coupon.discount_percentage / Decimal('100.00')) * full_total_price
 
                 if remaining_total_price < coupon.minimum_purchase_amount:
-                    if not order_item.order.coupon_discount_applied:
+                    if not order_item.order.discount_applied:
                         refund_amount = (order_item.price * order_item.quantity) - total_discount
-                        order_item.order.coupon_discount_applied = True
+                        order_item.order.discount_applied = True
                     else:
                         refund_amount = order_item.price * order_item.quantity
                 else:
@@ -613,9 +613,14 @@ def update_order_status(request, order_id):
             total_discount = (coupon.discount_percentage / Decimal('100.00')) * full_total_price
 
             if remaining_total_price < coupon.minimum_purchase_amount:
-                if not order_item.order.coupon_discount_applied:
+                if not order_item.order.discount_applied:
                     refund_amount = (order_item.price * order_item.quantity) - total_discount
-                    order_item.order.coupon_discount_applied = True
+                    order_item.order.discount_applied = True
+                    print(f"Before saving: discount_applied={order_item.order.discount_applied}")
+                    order_item.order.save(update_fields=['discount_applied'])  # Ensure only this field updates
+                    order_item.order.refresh_from_db()  # Force refresh from DB
+                    print(f"Final discount_applied value in DB: {order.discount_applied}")
+                    print(f"After saving: discount_applied={order_item.order.discount_applied}")
                 else:
                     refund_amount = order_item.price * order_item.quantity
             else:
@@ -648,7 +653,11 @@ def update_order_status(request, order_id):
         pass
 
     # Update the order status
+    print(f"Before update_order: discount_applied={order.discount_applied}")
     order.update_order()
+    order.refresh_from_db()
+    print(f"After update_order: discount_applied={order.discount_applied}")
+
 
     return JsonResponse({
         "success": True,

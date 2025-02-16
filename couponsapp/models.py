@@ -8,7 +8,6 @@ class Coupon(models.Model):
     coupon_code = models.CharField(max_length=50, unique=True)
     minimum_purchase_amount = models.DecimalField(max_digits=10, decimal_places=2)
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2)
-    max_discount_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     valid_from = models.DateField()
     valid_to = models.DateField()
     is_active = models.BooleanField(default=True)
