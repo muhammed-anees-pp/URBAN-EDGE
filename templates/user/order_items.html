@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}My Orders{% endblock %}
+{% block title %}Order Items{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -176,6 +176,7 @@
         pointer-events: none;
     }
 
+
     .btn-download-invoice {
         background-color: #28a745;
         color: white;
@@ -206,6 +207,8 @@
         <a href="{% url 'home' %}">Home</a>
         <span>/</span>
         <a href="{% url 'user_orders' %}">My Orders</a>
+        <span>/</span>
+        <a href="#">Order Items</a>
     </div>
 
     <div class="row mt-4">
@@ -237,51 +240,58 @@
         <!-- Main Content -->
         <div class="col-lg-9">
             <div class="orders-card">
-                <h4 class="mb-4">My Orders</h4>
+                <h4 class="mb-4">Order Items</h4>
 
-                {% if orders %}
-                {% for order in orders %}
+                {% if order_items %}
+                {% for item in order_items %}
                 <div class="order-item">
                     <div class="row align-items-center">
-                        <!-- Order Details -->
-                        <div class="col-md-8">
-                            <h5 class="mb-2">Order ID: <span class="order-id">#{{ order.id }}</span></h5>
-                            <p class="mb-0">Ordered on {{ order.created_at|date:"d M Y" }}</p>
-                            <p class="mb-0">Total Price: ₹{{ order.total_price }}</p>
+                        <!-- Product Image -->
+                        <div class="col-md-2">
+                            <img src="{{ item.product.images.first.image.url }}" class="img-fluid rounded product-image"
+                                alt="{{ item.product.name }}">
+                        </div>
+
+                        <!-- Product Details -->
+                        <div class="col-md-6">
+                            <h5 class="mb-2" title="{{ item.product.name }}">
+                                {{ item.product.name|slice:":50" }}{% if item.product.name|length > 50 %}...{% endif %}
+                            </h5>
+                            <p class="mb-1">
+                                <span class="text-muted">Color:</span> {{ item.product_variant.color }} |
+                                <span class="text-muted">Size:</span> {{ item.product_variant.size }}
+                            </p>
                             <p class="mb-0">
-                                <span class="status-dot status-{{ order.status }}"></span>
-                                {{ order.get_status_display }}
+                                <span class="text-muted">Price:</span> ₹{{ item.price }}
+                            </p>
+                            <p class="mb-0">
+                                <span class="status-dot status-{{ item.status }}"></span>
+                                {{ item.get_status_display }}
                             </p>
                         </div>
 
                         <!-- Actions -->
                         <div class="col-md-4 text-end">
-                            {% if order.status in 'completed' %}
-                            <a href="{% url 'download_invoice' order.id %}"
-                                class="btn btn-success btn-download-invoice">Download Invoice
-                            </a>
-                            {% endif %}
-                            <a href="{% url 'order_items' order.id %}"
-                                class="btn btn-primary btn-view-details me-2">View Items
-                            </a>
+                            <a href="{% url 'user_order_details' item.id %}"
+                                class="btn btn-primary btn-view-details me-2">View Details</a>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
                 <!-- Pagination-->
                 <div class="pagination">
-                    {% if orders.has_previous %}
-                    <a href="?page={{ orders.previous_page_number }}">Previous</a>
+                    {% if order_items.has_previous %}
+                    <a href="?page={{ order_items.previous_page_number }}">Previous</a>
                     {% else %}
                     <span class="disabled">Previous</span>
                     {% endif %}
     
                     <span class="current">
-                        Page {{ orders.number }} of {{ orders.paginator.num_pages }}
+                        Page {{ order_items.number }} of {{ order_items.paginator.num_pages }}
                     </span>
     
-                    {% if wishlist_items.has_next %}
-                    <a href="?page={{ orders.next_page_number }}">Next</a>
+                    {% if order_items.has_next%}
+                    <a href="?page={{ order_items.next_page_number }}">Next</a>
                     {% else %}
                     <span class="disabled">Next</span>
                     {% endif %}
@@ -289,8 +299,8 @@
                 {% else %}
                 <div class="text-center py-5">
                     <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
-                    <h5 class="mt-3 text-muted">No Orders Found</h5>
-                    <p class="text-muted">You haven't placed any orders yet.</p>
+                    <h5 class="mt-3 text-muted">No Items Found</h5>
+                    <p class="text-muted">This order has no items.</p>
                 </div>
                 {% endif %}
             </div>

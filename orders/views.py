@@ -18,6 +18,7 @@ from weasyprint import HTML
 from django.http import JsonResponse
 
 
+
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
 
@@ -245,9 +246,39 @@ def order_success(request):
 
 @login_required
 def user_orders(request):
-    # Fetch all order items for the user, grouped by order
-    order_items = OrderItem.objects.filter(order__user=request.user).order_by('-order__created_at')
-    return render(request, 'user/orders_list.html', {'order_items': order_items})
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(orders, 10)  # Show 10 orders per page
+
+    try:
+        orders = paginator.page(page)
+    except PageNotAnInteger:
+        orders = paginator.page(1)
+    except EmptyPage:
+        orders = paginator.page(paginator.num_pages)
+
+    return render(request, 'user/orders_list.html', {'orders': orders})
+
+
+@login_required
+def order_items(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order_items = order.items.all()
+    
+    # Pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(order_items, 10)  # Show 10 items per page
+
+    try:
+        order_items = paginator.page(page)
+    except PageNotAnInteger:
+        order_items = paginator.page(1)
+    except EmptyPage:
+        order_items = paginator.page(paginator.num_pages)
+
+    return render(request, 'user/order_items.html', {'order': order, 'order_items': order_items})
 
 
 @login_required
