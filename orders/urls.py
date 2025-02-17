@@ -3,7 +3,7 @@ from .views import (
     place_order, order_success, 
     user_orders, user_order_details, cancel_order_item, 
     order_management, admin_order_details, update_order_status,
-    request_return, download_invoice, order_items
+    request_return, download_invoice, order_items, retry_payment, retry_order_success
 )
 
 urlpatterns = [
@@ -18,4 +18,6 @@ urlpatterns = [
     path('admin/orders/<str:order_id>/', admin_order_details, name='admin_order_details'),
     path('admin/orders/<str:order_id>/update-status/', update_order_status, name='update_order_status'),
     path('download-invoice/<str:order_id>/', download_invoice, name='download_invoice'),
+    path('retry-payment/<str:order_id>/', retry_payment, name='retry_payment'),
+    path('retry-success/<str:order_id>/', retry_order_success, name='retry_order_success'),
 ]

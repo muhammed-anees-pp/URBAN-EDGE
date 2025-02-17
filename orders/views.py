@@ -11,16 +11,20 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.contrib import messages
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from wallet.models import Wallet, WalletTransaction
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from payments.views import initiate_retry_payment
+
 
 
 
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
+
 
 @login_required
 def place_order(request):
@@ -124,10 +128,26 @@ def place_order(request):
                 if wallet.balance < grand_total:
                     return JsonResponse({"error": "Insufficient funds in wallet."}, status=400)
 
+            # Determine payment and order status based on payment method
+            if payment_method == "COD":
+                payment_status = 'Pending'
+                order_status = 'pending'
+                order_item_status = 'order_placed'
+            elif payment_method == "wallet":
+                payment_status = 'Paid'
+                order_status = 'pending'
+                order_item_status = 'order_placed'
+            elif payment_method == "razorpay":
+                payment_status = 'Pending'
+                order_status = 'processing'
+                order_item_status = 'processing'
+
             order = Order.objects.create(
                 user=user,
                 shipping_address=shipping_address,
                 payment_method=payment_method,
+                payment_status=payment_status,
+                status=order_status,
                 total_price=grand_total,
                 coupon=coupon if coupon_code else None,
             )
@@ -146,6 +166,7 @@ def place_order(request):
                         product=item.product_variant.product,
                         product_variant=item.product_variant,
                         quantity=1,
+                        status=order_item_status,
                         price=price,
                     )
 
@@ -194,6 +215,8 @@ def place_order(request):
 
 
 
+
+@login_required
 def order_success(request):
     latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
     
@@ -239,6 +262,7 @@ def order_success(request):
         'grand_total': grand_total,
         'coupon_discount': coupon_discount if latest_order.coupon else Decimal('0.00'),  # Only show discount if coupon was applied
         'payment_status': latest_order.payment_status,
+        'show_retry_button': latest_order.payment_status == 'Pending' and latest_order.payment_method == 'razorpay',
     }
     
     return render(request, 'user/order_confirm.html', context)
@@ -452,7 +476,6 @@ def request_return(request, item_id):
     return render(request, 'user/return_reason.html', {'order_item': order_item})
 
 
-
 def download_invoice(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     order_items = order.items.all()
@@ -569,6 +592,7 @@ def admin_order_details(request, order_id):
         'status_choices': status_choices,
         'coupon_discount': coupon_discount,
     })
+
 
 @user_passes_test(is_admin)
 @require_POST
@@ -695,3 +719,71 @@ def update_order_status(request, order_id):
         "message": "Order item status updated successfully.",
         "redirect_url": reverse('admin_order_details', args=[order.id])
     })
+
+
+"""
+RETRY PAYMENT FOR RAZORPAY FAILED PAYMENTS
+"""
+@csrf_exempt
+def retry_payment(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    if request.method == "POST":
+        # Store cart details in session for retry payment
+        request.session['retry_payment_details'] = {
+            'order_id': order.id,
+            'shipping_address_id': order.shipping_address.id,
+            'payment_method': order.payment_method,
+            'total_price': str(order.total_price),
+            'cart_items': [{'product_variant_id': item.product_variant.id, 'quantity': item.quantity} for item in order.items.all()],
+            'coupon_code': order.coupon.coupon_code if order.coupon else None,
+            'coupon_discount': '0.00',
+        }
+        return initiate_retry_payment(request)
+    
+    # If it's a GET request, render a confirmation page
+    context = {
+        'order': order,
+    }
+    return render(request, 'user/retry_payment_confirmation.html', context)
+
+
+"""
+RETRY ORDER SUCCESS PAGE
+"""
+@login_required
+def retry_order_success(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order_items = order.items.all()
+    
+    total_listed_price = Decimal('0.00')
+    total_offer_price = Decimal('0.00')
+    for item in order_items:
+        listed_price = Decimal(str(item.product.price))
+        offer_price = Decimal(str(item.product.offer)) if item.product.offer else listed_price
+        quantity = Decimal(str(item.quantity))
+        total_listed_price += listed_price * quantity
+        total_offer_price += offer_price * quantity
+    
+    discounted_amount = total_listed_price - total_offer_price
+    delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
+    grand_total = order.total_price
+
+    coupon_discount = Decimal('0.00')
+    if order.coupon:
+        coupon_discount = (order.coupon.discount_percentage / Decimal('100.00')) * total_offer_price
+    
+    context = {
+        'order_number': order.id,
+        'order_items': order_items,
+        'total_listed_price': total_listed_price,
+        'total_offer_price': total_offer_price,
+        'discounted_amount': discounted_amount,
+        'delivery_charge': delivery_charge,
+        'grand_total': grand_total,
+        'coupon_discount': coupon_discount,
+        'payment_status': order.payment_status,
+        'show_retry_button': False  # Disable retry button on this page
+    }
+    
+    return render(request, 'user/retry_order_confirm.html', context)

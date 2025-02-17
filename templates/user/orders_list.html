@@ -261,6 +261,11 @@
                                 class="btn btn-success btn-download-invoice">Download Invoice
                             </a>
                             {% endif %}
+                            {% if order.payment_status == 'Processing' and order.payment_method == 'razorpay' %}
+                            <a href="{% url 'retry_payment' order.id %}" class="btn btn-warning">
+                                <i class="bi bi-arrow-repeat me-2"></i>Retry Payment
+                            </a>
+                            {% endif %}
                             <a href="{% url 'order_items' order.id %}"
                                 class="btn btn-primary btn-view-details me-2">View Items
                             </a>
@@ -275,12 +280,12 @@
                     {% else %}
                     <span class="disabled">Previous</span>
                     {% endif %}
-    
+
                     <span class="current">
                         Page {{ orders.number }} of {{ orders.paginator.num_pages }}
                     </span>
-    
-                    {% if wishlist_items.has_next %}
+
+                    {% if orders.has_next %}
                     <a href="?page={{ orders.next_page_number }}">Next</a>
                     {% else %}
                     <span class="disabled">Next</span>

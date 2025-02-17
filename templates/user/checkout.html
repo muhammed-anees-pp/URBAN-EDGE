@@ -160,7 +160,8 @@
                     {% if coupon_discount %}
                     <div class="d-flex align-items-center gap-2">
                         <a href="{% url 'remove_coupon' %}" class="btn btn-sm btn-outline-danger">Remove</a>
-                        <span class="text-success">Coupon Applied: {{ request.session.coupon_code }} ₹{{ coupon_discount }} off</span>
+                        <span class="text-success">Coupon Applied: {{ request.session.coupon_code }} ₹{{ coupon_discount
+                            }} off</span>
 
                     </div>
                     {% endif %}
@@ -343,8 +344,9 @@
 </div>
 {% endblock %}
 
+
 {% block extra_js %}
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
     let selectedAddressId = "{{ default_address.id|default:'' }}";
     const addressModal = new bootstrap.Modal(document.getElementById('addressModal'));
@@ -403,6 +405,11 @@
     });
 
 
+</script>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
     function placeOrder() {
         const paymentMethodElements = document.getElementsByName("payment_method");
         let paymentMethod;
@@ -465,6 +472,7 @@
                             name: "URBAN EDGE",
                             order_id: data.razorpay_order_id,
                             handler: function (response) {
+                                const djangoOrderId = data.django_order_id;  // From initiate_payment response
                                 fetch("{% url 'paymenthandler' %}", {
                                     method: "POST",
                                     headers: {
@@ -477,13 +485,23 @@
                                         'razorpay_signature': response.razorpay_signature
                                     })
                                 })
-                                    .then(() => {
-                                        window.location.href = data.callback_url;
+                                    .then(response => {
+                                        if (response.ok) {
+                                            window.location.href = data.callback_url;
+                                        } else {
+                                            window.location.href = data.callback_url;
+                                        }
                                     })
                                     .catch(error => {
                                         console.error('Error:', error);
                                         document.getElementById("error-message").innerText = "Error processing payment.";
                                     });
+                            },
+                            modal: {
+                                ondismiss: function() {
+                                    // Redirect to payment failure URL when the modal is dismissed
+                                    window.location.href = data.callback_url;
+                                }
                             },
                             prefill: {
                                 name: "{{ request.user.username }}",
@@ -517,7 +535,8 @@
             document.getElementById('place-order-form').submit();
         }
     }
-
-
 </script>
+
+
+
 {% endblock %}

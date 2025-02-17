@@ -14,6 +14,7 @@ def generate_order_id():
 
 class Order(models.Model):
     ORDER_STATUS_CHOICES = [
+        ('processing', 'Processing'),
         ('pending', 'Pending'),
         ('completed', 'Completed'),
         ('canceled', 'Canceled'),
@@ -28,9 +29,11 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=20, default='Pending')  # Add this line
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     discount_applied = models.BooleanField(default=False)
-    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='processing')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    retry_payment_attempts = models.PositiveIntegerField(default=0)  # Add this line
+
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
@@ -80,6 +83,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     ORDER_ITEM_STATUS_CHOICES = [
+        ('processing', 'Processing'),
         ('order_placed', 'Order Placed'),
         ('shipped', 'Shipped'),
         ('out_for_delivery', 'Out For Delivery'),
@@ -96,7 +100,7 @@ class OrderItem(models.Model):
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=ORDER_ITEM_STATUS_CHOICES, default='order_placed')
+    status = models.CharField(max_length=20, choices=ORDER_ITEM_STATUS_CHOICES, default='processing')
     cancel_reason = models.TextField(blank=True, null=True)
     return_reason = models.TextField(blank=True, null=True)
     return_requested_at = models.DateTimeField(blank=True, null=True)
@@ -108,6 +112,7 @@ class OrderItem(models.Model):
 
     def can_update_status(self, new_status):
         allowed_transitions = {
+            'processing': ['order_placed'],
             'order_placed': ['shipped', 'canceled'],
             'shipped': ['out_for_delivery', 'canceled'],
             'out_for_delivery': ['delivered', 'canceled'],
