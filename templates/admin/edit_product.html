@@ -208,14 +208,6 @@
                                                 <div class="error-message">Price must be greater than zero.</div>
                                             {% endif %}
                                         </div>
-                                        <div class="form-group">
-                                            <label for="offer">Offer</label>
-                                            <input type="number" class="form-control {% if 'Offer must be a positive number and less than the price.' in errors %}is-invalid{% endif %}" id="offer" name="offer" step="0.01" min="0"
-                                                value="{{ form_data.offer|default:product.offer }}">
-                                            {% if 'Offer must be a positive number and less than the price.' in errors %}
-                                                <div class="error-message">Offer must be a positive number and less than the price.</div>
-                                            {% endif %}
-                                        </div>
                                         <div class="mt-4">
                                             <button type="submit" class="btn btn-success">Update Product</button>
                                             <a href="{% url 'product_management' %}" class="btn btn-secondary">Cancel</a>

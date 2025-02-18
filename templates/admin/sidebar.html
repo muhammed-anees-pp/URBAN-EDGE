@@ -18,20 +18,16 @@
             <i class="mdi mdi-laptop" style="color: #03a9f4;"></i>
             <span>Products</span>
         </a>
-        <!-- <a href="#" class="nav-item {% if request.path == '/offers/' %}active{% endif %}">
-            <i class="lucide-gift" style="color: #e91e63;"></i>
-            <span>Offers</span>
-        </a> -->
         <a href="{% url 'order_management' %}" class="nav-item {% if request.path == '/order_management/' %}active{% endif %}">
             <i class="mdi mdi-cart-outline" style="color: #ff5722;"></i>
             <span>Orders</span>
         </a>
-        <!-- <a href="{% url 'coupon_list' %}" class="nav-item {% if request.path == '/coupon_list/' %}active{% endif %}">
-            <i class="mdi mdi-cart-outline" style="color: #ff5722;"></i>
-            <span>Coupons</span>
-        </a> -->
+        <a href="{% url 'offer_management' %}" class="nav-item {% if request.path == '/offer_management/' %}active{% endif %}">
+            <i class="mdi mdi-tag-outline" style="color: #ffeb3b;"></i> <!-- Changed icon and color -->
+            <span>Offer</span>
+        </a> 
         <a href="{% url 'coupon_list' %}" class="nav-item {% if request.path == '/coupon_list/' %}active{% endif %}">
-            <i class="mdi mdi-ticket" style="color: #e91e63;"></i> <!-- Changed icon and color -->
+            <i class="mdi mdi-ticket" style="color: #e91e63;"></i>
             <span>Coupons</span>
         </a>
     </div>
@@ -111,8 +107,9 @@
     .nav-item.active {
         background: #2d3035;
         color: #ffffff;
-        border-left: 2px solid #3699ff;
+        border-left: 4px solid #3699ff; /* Thicker border for active link */
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-weight: bold; /* Bold text for active link */
     }
 
     .nav-item.logout {
