@@ -86,9 +86,15 @@ def place_order(request):
                 if coupon.is_valid() and total_offer_price >= coupon.minimum_purchase_amount:
                     if not CouponUsage.objects.filter(user=user, coupon=coupon).exists():
                         coupon_discount = (coupon.discount_percentage / Decimal('100.00')) * total_offer_price
-                        grand_total -= coupon_discount
-                        # Add coupon discount to the total discount amount
-                        discounted_amount += coupon_discount
+                        if coupon_discount > coupon.max_discount_amount:
+                            grand_total -= coupon.max_discount_amount
+                            discounted_amount += coupon.max_discount_amount
+                            coupon_discount = coupon.max_discount_amount
+                        else:
+                            grand_total -= coupon_discount
+                            # Add coupon discount to the total discount amount
+                            discounted_amount += coupon_discount
+                        
             except Coupon.DoesNotExist:
                 pass
 
@@ -163,6 +169,9 @@ def place_order(request):
                 status=order_status,
                 total_price=grand_total,
                 coupon=coupon if coupon_code else None,
+                discount_coupon_amount = coupon_discount,
+                balance_refund = coupon_discount,
+
             )
 
             for item in cart_items:
@@ -280,13 +289,13 @@ def order_success(request):
     
     context = {
         'order_number': latest_order.id,
-        'order_items': order_items,
-        'total_listed_price': total_listed_price,
-        'total_offer_price': total_offer_price,
-        'discounted_amount': discounted_amount,
-        'delivery_charge': delivery_charge,
+        # 'order_items': order_items,
+        # 'total_listed_price': total_listed_price,
+        # 'total_offer_price': total_offer_price,
+        # 'discounted_amount': discounted_amount,
+        # 'delivery_charge': delivery_charge,
         'grand_total': grand_total,
-        'coupon_discount': coupon_discount if latest_order.coupon else Decimal('0.00'),  # Only show discount if coupon was applied
+        # 'coupon_discount': coupon_discount if latest_order.coupon else Decimal('0.00'),  # Only show discount if coupon was applied
         'payment_status': latest_order.payment_status,
         'show_retry_button': latest_order.payment_status == 'Processing' and latest_order.payment_method == 'razorpay',
     }
@@ -373,7 +382,14 @@ def user_order_details(request, item_id):
     coupon_discount = Decimal('0.00')
     if order.coupon:
         coupon_discount = (order.coupon.discount_percentage / Decimal('100.00')) * total_offer_price
-        grand_total -= coupon_discount
+        if coupon_discount > order.coupon.max_discount_amount:
+            grand_total -= order.coupon.max_discount_amount
+            discounted_amount += order.coupon.max_discount_amount
+            coupon_discount = order.coupon.max_discount_amount
+        else:
+            grand_total -= coupon_discount
+            # Add coupon discount to the total discount amount
+            discounted_amount += coupon_discount
 
     other_products_in_order = order_items.exclude(id=particular_product.id)
 
@@ -392,6 +408,8 @@ def user_order_details(request, item_id):
         'coupon_discount': coupon_discount,
         'days_since_delivery': days_since_delivery,
     })
+
+
 
 
 @login_required
@@ -420,6 +438,9 @@ def cancel_order_item(request, item_id):
                 'return_denied'
             ]
 
+            # Get all items in the order (including all status items)
+            original_order_items = order_item.order.items.all()
+
             # Filter full_order_items and remaining_order_items
             full_order_items = OrderItem.objects.filter(
                 order=order_item.order,
@@ -431,6 +452,7 @@ def cancel_order_item(request, item_id):
                 order=order_item.order,
                 status__in=desired_statuses
             ).exclude(id=order_item.id)
+
             remaining_total_price = sum(item.price * item.quantity for item in remaining_order_items)
 
             coupon = order_item.order.coupon
@@ -439,18 +461,41 @@ def cancel_order_item(request, item_id):
             if coupon:
                 total_discount = (coupon.discount_percentage / Decimal('100.00')) * full_total_price
 
-                if remaining_total_price < coupon.minimum_purchase_amount:
-                    if not order_item.order.discount_applied:
-                        refund_amount = (order_item.price * order_item.quantity) - total_discount
-                        order_item.order.discount_applied = True
+                order_total_coupon_discount = order_item.order.discount_coupon_amount
+
+                # Distribute the discount evenly across all items in the original order
+                discount_per_item = order_total_coupon_discount / len(original_order_items)
+
+                if order_total_coupon_discount == coupon.max_discount_amount:
+                    print("Entering 1")
+                    if remaining_total_price < coupon.minimum_purchase_amount:
+                        print("Entering 2")
+                        balance_refund_amount = order_item.order.balance_refund
+                        if balance_refund_amount == 0:
+                            print("Entering 3")
+                            refund_amount = order_item.price * order_item.quantity
+                        else:
+                            print("Entering 4")
+                            refund_amount = (order_item.price * order_item.quantity) - balance_refund_amount
+                            order_item.order.balance_refund -= balance_refund_amount
                     else:
-                        refund_amount = order_item.price * order_item.quantity
+                        print("Entering 5")
+                        refund_amount = (order_item.price * order_item.quantity) - discount_per_item
+                        order_item.order.balance_refund -= discount_per_item
                 else:
-                    refund_amount = (order_item.price * order_item.quantity) - (
-                        (coupon.discount_percentage / Decimal('100.00')) *
-                        order_item.price *
-                        order_item.quantity
-                    )
+                    print("Condition 21")
+                    if remaining_total_price < coupon.minimum_purchase_amount:
+                        if not order_item.order.discount_applied:
+                            refund_amount = (order_item.price * order_item.quantity) - total_discount
+                            order_item.order.discount_applied = True
+                        else:
+                            refund_amount = order_item.price * order_item.quantity
+                    else:
+                        refund_amount = (order_item.price * order_item.quantity) - (
+                            (coupon.discount_percentage / Decimal('100.00')) *
+                            order_item.price *
+                            order_item.quantity
+                        )
                 order_item.order.save()
             else:
                 refund_amount = order_item.price * order_item.quantity
@@ -752,7 +797,7 @@ def admin_order_details(request, order_id):
         'order': order,
         'order_items': order_items,
         'status_choices': status_choices,
-        'coupon_discount': coupon_discount,
+        #'coupon_discount': coupon_discount,
     })
 
 
@@ -810,6 +855,9 @@ def update_order_status(request, order_id):
             'return_denied'
         ]
 
+        # Get all items in the order (including all status items)
+        original_order_items = order_item.order.items.all()
+
         # Filter full_order_items and remaining_order_items
         full_order_items = OrderItem.objects.filter(
             order=order_item.order,
@@ -821,6 +869,7 @@ def update_order_status(request, order_id):
             order=order_item.order,
             status__in=desired_statuses
         ).exclude(id=order_item.id)
+
         remaining_total_price = sum(item.price * item.quantity for item in remaining_order_items)
 
         coupon = order_item.order.coupon
@@ -829,23 +878,45 @@ def update_order_status(request, order_id):
         if coupon:
             total_discount = (coupon.discount_percentage / Decimal('100.00')) * full_total_price
 
-            if remaining_total_price < coupon.minimum_purchase_amount:
-                if not order_item.order.discount_applied:
-                    refund_amount = (order_item.price * order_item.quantity) - total_discount
-                    order_item.order.discount_applied = True
-                    print(f"Before saving: discount_applied={order_item.order.discount_applied}")
-                    order_item.order.save(update_fields=['discount_applied'])  # Ensure only this field updates
-                    order_item.order.refresh_from_db()  # Force refresh from DB
-                    print(f"Final discount_applied value in DB: {order.discount_applied}")
-                    print(f"After saving: discount_applied={order_item.order.discount_applied}")
-                else:
-                    refund_amount = order_item.price * order_item.quantity
+            order_total_coupon_discount = order_item.order.discount_coupon_amount
+
+            # Distribute the discount evenly across all items in the original order
+            discount_per_item = order_total_coupon_discount / len(original_order_items)
+            if order_total_coupon_discount == coupon.max_discount_amount:
+                    print("Entering 1")
+                    if remaining_total_price < coupon.minimum_purchase_amount:
+                        print("Entering 2")
+                        balance_refund_amount = order_item.order.balance_refund
+                        if balance_refund_amount == 0:
+                            print("Entering 3")
+                            refund_amount = order_item.price * order_item.quantity
+                        else:
+                            print("Entering 4")
+                            refund_amount = (order_item.price * order_item.quantity) - balance_refund_amount
+                            order_item.order.balance_refund -= balance_refund_amount
+                    else:
+                        print("Entering 5")
+                        refund_amount = (order_item.price * order_item.quantity) - discount_per_item
+                        order_item.order.balance_refund -= discount_per_item
             else:
-                refund_amount = (order_item.price * order_item.quantity) - (
-                    (coupon.discount_percentage / Decimal('100.00')) *
-                    order_item.price *
-                    order_item.quantity
-                )
+                print("Condition 21")
+                if remaining_total_price < coupon.minimum_purchase_amount:
+                    if not order_item.order.discount_applied:
+                        refund_amount = (order_item.price * order_item.quantity) - total_discount
+                        order_item.order.discount_applied = True
+                        print(f"Before saving: discount_applied={order_item.order.discount_applied}")
+                        order_item.order.save(update_fields=['discount_applied'])  # Ensure only this field updates
+                        order_item.order.refresh_from_db()  # Force refresh from DB
+                        print(f"Final discount_applied value in DB: {order.discount_applied}")
+                        print(f"After saving: discount_applied={order_item.order.discount_applied}")
+                    else:
+                        refund_amount = order_item.price * order_item.quantity
+                else:
+                    refund_amount = (order_item.price * order_item.quantity) - (
+                        (coupon.discount_percentage / Decimal('100.00')) *
+                        order_item.price *
+                        order_item.quantity
+                    )
             order_item.order.save()
         else:
             refund_amount = order_item.price * order_item.quantity

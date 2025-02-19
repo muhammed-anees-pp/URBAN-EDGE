@@ -656,10 +656,18 @@
                     <span>₹{{ total_offer_price|floatformat:2 }}</span>
                 </div>
 
+                <!-- Coupon Discounted Amount -->
+                {% if coupon_discount %}
+                <div class="price-row">
+                    <span>Coupon Disocount</span>
+                    <span class="text-success">₹{{ coupon_discount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+
                 <!-- Discounted Amount -->
                 <div class="price-row">
                     <span>You Save</span>
-                    <span class="text-success">₹{{ discounted_amount|floatformat:2}}</span>
+                    <span class="text-success">₹{{ discounted_amount|floatformat:2 }}</span>
                 </div>
 
                 <!-- Delivery Charge -->

@@ -26,13 +26,15 @@ class Order(models.Model):
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True)
     payment_method = models.CharField(max_length=20)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_status = models.CharField(max_length=20, default='Pending')  # Add this line
+    payment_status = models.CharField(max_length=20, default='Pending')
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     discount_applied = models.BooleanField(default=False)
+    discount_coupon_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    balance_refund = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) 
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='processing')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    retry_payment_attempts = models.PositiveIntegerField(default=0)  # Add this line
+    retry_payment_attempts = models.PositiveIntegerField(default=0) 
 
 
     def __str__(self):
@@ -72,7 +74,7 @@ class Order(models.Model):
                 self.status = 'completed'
             else:
                 print("Mixed final states. Setting order status to 'completed'.")
-                self.status = 'completed'  # Or 'partially_completed' if you want to be more specific
+                self.status = 'completed' 
         else:
             print("Not all items are in final states. Setting order status to 'pending'.")
             self.status = 'pending'

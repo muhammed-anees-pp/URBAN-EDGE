@@ -123,7 +123,12 @@ def initiate_payment(request):
                     if coupon.is_valid() and total_offer_price >= coupon.minimum_purchase_amount:
                         if not CouponUsage.objects.filter(user=user, coupon=coupon).exists():
                             coupon_discount = (coupon.discount_percentage / Decimal('100.00')) * total_offer_price
-                            grand_total -= coupon_discount
+                            if coupon_discount > coupon.max_discount_amount:
+                                grand_total -= coupon.max_discount_amount
+                                coupon_discount = coupon.max_discount_amount
+                            else:
+                                grand_total -= coupon_discount
+                            
                 except Coupon.DoesNotExist:
                     pass
 
@@ -136,6 +141,8 @@ def initiate_payment(request):
                 payment_status='Processing',
                 status='processing',
                 coupon=coupon if coupon_code else None,
+                discount_coupon_amount = coupon_discount,
+                balance_refund = coupon_discount,
             )
 
             # Store order items and update stock
@@ -241,6 +248,8 @@ def create_order(request):
             total_price=total_price,
             payment_status='Paid' if payment_method != 'COD' else 'Pending',
             coupon=Coupon.objects.get(coupon_code=coupon_code) if coupon_code else None,
+            discount_coupon_amount = coupon_discount,
+            balance_refund = coupon_discount,
         )
 
         # Store order items

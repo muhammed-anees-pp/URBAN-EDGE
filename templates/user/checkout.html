@@ -157,7 +157,7 @@
                     {% if coupon_discount %}
                     <div class="d-flex align-items-center gap-2">
                         <a href="{% url 'remove_coupon' %}" class="btn btn-sm btn-outline-danger">Remove</a>
-                        <span class="text-success">Coupon Applied: {{ request.session.coupon_code }} ₹{{ coupon_discount }} off</span>
+                        <span class="text-success">Coupon Applied: {{ request.session.coupon_code }} ₹{{ coupon_discount|floatformat:2 }} off</span>
                     </div>
                     {% endif %}
 
@@ -514,12 +514,12 @@
                         const rzp1 = new Razorpay(options);
                         rzp1.open();
                     } else {
-                        document.getElementById("error-message").innerText = "Error initiating payment.";
+                        document.getElementById("error-message").innerText = "Error initiating payment 1.";
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    document.getElementById("error-message").innerText = "Error initiating payment.";
+                    document.getElementById("error-message").innerText = "Error initiating payment 2.";
                 })
                 .finally(() => {
                     placeOrderButton.disabled = false;
