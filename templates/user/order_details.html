@@ -548,11 +548,11 @@
                                 </td>
                                 <td>{{ particular_product.product_variant.color }}</td>
                                 <td>{{ particular_product.product_variant.size }}</td>
-                                {% if particular_product.product.offer %}
-                                <td>₹{{ particular_product.product.price }}</td>
-                                <td>₹{{ particular_product.product.offer }}</td>
+                                {% if particular_product.product.best_offer_price %}
+                                <td>₹{{ particular_product.product.price|floatformat:2 }}</td>
+                                <td>₹{{ particular_product.product.best_offer_price|floatformat:2 }}</td>
                                 {% else %}
-                                <td>₹{{ particular_product.product.price }}</td>
+                                <td>₹{{ particular_product.product.price|floatformat:2 }}</td>
                                 <td>No offer</td>
                                 {% endif %}
                             </tr>
@@ -573,7 +573,7 @@
                     <a href="{% url 'user_orders' %}" class="back-btn">
                         <i class="bi me-2 back"></i>Back to Orders
                     </a>
-                    {% if particular_product.status != 'out_for_delivery' and particular_product.status != 'delivered' and particular_product.status != 'canceled' and particular_product.status != 'return_requested' and particular_product.status != 'returned' and particular_product.status != 'return_denied' %}
+                    {% if particular_product.status != 'processing' and particular_product.status != 'out_for_delivery' and particular_product.status != 'delivered' and particular_product.status != 'canceled' and particular_product.status != 'return_requested' and particular_product.status != 'returned' and particular_product.status != 'return_denied' %}
                     <a href="{% url 'cancel_order_item' particular_product.id %}" class="cancel-btn">
                         <i class="bi me-2 cancel"></i>Cancel Product
                     </a>
@@ -582,7 +582,7 @@
                         href="{% url 'request_return' particular_product.id %}" class="return-btn">
                         <i class="bi bi-arrow-return-left"></i> Request Return
                         </a>
-                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
 
@@ -619,11 +619,11 @@
                                 </td>
                                 <td>{{ item.product_variant.color }}</td>
                                 <td>{{ item.product_variant.size }}</td>
-                                {% if item.product.offer %}
-                                <td>₹{{ item.product.price }}</td>
-                                <td>₹{{ item.product.offer }}</td>
+                                {% if item.product.best_offer_price %}
+                                <td>₹{{ item.product.price|floatformat:2 }}</td>
+                                <td>₹{{ item.product.best_offer_price|floatformat:2 }}</td>
                                 {% else %}
-                                <td>{{ item.product.price }}</td>
+                                <td>{{ item.product.price|floatformat:2 }}</td>
                                 <td>No offer</td>
                                 {% endif %}
                                 <!-- <td>{{ item.get_status_display }}</td> -->
@@ -647,19 +647,19 @@
                 <!-- Total Listed Price -->
                 <div class="price-row">
                     <span>Total Listed Price</span>
-                    <span>₹{{ total_listed_price }}</span>
+                    <span>₹{{ total_listed_price|floatformat:2 }}</span>
                 </div>
 
                 <!-- Total Offer Price -->
                 <div class="price-row">
                     <span>Total Offer Price</span>
-                    <span>₹{{ total_offer_price }}</span>
+                    <span>₹{{ total_offer_price|floatformat:2 }}</span>
                 </div>
 
                 <!-- Discounted Amount -->
                 <div class="price-row">
                     <span>You Save</span>
-                    <span class="text-success">-₹{{ discounted_amount }}</span>
+                    <span class="text-success">₹{{ discounted_amount|floatformat:2}}</span>
                 </div>
 
                 <!-- Delivery Charge -->
@@ -675,7 +675,7 @@
                 <!-- Grand Total -->
                 <div class="price-row total-row">
                     <span>Total Amount</span>
-                    <span>₹{{ grand_total }}</span>
+                    <span>₹{{ grand_total|floatformat:2 }}</span>
                 </div>
             </div>
         </div>

@@ -29,6 +29,7 @@
         border-radius: 15px;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         padding: 20px;
+        position: relative;
     }
 
     .product-images {
@@ -83,7 +84,6 @@
         border-radius: 50%;
         transition: background-color 0.3s ease;
         z-index: 10;
-        /* Ensure buttons are above the image */
     }
 
     .scroll-button:hover {
@@ -99,7 +99,6 @@
         position: absolute;
         right: 10px;
     }
-
 
     .product-info {
         flex: 1.5;
@@ -136,19 +135,15 @@
         margin-bottom: 20px;
     }
 
-
     .variant-selection {
         display: flex;
         flex-direction: column;
-        /* Change to column layout */
         gap: 8px;
-        /* Reduced gap between dropdowns */
         margin-bottom: 15px;
     }
 
     .dropdown {
         width: 25%;
-        /* Ensure dropdowns take full width */
     }
 
     .dropdown label {
@@ -160,17 +155,13 @@
 
     .dropdown select {
         width: 100%;
-        /* Ensure dropdowns take full width */
         padding: 8px;
-        /* Slightly reduced padding */
         font-size: 0.9rem;
-        /* Adjusted font size */
         border-radius: 8px;
         border: 1px solid #ddd;
         background-color: #f9f9f9;
         transition: border-color 0.3s ease, box-shadow 0.3s ease;
         appearance: none;
-        /* Remove default arrow */
         background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007bff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
         background-repeat: no-repeat;
         background-position: right 8px center;
@@ -182,19 +173,15 @@
         box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
     }
 
-    /* Updated Button Styles */
     .wishlist-cart {
         display: flex;
         gap: 15px;
-        /* Increased gap */
         margin-top: 20px;
     }
 
     .wishlist-cart button {
         padding: 12px 20px;
-        /* Increased padding */
         font-size: 1rem;
-        /* Increased font size */
         border-radius: 8px;
         border: none;
         cursor: pointer;
@@ -220,42 +207,6 @@
         background-color: #e67e22;
         transform: translateY(-2px);
     }
-
-    /* Scrollable Thumbnail Images */
-    .thumbnail-images {
-        display: flex;
-        overflow-x: auto;
-        gap: 10px;
-        margin-top: 15px;
-        padding-bottom: 10px;
-        scrollbar-width: thin;
-        /* For Firefox */
-        scrollbar-color: #007bff #f4f4f4;
-        /* For Firefox */
-    }
-
-    .thumbnail-images::-webkit-scrollbar {
-        height: 8px;
-        /* Scrollbar height */
-    }
-
-    .thumbnail-images::-webkit-scrollbar-track {
-        background: #f4f4f4;
-        /* Track color */
-        border-radius: 4px;
-    }
-
-    .thumbnail-images::-webkit-scrollbar-thumb {
-        background: #007bff;
-        /* Thumb color */
-        border-radius: 4px;
-    }
-
-    .thumbnail-images::-webkit-scrollbar-thumb:hover {
-        background: #0056b3;
-        /* Thumb hover color */
-    }
-
 
     .related-products {
         width: 100%;
@@ -288,6 +239,7 @@
         text-align: center;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         overflow: hidden;
+        position: relative;
     }
 
     .product img {
@@ -383,16 +335,6 @@
         color: #e4e5e9;
     }
 
-
-    .rating-stars-input .star {
-        cursor: pointer;
-        color: #e9e9e4;
-    }
-
-    .rating-stars-input .star.filled {
-        color: #ffc107;
-    }
-
     .reviews-section {
         margin-top: 30px;
         padding: 15px;
@@ -421,7 +363,6 @@
         cursor: pointer;
         text-decoration: none;
     }
-
 
     .btn-rate-product {
         margin-top: 15px;
@@ -509,16 +450,34 @@
     }
 
     .alert-success {
-    color: green;
-}
+        color: green;
+    }
 
-.alert-error {
-    color: red;
-}
+    .alert-error {
+        color: red;
+    }
+
+    .offer-badge-container {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: #ff5252;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 10;
+    }
 </style>
 
 <div class="container">
     <div class="product-details">
+        {% if product.has_offer %}
+            <div class="offer-badge-container">
+                <div class="offer-badge">{{ product.best_offer_percentage }}% OFF</div>
+            </div>
+        {% endif %}
         <section class="product-images" id="image-container">
             {% if product_images %}
             <div class="image-navigation">
@@ -563,11 +522,11 @@
             </div>
 
             <p class="price">
-                {% if product.offer %}
-                <span class="original">₹{{ product.price }}</span>
-                <span class="offer">₹{{ product.offer }}</span>
+                {% if product.has_offer %}
+                    <span class="original">₹{{ product.price|floatformat:2 }}</span>
+                    <span class="offer">₹{{ product.best_offer_price|floatformat:2 }}</span>
                 {% else %}
-                ₹{{ product.price }}
+                    ₹{{ product.price|floatformat:2 }}
                 {% endif %}
             </p>
             <p class="description">{{ product.description }}</p>
@@ -596,7 +555,6 @@
                 <button onclick="addToWishlist('{{ product.id }}')" class="add-to-wishlist">
                     <i class="fas fa-heart"></i> Add to Wishlist
                 </button>
-                <!-- <button class="add-to-wishlist">Add to Wishlist</button> -->
             </div>
         </div>
     </div>
@@ -612,6 +570,11 @@
         <div class="product-list">
             {% for related_product in related_products %}
             <div class="product">
+                {% if related_product.has_offer %}
+                    <div class="offer-badge-container">
+                        <div class="offer-badge">{{ related_product.best_offer_percentage }}% OFF</div>
+                    </div>
+                {% endif %}
                 <img src="{{ related_product.images.first.image.url }}" alt="{{ related_product.name }}">
                 <p class="product-name">{{ related_product.name }}</p>
                 <div class="rating-stars">
@@ -622,11 +585,11 @@
                     <span>({{ related_product.review_count }} reviews)</span>
                 </div>
                 <p class="price">
-                    {% if related_product.offer %}
-                    <span class="original">₹{{ related_product.price }}</span>
-                    <span class="offer">₹{{ related_product.offer }}</span>
+                    {% if related_product.has_offer %}
+                        <span class="original">₹{{ related_product.price|floatformat:2 }}</span>
+                        <span class="offer">₹{{ related_product.best_offer_price|floatformat:2 }}</span>
                     {% else %}
-                    ₹{{ related_product.price }}
+                        ₹{{ related_product.price|floatformat:2 }}
                     {% endif %}
                 </p>
                 <div class="wishlist-cart">
@@ -640,7 +603,6 @@
     {% endif %}
 </div>
 
-<!-- Reviews Section -->
 <!-- Reviews Section -->
 <div class="reviews-section" id="reviews-section">
     <h2>Reviews & Ratings</h2>
@@ -691,11 +653,8 @@
     {% endif %}
 </div>
 
-
-
 {% block extra_js %}
 <script>
-
     const imageContainer = document.getElementById("image-container");
     const mainImage = document.getElementById("zoom-image");
     let isZoomed = false;
@@ -748,7 +707,6 @@
         });
     }
 
-
     const colorSizeDict = JSON.parse('{{ color_size_dict|escapejs }}');
 
     function updateSizes() {
@@ -793,8 +751,6 @@
         }
     }
 
-
-
     function checkStock(color, size) {
         fetch("{% url 'check_stock' %}", {
             method: "POST",
@@ -831,7 +787,6 @@
             });
     }
 
-
     document.getElementById("size").addEventListener("change", function () {
         const selectedColor = document.getElementById("color").value;
         const selectedSize = this.value;
@@ -846,7 +801,6 @@
         const mainImage = document.getElementById('zoom-image');
         mainImage.src = imageUrl;
     }
-
 
     function addToCart(productId) {
         const color = document.getElementById("color") ? document.getElementById("color").value : null;
@@ -888,48 +842,25 @@
             });
     }
 
-//     function addToWishlist(productId) {
-//     fetch(`/wishlist/add/${productId}/`, {
-//         method: 'POST',
-//         headers: {
-//             'X-CSRFToken': '{{ csrf_token }}',
-//             'Content-Type': 'application/json'
-//         }
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         if (data.success) {
-//             alert(data.message);
-//         } else {
-//             alert(data.message);
-//         }
-//     })
-//     .catch(error => {
-//         console.error('Error:', error);
-//         alert('An error occurred while adding to wishlist.');
-//     });
-// }
-
-
-function addToWishlist(productId) {
-    fetch(`/wishlist/add/${productId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            location.reload();
-        } else {
-            console.error('Error:', response.statusText);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
+    function addToWishlist(productId) {
+        fetch(`/wishlist/add/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                console.error('Error:', response.statusText);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
 
     let currentImageIndex = 0;
 
@@ -962,39 +893,10 @@ function addToWishlist(productId) {
         });
     }
 
-
-
-    function changeImage(imageUrl) {
-        const mainImage = document.getElementById("zoom-image");
-        mainImage.src = imageUrl;
-
-        // Update the current image index
-        const thumbnails = document.querySelectorAll(".thumbnail-images img");
-        thumbnails.forEach((thumbnail, index) => {
-            if (thumbnail.src === imageUrl) {
-                currentImageIndex = index;
-            }
-        });
+    function scrollToReviews() {
+        const reviewsSection = document.getElementById("reviews-section");
+        reviewsSection.scrollIntoView({ behavior: "smooth" });
     }
-
-
-
-
-    function showPopup(message) {
-        const popup = document.getElementById("popup");
-        popup.style.display = "flex";
-        document.getElementById("text").innerText = message;
-
-        setTimeout(() => {
-            popup.style.display = "none";
-        }, 3000);
-    }
-
-
-    window.onload = function () {
-        updateSizes();
-    };
-
 </script>
 {% endblock %}
 

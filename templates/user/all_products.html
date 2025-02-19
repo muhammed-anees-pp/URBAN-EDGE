@@ -25,7 +25,7 @@
                 <input type="hidden" name="sort" value="{{ sort_option }}"> <!-- Preserve sort option -->
                 {% for category in categories %}
                 <div>
-                    <input type="checkbox" name="categories" value="{{ category.id }}" 
+                    <input type="checkbox" name="categories" value="{{ category.id }}"
                            id="category_{{ category.id }}"
                            {% if category.id in selected_categories %}checked{% endif %} />
                     <label for="category_{{ category.id }}">{{ category.category_name }}</label>
@@ -56,8 +56,8 @@
                 <select name="sort" class="sort-box" onchange="this.form.submit()">
                     <option value="name-asc" {% if sort_option == "name-asc" %}selected{% endif %}>Name: A to Z</option>
                     <option value="name-desc" {% if sort_option == "name-desc" %}selected{% endif %}>Name: Z to A</option>
-                    <option value="offer-asc" {% if sort_option == "offer-asc" %}selected{% endif %}>Price: Low to High</option>
-                    <option value="offer-desc" {% if sort_option == "offer-desc" %}selected{% endif %}>Price: High to Low</option>
+                    <option value="price-asc" {% if sort_option == "price-asc" %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price-desc" {% if sort_option == "price-desc" %}selected{% endif %}>Price: High to Low</option>
                 </select>
             </form>
         </div>
@@ -66,6 +66,9 @@
     <div class="products-grid">
         {% for item in products %}
         <div class="product-card">
+            {% if item.product.has_offer %}
+                <div class="offer-badge">{{ item.product.best_offer_percentage }}% OFF</div>
+            {% endif %}
             {% if item.first_image %}
             <img src="{{ item.first_image.image.url }}" alt="{{ item.product.name }}" />
             {% else %}
@@ -80,14 +83,13 @@
                 </div>
                 <h3>{{ item.product.name }}</h3>
                 <p class="price">
-                    {% if item.product.offer %}
-                        <span style="color: black; text-decoration: line-through;">₹{{ item.product.price }}</span>
-                        <span style="color: red;">₹{{ item.product.offer }}</span>
+                    {% if item.product.has_offer %}
+                        <span style="color: black; text-decoration: line-through;">₹{{ item.product.price|floatformat:2 }}</span>
+                        <span style="color: red;">₹{{ item.product.best_offer_price|floatformat:2 }}</span>
                     {% else %}
-                        <span style="color: black;" >₹{{ item.product.price }}</span>
+                        <span style="color: black;">₹{{ item.product.price|floatformat:2 }}</span>
                     {% endif %}
                 </p>
-
                 <a href="{% url 'product_details' item.product.id %}" class="view-details-btn">View Details</a>
             </div>
         </div>
@@ -235,6 +237,7 @@
     }
 
     .product-card {
+        position: relative;
         background-color: #fff;
         border: 1px solid #ddd;
         border-radius: 8px;
@@ -246,6 +249,19 @@
         justify-content: space-between;
         text-align: center;
         height: 500px;
+    }
+
+    .offer-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: #ff5252;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 10;
     }
 
     .product-card:hover {

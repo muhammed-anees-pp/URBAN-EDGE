@@ -262,7 +262,7 @@
                                 <span class="text-muted">Size:</span> {{ item.product_variant.size }}
                             </p>
                             <p class="mb-0">
-                                <span class="text-muted">Price:</span> ₹{{ item.price }}
+                                <span class="text-muted">Price:</span> ₹{{ item.price|floatformat:2 }}
                             </p>
                             <p class="mb-0">
                                 <span class="status-dot status-{{ item.status }}"></span>

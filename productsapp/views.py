@@ -14,63 +14,41 @@ import random
 from reviews.models import Review
 from django.http import JsonResponse
 from .models import ProductVariant
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
-
-
-#################3
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from offers.models import ProductOffer, CategoryOffer
 
 
-
-
-
-# Product List View
 @user_passes_test(is_admin)
 def product_list(request):
-    query = request.GET.get('q', '')  # Get the search query from the URL parameters
+    query = request.GET.get('q', '')
     products = Product.objects.all()
 
-    if query:  # If there is a search query
-        products = products.filter(name__icontains=query)  # Search for product names that contain the query (case-insensitive)
+    if query:
+        products = products.filter(name__icontains=query)
 
-    #####################################
-
-    for product in products:
-        product_offer = ProductOffer.objects.filter(product=product, is_active=True).first()
-        category_offer = CategoryOffer.objects.filter(category=product.category, is_active=True).first()
-
-        if product_offer and category_offer:
-            product.final_offer_price = min(
-                product.price * (1 - product_offer.discount_percentage / 100),
-                product.price * (1 - category_offer.discount_percentage / 100)
-            )
-        elif product_offer:
-            product.final_offer_price = product.price * (1 - product_offer.discount_percentage / 100)
-        elif category_offer:
-            product.final_offer_price = product.price * (1 - category_offer.discount_percentage / 100)
-        else:
-            product.final_offer_price = product.price
-
-
-
-    ##########################################
+    # Sort products to show the last added products first
+    products = products.order_by('-id')
 
     # Pagination
-    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
-    paginator = Paginator(products, 8)  # Show 8 products per page
+    page = request.GET.get('page', 1)
+    paginator = Paginator(products, 8)
 
     try:
-        products = paginator.page(page)
+        paginated_products = paginator.page(page)
     except PageNotAnInteger:
-        products = paginator.page(1)
+        paginated_products = paginator.page(1)
     except EmptyPage:
-        products = paginator.page(paginator.num_pages)
+        paginated_products = paginator.page(paginator.num_pages)
+
+    # Recalculate final_offer_price for the paginated products
+    for product in paginated_products:
+        product.final_offer_price = product.best_offer_price
 
     categories = Category.objects.all()
     return render(request, 'admin/product_list.html', {
-        'products': products,
+        'products': paginated_products,
         'categories': categories,
-        'query': query,  # Pass the query back to the template to preserve it in the search bar
+        'query': query,
     })
 
 
@@ -82,7 +60,6 @@ def create_product(request):
             'description': request.POST.get('description', ''),
             'category': request.POST.get('category', ''),
             'price': request.POST.get('price', ''),
-            #'offer': request.POST.get('offer', ''),
             'product_images': request.POST.getlist('product_images[]')  # Preserve image data
         }
 
@@ -98,15 +75,6 @@ def create_product(request):
                     errors.append("Price must be greater than zero.")
             except (InvalidOperation, ValueError):
                 errors.append("Price must be a valid decimal number.")
-
-            # offer = None
-            # if form_data['offer']:
-            #     try:
-            #         offer = Decimal(form_data['offer'])
-            #         if offer < 0 or offer >= price:
-            #             errors.append("Offer must be a positive number and less than the price.")
-            #     except (InvalidOperation, ValueError):
-            #         errors.append("Offer must be a valid decimal number.")
 
             if not name:
                 errors.append("Product name is required.")
@@ -133,7 +101,6 @@ def create_product(request):
                 description=description,
                 category=category,
                 price=price,
-                # offer=offer
             )
 
             # Process images
@@ -162,6 +129,7 @@ def create_product(request):
     categories = Category.objects.filter(is_listed=True)
     return render(request, 'admin/add_product.html', {'categories': categories})
 
+
 @user_passes_test(is_admin)
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -172,7 +140,6 @@ def edit_product(request, product_id):
             'description': request.POST.get('description', product.description),
             'category': request.POST.get('category', product.category.id if product.category else ''),
             'price': request.POST.get('price', product.price),
-            # 'offer': request.POST.get('offer', product.offer),
         }
 
         errors = []
@@ -192,15 +159,6 @@ def edit_product(request, product_id):
                     errors.append("Price must be greater than zero.")
             except (InvalidOperation, ValueError):
                 errors.append("Price must be a valid decimal number.")
-
-            # offer = None
-            # if form_data['offer']:
-            #     try:
-            #         offer = Decimal(form_data['offer'])
-            #         if offer < 0 or offer >= price:
-            #             errors.append("Offer must be a positive number and less than the price.")
-            #     except (InvalidOperation, ValueError):
-            #         errors.append("Offer must be a valid decimal number.")
 
             category_id = form_data['category']
             if not category_id:
@@ -224,7 +182,6 @@ def edit_product(request, product_id):
             product.name = name
             product.description = description
             product.price = price
-            # product.offer = offer
             product.category = category
             product.save()
 
@@ -415,8 +372,7 @@ def product_details(request, product_id):
         'related_products': related_products,
         'can_review': can_review,
     }
-    return render(request, 'product_details.html', context)
-
+    return render(request, 'user/product_details.html', context)
 
 def category_products(request, category_id):
     category = get_object_or_404(Category, id=category_id, is_listed=True)
@@ -433,14 +389,10 @@ def category_products(request, category_id):
         products = products.order_by('name')  # Sort A to Z
     elif sort_option == 'name-desc':
         products = products.order_by('-name')  # Sort Z to A
-    elif sort_option == 'price-asc':  # Sort by MRP Low to High
+    elif sort_option == 'price-asc':  # Sort by price Low to High
         products = products.order_by('price')
-    elif sort_option == 'price-desc':  # Sort by MRP High to Low
+    elif sort_option == 'price-desc':  # Sort by price High to Low
         products = products.order_by('-price')
-    elif sort_option == 'offer-asc':  # Sort by Offer Price Low to High
-        products = products.order_by('offer')
-    elif sort_option == 'offer-desc':  # Sort by Offer Price High to Low
-        products = products.order_by('-offer')
 
     # Pagination
     paginator = Paginator(products, 12)  # Show 12 products per page

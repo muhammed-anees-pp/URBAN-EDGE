@@ -10,10 +10,7 @@
     <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
     <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}">
-    <!-- Internal CSS for dark theme -->
     <style>
-        /* Your existing CSS styles */
-
         body {
             background-color: #1e2227;
             color: #ffffff;
@@ -252,8 +249,14 @@
                                                         <p>No variants available</p>
                                                         {% endfor %}
                                                     </td>
-                                                    <td>{{ product.price }}</td>
-                                                    <td>{{ product.final_offer_price }}</td>
+                                                    <td>₹{{ product.price|floatformat:2 }}</td>
+                                                    <td>
+                                                        {% if product.final_offer_price is not None %}
+                                                        ₹{{ product.final_offer_price|floatformat:2 }}
+                                                        {% else %}
+                                                        No Offer
+                                                        {% endif %}
+                                                    </td>
                                                     <td>
                                                         {% for image in product.images.all %}
                                                         <img src="{{ image.image.url }}" alt="Product Image"
@@ -282,6 +285,7 @@
                                                 </tr>
                                                 {% endif %}
                                             </tbody>
+                                            
                                         </table>
                                     </div>
 

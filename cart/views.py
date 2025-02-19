@@ -13,80 +13,10 @@ from offers.models import ProductOffer, CategoryOffer
 
 logger = logging.getLogger(__name__)
 
-# @login_required
-# def cart_view(request):
-#     if not request.user.is_authenticated:
-#         return render(request, 'cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Please log in to add items.'})
-
-#     cart, created = Cart.objects.get_or_create(user=request.user)
-#     cart_items = cart.items.all()
-
-#     # Check stock availability for each item in the cart
-#     out_of_stock_items = []
-#     for item in cart_items:
-#         if item.product_variant.stock < item.quantity:
-#             out_of_stock_items.append({
-#                 'product_name': item.product_variant.product.name,
-#                 'variant': f"{item.product_variant.color} / {item.product_variant.size}",
-#                 'available_stock': item.product_variant.stock,
-#             })
-
-#     # Calculate total price for each cart item
-#     # for item in cart_items:
-#     #     item.total_price_value = item.total_price()  # Call the total_price method
-
-#     # grand_total = sum(item.total_price_value for item in cart_items)
-#     total_listed_price = Decimal('0.00')
-#     total_offer_price = Decimal('0.00')
-#     for item in cart_items:
-#         price = Decimal(str(item.product_variant.product.offer if item.product_variant.product.offer else item.product_variant.product.price))
-#         quantity = Decimal(str(item.quantity))
-#         item.subtotal = price * quantity
-#         listed_price = Decimal(str(item.product_variant.product.price))
-#         offer_price = Decimal(str(item.product_variant.product.offer)) if item.product_variant.product.offer else listed_price
-#         item.subtotal_listed_price = listed_price * quantity
-#         item.subtotal_offer_price = offer_price * quantity
-#         total_listed_price += item.subtotal_listed_price
-#         total_offer_price += item.subtotal_offer_price
-
-#         discounted_amount = total_listed_price - total_offer_price
-#         delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
-#         grand_total = total_offer_price + delivery_charge  # Grand total including delivery charge
-
-#     if not cart_items.exists():
-#         return render(request, 'cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Start shopping now!'})
-#     # Pagination
-#     page = request.GET.get('page', 1)
-#     paginator = Paginator(cart_items, 10)  # Show 10 items per page
-
-#     try:
-#         cart_items = paginator.page(page)
-#     except PageNotAnInteger:
-#         cart_items = paginator.page(1)
-#     except EmptyPage:
-#         cart_items = paginator.page(paginator.num_pages)
-
-
-#     context = {
-#         'cart_items': cart_items,
-#         # 'grand_total': grand_total,
-#         'cart_empty': False,
-#         'out_of_stock_items': out_of_stock_items,  # Pass out-of-stock items to the template
-#         'cart_count': cart_items.paginator.count,  # Total count of items
-#         'total_listed_price': total_listed_price,
-#         'total_offer_price': total_offer_price,
-#         'discounted_amount': discounted_amount,
-#         'delivery_charge': delivery_charge,
-#         'grand_total': grand_total,
-#     }
-
-#     return render(request, 'cart.html', context)
-
-
 @login_required
 def cart_view(request):
     if not request.user.is_authenticated:
-        return render(request, 'cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Please log in to add items.'})
+        return render(request, 'user/cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Please log in to add items.'})
 
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.all()
@@ -129,11 +59,11 @@ def cart_view(request):
         total_offer_price += item.subtotal_offer_price
 
     discounted_amount = total_listed_price - total_offer_price
-    delivery_charge = Decimal('40.00') if total_offer_price < Decimal('500.00') else Decimal('0.00')
+    delivery_charge = Decimal('40.00') if total_offer_price < Decimal('1000.00') else Decimal('0.00')
     grand_total = total_offer_price + delivery_charge
 
     if not cart_items.exists():
-        return render(request, 'cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Start shopping now!'})
+        return render(request, 'user/cart.html', {'cart_empty': True, 'message': 'Your cart is empty. Start shopping now!'})
 
     # Pagination
     page = request.GET.get('page', 1)
@@ -158,7 +88,7 @@ def cart_view(request):
         'grand_total': grand_total,
     }
 
-    return render(request, 'cart.html', context)
+    return render(request, 'user/cart.html', context)
 
 @login_required(login_url='/login/')
 def add_to_cart(request):

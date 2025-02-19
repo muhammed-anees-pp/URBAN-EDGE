@@ -7,12 +7,64 @@ class Product(models.Model):
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=7, decimal_places=2)
-    #offer = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_listed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
+    
+    @property
+    def best_offer_price(self):
+        # Check for active product offer
+        product_offer = None
+        if hasattr(self, 'product_offer'):
+            product_offer = self.product_offer if self.product_offer.is_active else None
+
+        # Check for active category offer
+        category_offer = None
+        if hasattr(self.category, 'category_offer'):
+            category_offer = self.category.category_offer if self.category.category_offer.is_active else None
+
+        offers = []
+        if product_offer:
+            offers.append(product_offer.discount_percentage)
+        if category_offer:
+            offers.append(category_offer.discount_percentage)
+
+        if offers:
+            best_discount = max(offers)
+            # Convert self.price to float before multiplication
+            return round(float(self.price) * (1 - float(best_discount) / 100), 2)
+        return None
+
+
+    @property
+    def has_offer(self):
+        return self.best_offer_price is not None
+    
+    @property
+    def best_offer_percentage(self):
+        # Check for active product offer
+        product_offer = None
+        if hasattr(self, 'product_offer'):
+            product_offer = self.product_offer if self.product_offer.is_active else None
+
+        # Check for active category offer
+        category_offer = None
+        if hasattr(self.category, 'category_offer'):
+            category_offer = self.category.category_offer if self.category.category_offer.is_active else None
+
+        offers = []
+        if product_offer:
+            offers.append(product_offer.discount_percentage)
+        if category_offer:
+            offers.append(category_offer.discount_percentage)
+
+        if offers:
+            return int(max(offers))  # Return as an integer
+        return 0
+
+
     
     @property
     def average_rating(self):

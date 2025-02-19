@@ -249,14 +249,8 @@
                                                     <td>{{ item.product.name|truncatechars:50 }}</td>
                                                     <td>{{ item.product_variant.color }} - {{ item.product_variant.size }}</td>
                                                     <td>{{ item.quantity }}</td>
-                                                    <td>₹{{ item.product.price }}</td>
-                                                    <td>
-                                                        ₹{% if item.product.offer %}
-                                                        {{ item.product.offer }}
-                                                        {% else %}
-                                                        {{ item.product.price }}
-                                                        {% endif %}
-                                                    </td>
+                                                    <td>₹{{ item.product.price|floatformat:2 }}</td>
+                                                    <td>₹{{ item.final_price|floatformat:2 }}</td>
                                                     <td>{{ item.get_status_display }}</td>
                                                     <td>
                                                         {% if item.cancel_reason %}
@@ -289,7 +283,7 @@
                                                             <select name="status" class="form-control form-control-sm">
                                                                 {% for status in status_choices %}
                                                                 {% if status.0 != 'returned' and status.0 != 'canceled' and status.0 != 'return_requested' %}
-                                                                <option value="{{ status.0 }}" 
+                                                                <option value="{{ status.0 }}"
                                                                 {% if item.status == status.0 %}selected{% endif %}>
                                                                     {{ status.1 }}
                                                                 </option>

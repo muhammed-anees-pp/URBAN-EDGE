@@ -327,7 +327,6 @@
         {% if user.is_authenticated %}
         <div class="text-center py-5">
             <i class="fas fa-shopping-cart me-2 text-muted" style="font-size: 3rem;"></i>
-            <!-- <i class="bi bi-heart text-muted" style="font-size: 3rem;"></i> -->
             <h5 class="mt-3 text-muted">Your cart is empty</h5>
             <p class="text-muted">Add items that you like to purchase</p>
             <a href="{% url 'all_products' %}" class="btn btn-primary mt-3">
@@ -337,7 +336,6 @@
         {% else %}
         <div class="text-center py-5">
             <i class="fas fa-shopping-cart me-2 text-muted" style="font-size: 3rem;"></i>
-            <!-- <i class="bi bi-heart text-muted" style="font-size: 3rem;"></i> -->
             <h5 class="mt-3 text-muted">Your cart is empty</h5>
             <p class="text-muted">Login to your account</p>
             <a href="{% url 'userlogin' %}" class="btn btn-primary mt-3">
@@ -358,14 +356,14 @@
                         Size: {{ item.product_variant.size }} | Color: {{ item.product_variant.color }}
                     </div>
                     <div class="price-section">
-                        {% if item.product_variant.product.offer %}
-                        <span class="offer-price">₹{{ item.product_variant.product.offer }}</span>
-                        <span class="original-price">₹{{ item.product_variant.product.price }}</span>
+                        {% if item.product_variant.product.has_offer %}
+                        <span class="offer-price">₹{{ item.product_variant.product.best_offer_price|floatformat:2 }}</span>
+                        <span class="original-price">₹{{ item.product_variant.product.price|floatformat:2 }}</span>
                         {% else %}
-                        <span class="offer-price">₹{{ item.product_variant.product.price }}</span>
+                        <span class="offer-price">₹{{ item.product_variant.product.price|floatformat:2 }}</span>
                         {% endif %}
                     </div>
-                    <div class="offer-price">₹{{ item.subtotal }}</div>
+                    <div class="offer-price">₹{{ item.subtotal|floatformat:2 }}</div>
                     <div class="quantity-controls">
                         <button type="button" class="qty-btn" onclick="updateCart('{{ item.id }}', 'decrease', event)">
                             <i class="fas fa-minus"></i>
@@ -380,13 +378,14 @@
                     <a href="{% url 'product_details' item.product_variant.product.id %}" class="view-btn">
                         <i class="fas fa-eye me-2"></i>Details
                     </a>
-                    {% if item.product_variant.stock < item.quantity %} <span class="out-of-stock-message">
+                    {% if item.product_variant.stock < item.quantity %}
+                    <span class="out-of-stock-message">
                         <i class="fas fa-exclamation-triangle"></i>Out of Stock
-                        </span>
-                        {% endif %}
-                        <button type="button" class="remove-btn" onclick="removeFromCart('{{ item.id }}', event)">
-                            <i class="fas fa-trash-alt me-2"></i>Remove
-                        </button>
+                    </span>
+                    {% endif %}
+                    <button type="button" class="remove-btn" onclick="removeFromCart('{{ item.id }}', event)">
+                        <i class="fas fa-trash-alt me-2"></i>Remove
+                    </button>
                 </div>
             </div>
             {% endfor %}
@@ -412,33 +411,32 @@
         <div class="summary-card">
             <div class="summary-heading">Order Summary</div>
             <div class="summary-item">
-                <span class="summary-label">No.of item(s)</span>
+                <span class="summary-label">No. of item(s)</span>
                 <span class="summary-value">{{ cart_count }}</span>
             </div>
             <div class="summary-item">
                 <span class="summary-label">Total Listed Price</span>
-                <span class="summary-value">₹{{ total_listed_price }}</span>
+                <span class="summary-value">₹{{ total_listed_price|floatformat:2 }}</span>
             </div>
             <div class="summary-item">
                 <span class="summary-label">Total Offer Price</span>
-                <span class="summary-value">₹{{ total_offer_price }}</span>
+                <span class="summary-value">₹{{ total_offer_price|floatformat:2 }}</span>
             </div>
             <div class="summary-item">
                 <span class="summary-label">Total Discount</span>
-                <span class="summary-value text-success">₹{{ discounted_amount }}</span>
+                <span class="summary-value text-success">₹{{ discounted_amount|floatformat:2 }}</span>
             </div>
             <div class="summary-item">
                 <span class="summary-label">Shipping</span>
                 {% if delivery_charge %}
-                <span>₹{{ delivery_charge }}</span>
+                <span>₹{{ delivery_charge|floatformat:2 }}</span>
                 {% else %}
                 <span class="text-success">Free</span>
                 {% endif %}
-                <!-- <span class="summary-value">Free</span> -->
             </div>
             <div class="grand-total">
                 <span>Total</span>
-                <span>₹{{ grand_total }}</span>
+                <span>₹{{ grand_total|floatformat:2 }}</span>
             </div>
             <a href="{% url 'place_order' %}" class="checkout-btn">
                 Proceed to Checkout
@@ -463,11 +461,6 @@
         setTimeout(() => {
             hideError();
         }, 3000);
-    }
-
-    function hideError() {
-        const errorDiv = document.getElementById('error-message');
-        errorDiv.style.display = 'none';
     }
 
     function updateCart(itemId, action, event) {

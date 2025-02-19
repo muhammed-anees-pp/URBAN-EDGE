@@ -247,7 +247,7 @@
                         <div class="col-md-8">
                             <h5 class="mb-2">Order ID: <span class="order-id">#{{ order.id }}</span></h5>
                             <p class="mb-0">Ordered on {{ order.created_at|date:"d M Y" }}</p>
-                            <p class="mb-0">Total Price: ₹{{ order.total_price }}</p>
+                            <p class="mb-0">Total Amount: ₹{{ order.total_price|floatformat:2 }}</p>
                             <p class="mb-0">
                                 <span class="status-dot status-{{ order.status }}"></span>
                                 {{ order.get_status_display }}

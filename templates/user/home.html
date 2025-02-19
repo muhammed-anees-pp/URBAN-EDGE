@@ -115,8 +115,8 @@
         gap: 20px;
     }
 
-
     .product-card {
+        position: relative;
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 8px;
@@ -127,8 +127,21 @@
         flex-direction: column;
         justify-content: space-between;
         height: 450px;
-        /* Fixed height for uniformity */
     }
+
+    .offer-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: #ff5252;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 10;
+    }
+
 
     .product-card img {
         height: 250px;
@@ -371,6 +384,20 @@
         background: #a5b32c;
     }
 
+    .price span {
+        font-weight: bold;
+    }
+
+    .price span[style*="text-decoration: line-through"] {
+        color: #666;
+        /* Optional: Change the color of the strikethrough text */
+    }
+
+    .price span[style*="color: red"] {
+        color: red;
+        font-weight: bold;
+    }
+
 
 
     .section-title {
@@ -470,7 +497,6 @@
 
 <hr class="section-divider">
 
-<!-- Latest Products Section -->
 <!-- <section class="ftco-section">
     <div class="container">
         <div class="row">
@@ -483,23 +509,29 @@
             {% for product in random_products %}
             <div class="col-sm-6 col-md-3 ftco-animate">
                 <div class="product-card">
+                    {% if product.has_offer %}
+                        <div class="offer-badge">{{ product.best_offer_percentage }}% OFF</div>
+                    {% endif %}
                     {% if product.images.first %}
                     <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
                     {% else %}
                     <img src="{% static 'images/placeholder.png' %}" alt="No image available">
                     {% endif %}
                     <div class="product-details">
+                        <div class="rating-stars">
+                            {% for i in "12345" %}
+                            <span
+                                class="star {% if i <= product.average_rating|floatformat:0 %}filled{% else %}empty{% endif %}">&#9733;</span>
+                            {% endfor %}
+                            <span>({{ product.review_count }} reviews)</span>
+                        </div>
                         <h5>{{ product.name }}</h5>
-                         <p class="price">
-                            <span style="color: black; text-decoration: line-through;">MRP: ₹{{ product.price }}</span>
-                            <span style="color: red;">Offer: ₹{{ product.offer }}</span>
-                        </p> 
                         <p class="price">
-                            {% if product.offer %}
+                            {% if product.has_offer %}
                                 <span style="color: black; text-decoration: line-through;">₹{{ product.price }}</span>
-                                <span style="color: red;">₹{{ product.offer }}</span>
+                                <span style="color: red;">₹{{ product.best_offer_price }}</span>
                             {% else %}
-                                <span style="color: black;" >₹{{ product.price }}</span>
+                                <span style="color: black;">₹{{ product.price }}</span>
                             {% endif %}
                         </p>
                         <a href="{% url 'product_details' product.id %}" class="view-details-btn">View Details</a>
@@ -511,7 +543,6 @@
     </div>
 </section> -->
 
-<!-- Latest Products Section -->
 <section class="ftco-section">
     <div class="container">
         <div class="row">
@@ -524,26 +555,29 @@
             {% for product in random_products %}
             <div class="col-sm-6 col-md-3 ftco-animate">
                 <div class="product-card">
+                    {% if product.has_offer %}
+                        <div class="offer-badge">{{ product.best_offer_percentage }}% OFF</div>
+                    {% endif %}
                     {% if product.images.first %}
                     <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
                     {% else %}
                     <img src="{% static 'images/placeholder.png' %}" alt="No image available">
                     {% endif %}
                     <div class="product-details">
-                        <!-- Add the average rating here -->
                         <div class="rating-stars">
                             {% for i in "12345" %}
-                            <span class="star {% if i <= product.average_rating|floatformat:0 %}filled{% else %}empty{% endif %}">&#9733;</span>
+                            <span
+                                class="star {% if i <= product.average_rating|floatformat:0 %}filled{% else %}empty{% endif %}">&#9733;</span>
                             {% endfor %}
                             <span>({{ product.review_count }} reviews)</span>
                         </div>
                         <h5>{{ product.name }}</h5>
                         <p class="price">
-                            {% if product.offer %}
-                                <span style="color: black; text-decoration: line-through;">₹{{ product.price }}</span>
-                                <span style="color: red;">₹{{ product.offer }}</span>
+                            {% if product.has_offer %}
+                                <span style="color: black; text-decoration: line-through;">₹{{ product.price|floatformat:2 }}</span>
+                                <span style="color: red;">₹{{ product.best_offer_price|floatformat:2 }}</span>
                             {% else %}
-                                <span style="color: black;">₹{{ product.price }}</span>
+                                <span style="color: black;">₹{{ product.price|floatformat:2 }}</span>
                             {% endif %}
                         </p>
                         <a href="{% url 'product_details' product.id %}" class="view-details-btn">View Details</a>

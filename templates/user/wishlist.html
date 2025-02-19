@@ -33,8 +33,8 @@
                     <div class="row align-items-center">
                         <!-- Product Image -->
                         <div class="col-md-2">
-                            <img src="{{ item.product.images.first.image.url }}" 
-                                 class="img-fluid rounded product-image" 
+                            <img src="{{ item.product.images.first.image.url }}"
+                                 class="img-fluid rounded product-image"
                                  alt="{{ item.product.name }}">
                         </div>
 
@@ -42,23 +42,22 @@
                         <div class="col-md-6">
                             <h5 class="mb-2">{{ item.product.name }}</h5>
                             <div class="price-display">
-                                {% if item.product.offer %}
-                                    <span class="offer-price">₹{{ item.product.offer }}</span>
-                                    <span class="original-price">₹{{ item.product.price }}</span>
+                                {% if item.product.has_offer %}
+                                    <span class="offer-price">₹{{ item.product.best_offer_price|floatformat:2 }}</span>
+                                    <span class="original-price">₹{{ item.product.price|floatformat:2 }}</span>
                                 {% else %}
-                                    <span class="single-price">₹{{ item.product.price }}</span>
+                                    <span class="single-price">₹{{ item.product.price|floatformat:2 }}</span>
                                 {% endif %}
                             </div>
-                            
                         </div>
 
                         <!-- Actions -->
                         <div class="col-md-4 text-end">
-                            <button onclick="moveToCart('{{ item.id }}')" 
+                            <button onclick="moveToCart('{{ item.id }}')"
                                     class="btn btn-primary btn-move-to-cart me-2">
                                 <i class="bi bi-cart-plus"></i> Add to Cart
                             </button>
-                            <button onclick="removeFromWishlist('{{ item.id }}')" 
+                            <button onclick="removeFromWishlist('{{ item.id }}')"
                                     class="btn btn-outline-danger btn-remove">
                                 <i class="bi bi-trash"></i>
                             </button>
@@ -69,19 +68,19 @@
             <!-- Pagination -->
             <div class="pagination">
                 {% if wishlist_items.has_previous %}
-                <a href="?page={{ wishlist_items.previous_page_number }}">Previous</a>
+                    <a href="?page={{ wishlist_items.previous_page_number }}">Previous</a>
                 {% else %}
-                <span class="disabled">Previous</span>
+                    <span class="disabled">Previous</span>
                 {% endif %}
 
                 <span class="current">
-                    Page {{ wishlist_items.number }} of {{ cart_items.paginator.num_pages }}
+                    Page {{ wishlist_items.number }} of {{ wishlist_items.paginator.num_pages }}
                 </span>
 
                 {% if wishlist_items.has_next %}
-                <a href="?page={{ wishlist_items.next_page_number }}">Next</a>
+                    <a href="?page={{ wishlist_items.next_page_number }}">Next</a>
                 {% else %}
-                <span class="disabled">Next</span>
+                    <span class="disabled">Next</span>
                 {% endif %}
             </div>
         {% else %}

@@ -18,4 +18,4 @@ def index(request):
         'categories': categories,
         'random_products': random_products,  # Add the random products to the context
     }
-    return render(request, 'home.html', context)
+    return render(request, 'user/home.html', context)
