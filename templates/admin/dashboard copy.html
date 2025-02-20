@@ -190,65 +190,6 @@
                 <div class="content-wrapper">
                     <div class="card">
                         <h4 class="card-title">Admin Dashboard</h4>
-                        <!-- Add this form at the top of the dashboard content -->
-<div class="card">
-    <h4 class="card-title">Filter Sales Data</h4>
-    <form method="post" class="form-inline">
-        {% csrf_token %}
-        <div class="form-group mx-2">
-            <label for="date_range" class="mr-2">Date Range:</label>
-            <select name="date_range" id="date_range" class="form-control">
-                <option value="1_day">1 Day</option>
-                <option value="1_week">1 Week</option>
-                <option value="1_month">1 Month</option>
-                <option value="custom">Custom</option>
-            </select>
-        </div>
-        <div id="custom_date_range" style="display: none;" class="form-group mx-2">
-            <label for="custom_start" class="mr-2">Start Date:</label>
-            <input type="date" name="custom_start" id="custom_start" class="form-control">
-            <label for="custom_end" class="mx-2">End Date:</label>
-            <input type="date" name="custom_end" id="custom_end" class="form-control">
-        </div>
-        <button type="submit" class="btn btn-primary">Apply Filter</button>
-    </form>
-</div>
-
-<!-- Display filtered data -->
-<div class="card">
-    <h4 class="card-title">Sales Summary ({{ start_date }} to {{ end_date }})</h4>
-    <div class="stats">
-        <div class="stat-card">
-            <i class="mdi mdi-currency-inr stat-icon"></i>
-            <h3 class="stat-title">Total Sales</h3>
-            <p class="stat-value">₹{{ total_sales|floatformat:2 }}</p>
-        </div>
-        <div class="stat-card">
-            <i class="mdi mdi-tag-multiple stat-icon"></i>
-            <h3 class="stat-title">Total Discount</h3>
-            <p class="stat-value">₹{{ total_discount|floatformat:2 }}</p>
-        </div>
-    </div>
-</div>
-
-<!-- Add a button to generate the sales report
-<a href="{% url 'generate_sales_report' %}?start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-primary">
-    <i class="mdi mdi-download mr-2"></i>Generate Sales Report
-</a> -->
-
-<!-- Add this near the generate button -->
-<div class="form-group mx-2">
-    <label for="report_format">Report Format:</label>
-    <select id="report_format" class="form-control">
-        <option value="pdf">PDF</option>
-        <option value="excel">Excel</option>
-    </select>
-</div>
-
-<!-- Update the generate button -->
-<button onclick="generateReport()" class="btn btn-primary">
-    <i class="mdi mdi-download mr-2"></i>Generate Sales Report
-</button>
                         
                         <div class="stats">
                             <div class="stat-card">
@@ -322,9 +263,9 @@
                             </div>
                         </div>
 
-                        <!-- <a href="{% url 'generate_sales_report' %}" class="btn btn-primary">
+                        <a href="{% url 'generate_sales_report' %}" class="btn btn-primary">
                             <i class="mdi mdi-download mr-2"></i>Generate Sales Report
-                        </a> -->
+                        </a>
 
                         <div class="table-container">
 
@@ -413,35 +354,5 @@
         </div>
     </div>
     <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
-    <script>
-        document.getElementById('date_range').addEventListener('change', function() {
-            var customDateRange = document.getElementById('custom_date_range');
-            if (this.value === 'custom') {
-                customDateRange.style.display = 'block';
-            } else {
-                customDateRange.style.display = 'none';
-            }
-        });
-    </script>
-    <script>
-        function generateReport() {
-            const format = document.getElementById('report_format').value;
-            const startDate = "{{ start_date }}";  // Ensure this is in 'YYYY-MM-DD' format
-            const endDate = "{{ end_date }}";      // Ensure this is in 'YYYY-MM-DD' format
-    
-            // Validate that startDate and endDate are not empty
-            if (!startDate || !endDate) {
-                alert("Please select a valid date range before generating the report.");
-                return;
-            }
-    
-            // Construct the URL with the date parameters
-            const url = `{% url 'generate_sales_report' %}?start_date=${startDate}&end_date=${endDate}&format=${format}`;
-            
-            // Redirect to the generated URL
-            window.location.href = url;
-        }
-    </script>
-    
 </body>
 </html>
