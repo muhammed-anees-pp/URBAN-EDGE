@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import authenticate, login,logout
 from django.contrib import messages
@@ -22,7 +23,16 @@ from openpyxl.styles import Font, Border, Side, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.dateformat import DateFormat
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
+from django.db.models.functions import TruncHour, TruncDay
+import json
+import logging
+from django.db.models import Min, Sum, Count, Case, When, F, Value
+from django.db.models.functions import TruncDay, TruncHour, TruncWeek, TruncMonth
 
+logger = logging.getLogger(__name__)
 
 def is_admin(user):
     return user.is_staff
@@ -46,19 +56,21 @@ def admin_login(request):
 
     return render(request, 'admin/admin_login.html', {'form_data': form_data})
 
-
-
-
 @user_passes_test(is_admin)
 @login_required(login_url='admin_login')
 def admin_dashboard(request):
-    # Default date range (last 30 days)
-    end_date = timezone.now()
+    # Default date range for the main dashboard (last 30 days)
+    end_date = timezone.now().date()
     start_date = end_date - timedelta(days=30)
     date_range = None
 
-    # Handle date range filtering
-    if request.method == 'POST':
+    # Default date range for the graph (earliest order date to today)
+    graph_end_date = timezone.now().date()
+    graph_start_date = Order.objects.aggregate(Min('created_at'))['created_at__min'].date() if Order.objects.exists() else graph_end_date - timedelta(days=30)
+    graph_date_range = None
+
+    # Handle main dashboard date range filtering
+    if request.method == 'POST' and 'dashboard_filter' in request.POST:
         date_range = request.POST.get('date_range')
         custom_start = request.POST.get('custom_start')
         custom_end = request.POST.get('custom_end')
@@ -71,19 +83,19 @@ def admin_dashboard(request):
                 # Validate dates
                 if start_date > timezone.now().date():
                     messages.error(request, "Start date cannot be in the future")
-                    print('Start date cannot be in the future')
                     return redirect('admin_dashboard')
                 if end_date > timezone.now().date():
                     messages.error(request, "End date cannot be in the future")
-                    print('End date cannot be in the future')
                     return redirect('admin_dashboard')
                 if start_date > end_date:
                     messages.error(request, "Start date cannot be after end date")
-                    print('Start date cannot be after end date')
                     return redirect('admin_dashboard')
                     
-            except ValueError:
-                messages.error(request, "Invalid date format")
+            except ValueError as e:
+                messages.error(request, f"Invalid date format: {str(e)}")
+                return redirect('admin_dashboard')
+            except Exception as e:
+                messages.error(request, f"An unexpected error occurred: {str(e)}")
                 return redirect('admin_dashboard')
         else:
             end_date = timezone.now().date()
@@ -93,30 +105,69 @@ def admin_dashboard(request):
                 start_date = end_date - timedelta(weeks=1)
             elif date_range == '1_month':
                 start_date = end_date - timedelta(days=30)
+            else:
+                messages.error(request, "Invalid date range selected")
+                return redirect('admin_dashboard')
 
-    # Get COMPLETED orders within the date range
+    # Handle graph date range filtering
+    if request.method == 'POST' and 'graph_filter' in request.POST:
+        graph_date_range = request.POST.get('graph_date_range')
+        graph_custom_start = request.POST.get('graph_custom_start')
+        graph_custom_end = request.POST.get('graph_custom_end')
+
+        if graph_date_range == 'custom':
+            try:
+                graph_start_date = timezone.datetime.strptime(graph_custom_start, '%Y-%m-%d').date()
+                graph_end_date = timezone.datetime.strptime(graph_custom_end, '%Y-%m-%d').date()
+                
+                # Validate dates
+                if graph_start_date > timezone.now().date():
+                    messages.error(request, "Graph start date cannot be in the future")
+                    return redirect('admin_dashboard')
+                if graph_end_date > timezone.now().date():
+                    messages.error(request, "Graph end date cannot be in the future")
+                    return redirect('admin_dashboard')
+                if graph_start_date > graph_end_date:
+                    messages.error(request, "Graph start date cannot be after end date")
+                    return redirect('admin_dashboard')
+                    
+            except ValueError as e:
+                messages.error(request, f"Invalid graph date format: {str(e)}")
+                return redirect('admin_dashboard')
+            except Exception as e:
+                messages.error(request, f"An unexpected error occurred: {str(e)}")
+                return redirect('admin_dashboard')
+        else:
+            graph_end_date = timezone.now().date()
+            if graph_date_range == '1_day':
+                graph_start_date = graph_end_date - timedelta(days=1)
+            elif graph_date_range == '1_week':
+                graph_start_date = graph_end_date - timedelta(weeks=1)
+            elif graph_date_range == '1_month':
+                graph_start_date = graph_end_date - timedelta(days=30)
+            else:
+                messages.error(request, "Invalid graph date range selected")
+                return redirect('admin_dashboard')
+
+    # Get COMPLETED orders within the main dashboard date range
     completed_orders = Order.objects.filter(
         status='completed',
         created_at__date__range=[start_date, end_date]
     )
 
-    # Calculate totals using actual order prices (not recalculating offers)
+    # Calculate totals for the main dashboard
     total_sales = Decimal('0.00')
     total_discount = Decimal('0.00')
     
     for order in completed_orders:
-        # Get only delivered/return_requested/return_denied items
         valid_items = order.items.filter(
             status__in=['delivered', 'return_requested', 'return_denied']
         )
-        
-        # Calculate using the actual prices stored in OrderItems
-        order_total = sum(item.price * item.quantity for item in valid_items)
+        order_total = sum(Decimal(str(item.price)) * Decimal(str(item.quantity)) for item in valid_items)
         total_sales += order_total
         
-        # Use the actual coupon discount stored with the order
         if order.coupon:
-            total_discount += order.balance_refund
+            total_discount += Decimal(str(order.balance_refund))
 
     # Other dashboard data
     total_users = User.objects.filter(is_superuser=False).count()
@@ -130,30 +181,42 @@ def admin_dashboard(request):
     }
 
     item_status_counts = {
-        'delivered': OrderItem.objects.filter(status='delivered').count(),
-        'canceled': OrderItem.objects.filter(status='canceled').count(),
-        'return_requested': OrderItem.objects.filter(status='return_requested').count(),
-        'returned': OrderItem.objects.filter(status='returned').count(),
+        'delivered': OrderItem.objects.filter(
+            status='delivered',
+            order__created_at__date__range=[start_date, end_date]
+        ).count(),
+        'canceled': OrderItem.objects.filter(
+            status='canceled',
+            order__created_at__date__range=[start_date, end_date]
+        ).count(),
+        'return_requested': OrderItem.objects.filter(
+            status='return_requested',
+            order__created_at__date__range=[start_date, end_date]
+        ).count(),
+        'returned': OrderItem.objects.filter(
+            status='returned',
+            order__created_at__date__range=[start_date, end_date]
+        ).count(),
     }
 
-    # Top selling categories (only from completed orders)
     top_selling_categories = (
         OrderItem.objects.filter(
             order__status='completed',
-            status__in=['delivered', 'return_requested', 'return_denied']
+            status__in=['delivered', 'return_requested', 'return_denied'],
+            order__created_at__date__range=[start_date, end_date]
         )
         .values('product__category__category_name')
         .annotate(total_sold=Sum('quantity'))
         .order_by('-total_sold')[:5]
     )
 
-    # Top selling products (only from completed orders)
     top_selling_products = Product.objects.annotate(
         total_sold=Sum(
             Case(
                 When(
                     variants__orderitem__order__status='completed',
                     variants__orderitem__status__in=['delivered', 'return_requested', 'return_denied'],
+                    variants__orderitem__order__created_at__date__range=[start_date, end_date],
                     then=F('variants__orderitem__quantity')
                 ),
                 default=Value(0),
@@ -163,6 +226,35 @@ def admin_dashboard(request):
     ).order_by('-total_sold')[:5]
 
     low_stock_products = ProductVariant.objects.filter(stock__lt=10)
+
+    # Prepare data for the sales chart (using graph date range)
+    sales_data = []
+    sales_labels = []
+    orders_data = []
+
+    graph_completed_orders = Order.objects.filter(
+        status='completed',
+        created_at__date__range=[graph_start_date, graph_end_date]
+    )
+
+    # Always aggregate by day, regardless of the selected filter
+    sales = graph_completed_orders.annotate(day=TruncDay('created_at')).values('day').annotate(
+        total_sales=Sum('total_price'),
+        total_orders=Count('id')
+    ).order_by('day')
+
+    for sale in sales:
+        sales_labels.append(sale['day'].strftime('%Y-%m-%d'))
+        sales_data.append(float(sale['total_sales']))
+        orders_data.append(sale['total_orders'])
+
+    # Prepare data for the circular graph (order conversion analysis)
+    order_conversion_data = {
+        'completed': Order.objects.filter(status='completed', created_at__date__range=[graph_start_date, graph_end_date]).count(),
+        'canceled': Order.objects.filter(status='canceled', created_at__date__range=[graph_start_date, graph_end_date]).count(),
+        'returned': Order.objects.filter(status='returned', created_at__date__range=[graph_start_date, graph_end_date]).count(),
+        'pending': Order.objects.filter(status='pending', created_at__date__range=[graph_start_date, graph_end_date]).count(),
+    }
 
     context = {
         'total_users': total_users,
@@ -176,8 +268,18 @@ def admin_dashboard(request):
         'low_stock_products': low_stock_products,
         'start_date': start_date.strftime('%Y-%m-%d'),
         'end_date': end_date.strftime('%Y-%m-%d'),
+        'graph_start_date': graph_start_date.strftime('%Y-%m-%d'),
+        'graph_end_date': graph_end_date.strftime('%Y-%m-%d'),
+        'sales_data_json': json.dumps(sales_data, cls=DjangoJSONEncoder),
+        'sales_labels_json': json.dumps(sales_labels, cls=DjangoJSONEncoder),
+        'orders_data_json': json.dumps(orders_data, cls=DjangoJSONEncoder),
+        'order_conversion_data_json': json.dumps(order_conversion_data, cls=DjangoJSONEncoder),
+        'date_range': date_range,  # For main dashboard filter
+        'graph_date_range': graph_date_range,  # For graph filter
     }
-    print(f"Start Date: {start_date}, End Date: {end_date}")
+    
+    logger.debug(f"Main Dashboard Start Date: {start_date}, End Date: {end_date}")
+    logger.debug(f"Graph Start Date: {graph_start_date}, End Date: {graph_end_date}")
     return render(request, 'admin/dashboard.html', context)
 
 

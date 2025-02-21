@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="{% static 'admin/vendors/css/vendor.bundle.base.css' %}">
     <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
     <link rel="shortcut icon" href="{% static 'admin/images/favicon.png' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             background-color: #1e2227;
@@ -190,26 +192,92 @@
                 <div class="content-wrapper">
                     <div class="card">
                         <h4 class="card-title">Admin Dashboard</h4>
-                        
+                        <!-- Add this form at the top of the dashboard content -->
+
+
+                        <!-- Main Dashboard Filter -->
+                        <div class="card">
+                            <h4 class="card-title">Filter Dashboard Data</h4>
+                            <form method="post" class="form-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="dashboard_filter" value="1">
+                                <div class="form-group mx-2">
+                                    <label for="date_range" class="mr-2">Date Range:</label>
+                                    <select name="date_range" id="date_range" class="form-control">
+                                        <option value="1_day" {% if date_range == '1_day' %}selected{% endif %}>1 Day
+                                        </option>
+                                        <option value="1_week" {% if date_range == '1_week' %}selected{% endif %}>1 Week
+                                        </option>
+                                        <option value="1_month" {% if date_range == '1_month' %}selected{% endif %}>1
+                                            Month</option>
+                                        <option value="custom" {% if date_range == 'custom' %}selected{% endif %}>Custom
+                                        </option>
+                                    </select>
+                                </div>
+                                <!-- <div id="custom_date_range" style="display: {% if date_range == 'custom' %}block{% else %}none{% endif %};" class="form-group mx-2"> -->
+
+                                <div id="custom_date_range" class="form-group mx-2" {% if date_range == 'custom' %}style="display: block;" {% else %}style="display: none;" {% endif %}>
+                                    <label for="custom_start" class="mr-2">Start Date:</label>
+                                    <input type="date" name="custom_start" id="custom_start" class="form-control"
+                                        value="{{ start_date }}">
+                                    <label for="custom_end" class="mx-2">End Date:</label>
+                                    <input type="date" name="custom_end" id="custom_end" class="form-control"
+                                        value="{{ end_date }}">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Apply Filter</button>
+                            </form>
+                        </div>
+
+                        <!-- Display filtered data -->
+                        <div class="card">
+                            <h4 class="card-title">Sales Summary ({{ start_date }} to {{ end_date }})</h4>
+                            <div class="stats">
+                                <div class="stat-card">
+                                    <i class="mdi mdi-currency-inr stat-icon"></i>
+                                    <h3 class="stat-title">Total Sales</h3>
+                                    <p class="stat-value">₹{{ total_sales|floatformat:2 }}</p>
+                                </div>
+                                <div class="stat-card">
+                                    <i class="mdi mdi-tag-multiple stat-icon"></i>
+                                    <h3 class="stat-title">Total Discount</h3>
+                                    <p class="stat-value">₹{{ total_discount|floatformat:2 }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add this near the generate button -->
+                        <div class="form-group mx-2">
+                            <label for="report_format">Report Format:</label>
+                            <select id="report_format" class="form-control">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel</option>
+                            </select>
+                        </div>
+
+                        <!-- Update the generate button -->
+                        <button onclick="generateReport()" class="btn btn-primary">
+                            <i class="mdi mdi-download mr-2"></i>Generate Sales Report
+                        </button>
+
                         <div class="stats">
                             <div class="stat-card">
                                 <i class="mdi mdi-account-group stat-icon"></i>
                                 <h3 class="stat-title">Total Users</h3>
                                 <p class="stat-value">{{ total_users }}</p>
                             </div>
-                            
+
                             <div class="stat-card">
                                 <i class="mdi mdi-currency-inr stat-icon"></i>
                                 <h3 class="stat-title">Total Sales</h3>
                                 <p class="stat-value">₹{{ total_sales|floatformat:2 }}</p>
                             </div>
-                            
+
                             <div class="stat-card">
                                 <i class="mdi mdi-shopping stat-icon"></i>
                                 <h3 class="stat-title">Total Orders</h3>
                                 <p class="stat-value">{{ total_orders }}</p>
                             </div>
-                            
+
                             <div class="stat-card">
                                 <i class="mdi mdi-tag-multiple stat-icon"></i>
                                 <h3 class="stat-title">Total Discount</h3>
@@ -263,9 +331,49 @@
                             </div>
                         </div>
 
-                        <a href="{% url 'generate_sales_report' %}" class="btn btn-primary">
-                            <i class="mdi mdi-download mr-2"></i>Generate Sales Report
-                        </a>
+                        <!-- Graph Filter -->
+                        <div class="card">
+                            <h4 class="card-title">Filter Graph Data</h4>
+                            <form method="post" class="form-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="graph_filter" value="1">
+                                <div class="form-group mx-2">
+                                    <label for="graph_date_range" class="mr-2">Date Range:</label>
+                                    <select name="graph_date_range" id="graph_date_range" class="form-control">
+                                        <option value="1_day" {% if graph_date_range == '1_day' %}selected{% endif %}>1
+                                            Day</option>
+                                        <option value="1_week" {% if graph_date_range == '1_week' %}selected{% endif %}>1
+                                            Week</option>
+                                        <option value="1_month" {% if graph_date_range == '1_month' %}selected{% endif %}>
+                                            1 Month</option>
+                                        <option value="custom" {% if graph_date_range == 'custom' %}selected{% endif %}>
+                                            Custom</option>
+                                    </select>
+                                </div>
+                                <!-- <div id="graph_custom_date_range" style="display: {% if graph_date_range == 'custom' %}block{% else %}none{% endif %};" class="form-group mx-2"> -->
+                                <div id="graph_custom_date_range" class="form-group mx-2" {% if graph_date_range == 'custom' %}style="display: block;" {% else %}style="display: none;" {% endif %}>
+                                    <label for="graph_custom_start" class="mr-2">Start Date:</label>
+                                    <input type="date" name="graph_custom_start" id="graph_custom_start"
+                                        class="form-control" value="{{ graph_start_date }}">
+                                    <label for="graph_custom_end" class="mx-2">End Date:</label>
+                                    <input type="date" name="graph_custom_end" id="graph_custom_end"
+                                        class="form-control" value="{{ graph_end_date }}">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Apply Filter</button>
+                            </form>
+                        </div>
+
+                        <!-- Chart Section -->
+                        <div class="card">
+                            <h4 class="card-title">Sales Summary ({{ graph_start_date }} to {{ graph_end_date }})</h4>
+                            <canvas id="salesChart" width="400" height="200"></canvas>
+                        </div>
+
+                        <!-- Add this after the sales chart -->
+                        <div class="card">
+                            <h4 class="card-title">Order Conversion Analysis ({{ graph_start_date }} to {{ graph_end_date }})</h4>
+                            <canvas id="orderConversionChart" width="400" height="200"></canvas>
+                        </div>
 
                         <div class="table-container">
 
@@ -305,8 +413,8 @@
                                         <tr>
                                             <td>
                                                 {% if product.images.first %}
-                                                <img src="{{ product.images.first.image.url }}"
-                                                    alt="{{ product.name }}" class="product-image">
+                                                <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}"
+                                                    class="product-image">
                                                 {% endif %}
                                                 {{ product.name|slice:":30" }}{% if product.name|length > 30 %}...{% endif %}
                                             </td>
@@ -317,8 +425,8 @@
                                 </table>
                             </div>
 
-                            
-                            
+
+
 
                             <div class="table-card">
                                 <h2><i class="mdi mdi-alert-circle mr-2"></i>Low Stock Products</h2>
@@ -354,5 +462,200 @@
         </div>
     </div>
     <script src="{% static 'admin/vendors/js/vendor.bundle.base.js' %}"></script>
+    <!-- Include date-fns -->
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/format/index.js"></script>
+    <!-- Include Chart.js with date adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+    <script>
+        document.getElementById('date_range').addEventListener('change', function () {
+            var customDateRange = document.getElementById('custom_date_range');
+            if (this.value === 'custom') {
+                customDateRange.style.display = 'block';
+            } else {
+                customDateRange.style.display = 'none';
+            }
+        });
+
+        function generateReport() {
+            const format = document.getElementById('report_format').value;
+            const startDate = "{{ start_date }}";  // Ensure this is in 'YYYY-MM-DD' format
+            const endDate = "{{ end_date }}";      // Ensure this is in 'YYYY-MM-DD' format
+
+            // Validate that startDate and endDate are not empty
+            if (!startDate || !endDate) {
+                alert("Please select a valid date range before generating the report.");
+                return;
+            }
+
+            // Construct the URL with the date parameters
+            const url = `{% url 'generate_sales_report' %}?start_date=${startDate}&end_date=${endDate}&format=${format}`;
+
+            // Redirect to the generated URL
+            window.location.href = url;
+        }
+
+        // Debugging: Log the data passed from the backend
+        const salesData = JSON.parse('{{ sales_data_json|escapejs }}');
+        const salesLabels = JSON.parse('{{ sales_labels_json|escapejs }}');
+        const orderConversionData = JSON.parse('{{ order_conversion_data_json|escapejs }}');
+
+        console.log("Sales Data:", salesData);
+        console.log("Sales Labels:", salesLabels);
+        console.log("Order Conversion Data:", orderConversionData);
+
+        // Ensure the canvas elements exist
+        if (!document.getElementById('salesChart') || !document.getElementById('orderConversionChart')) {
+            console.error("Canvas elements not found!");
+        }
+
+        // Sales Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        if (salesCtx) {
+            const salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: salesLabels,
+                    datasets: [{
+                        label: 'Total Sales',
+                        data: salesData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => '₹' + value
+                            }
+                        }
+                    }
+                }
+            });
+            // const salesChart = new Chart(salesCtx, {
+            //     type: 'line',
+            //     data: {
+            //         labels: salesLabels,
+            //         datasets: [
+            //             {
+            //                 label: 'Total Sales',
+            //                 data: salesData,
+            //                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            //                 borderColor: 'rgba(54, 162, 235, 1)',
+            //                 borderWidth: 1,
+            //                 pointRadius: 5,
+            //                 pointHoverRadius: 7,
+            //             }
+            //         ]
+            //     },
+            //     options: {
+            //         responsive: true,
+            //         scales: {
+            //             y: {
+            //                 type: 'linear',
+            //                 position: 'left',
+            //                 beginAtZero: true,
+            //                 ticks: {
+            //                     callback: function (value) {
+            //                         return '₹' + value;
+            //                     }
+            //                 }
+            //             },
+            //             x: {
+            //                 type: 'time',
+            //                 time: {
+            //                     unit: 'day',
+            //                     displayFormats: {
+            //                         day: 'YYYY-MM-DD'
+            //                     }
+            //                 },
+            //                 ticks: {
+            //                     autoSkip: false,
+            //                 }
+            //             }
+            //         }
+            //     }
+            // });
+        } else {
+            console.error("Sales Chart canvas context not found!");
+        }
+
+        // Order Conversion Chart (Doughnut)
+        const orderConversionCtx = document.getElementById('orderConversionChart').getContext('2d');
+        if (orderConversionCtx) {
+            const orderConversionChart = new Chart(orderConversionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Canceled', 'Returned', 'Pending'],
+                    datasets: [{
+                        data: [
+                            orderConversionData.completed || 0,
+                            orderConversionData.canceled || 0,
+                            orderConversionData.returned || 0,
+                            orderConversionData.pending || 0,
+                        ],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.6)', // Green for Completed
+                            'rgba(255, 99, 132, 0.6)', // Red for Canceled
+                            'rgba(255, 206, 86, 0.6)',  // Yellow for Returned
+                            'rgba(54, 162, 235, 0.6)',  // Blue for Pending
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(54, 162, 235, 1)',
+                        ],
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.label}: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            console.error("Order Conversion Chart canvas context not found!");
+        }
+
+        // Toggle custom date range for graph filter
+        document.getElementById('graph_date_range').addEventListener('change', function () {
+            var graphCustomDateRange = document.getElementById('graph_custom_date_range');
+            if (this.value === 'custom') {
+                graphCustomDateRange.style.display = 'block';
+            } else {
+                graphCustomDateRange.style.display = 'none';
+            }
+        });
+    </script>
+
+
+
+
 </body>
+
 </html>
