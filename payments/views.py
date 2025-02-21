@@ -174,6 +174,11 @@ def initiate_payment(request):
                 )
                 product_variant.stock -= item.quantity
                 product_variant.save()
+            
+            # Record coupon usage only after the order is successfully created
+            if coupon_code:
+                CouponUsage.objects.create(user=user, coupon=coupon)
+                del request.session['coupon_code']
 
             # Store cart details in session
             request.session['cart_details'] = {
