@@ -165,16 +165,18 @@ def initiate_payment(request):
                 else:
                     final_price = product.price
 
-                OrderItem.objects.create(
-                    order=order,
-                    product=product_variant.product,
-                    product_variant=product_variant,
-                    quantity=item.quantity,
-                    price=final_price,
-                )
-                product_variant.stock -= item.quantity
-                product_variant.save()
-            
+                # Create a separate OrderItem for each quantity
+                for _ in range(item.quantity):
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        product_variant=product_variant,
+                        quantity=1,  # Each OrderItem has a quantity of 1
+                        price=final_price,
+                    )
+                    product_variant.stock -= 1  # Deduct stock for each quantity
+                    product_variant.save()
+                        
             # Record coupon usage only after the order is successfully created
             if coupon_code:
                 CouponUsage.objects.create(user=user, coupon=coupon)
@@ -263,17 +265,17 @@ def create_order(request):
             product = product_variant.product
             best_offer_price = product.best_offer_price if product.has_offer else product.price
 
-            OrderItem.objects.create(
-                order=order,
-                product=product,
-                product_variant=product_variant,
-                quantity=item['quantity'],
-                price=best_offer_price,
-            )
-
-            # Adjust stock
-            # product_variant.stock -= item['quantity']
-            # product_variant.save()
+            # Create a separate OrderItem for each quantity
+            for _ in range(item['quantity']):
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    product_variant=product_variant,
+                    quantity=1,  # Each OrderItem has a quantity of 1
+                    price=best_offer_price,
+                )
+                # product_variant.stock -= 1  # Deduct stock for each quantity
+                # product_variant.save()
 
         # Clear the cart
         cart = Cart.objects.get(user=user)
@@ -353,12 +355,13 @@ def paymenthandler(request):
                 return redirect('retry_order_success', order_id=order.id)
             else:
                 return redirect('order_success', order_id=order.id)
+
         else:
             # Failure: Revert stock
             order_items = OrderItem.objects.filter(order=order)
             for item in order_items:
                 product_variant = item.product_variant
-                product_variant.stock += item.quantity
+                product_variant.stock += 1  # Revert stock for each quantity
                 product_variant.save()
 
         order.payment_status = 'Pending'
