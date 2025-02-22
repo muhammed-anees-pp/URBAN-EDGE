@@ -225,6 +225,17 @@
                                     <a href="{% url 'order_management' %}" class="btn btn-secondary mb-3">Back to Order
                                         Management</a>
                                     <h4 class="card-title">Order Details - {{ order.id }}</h4>
+
+                                    <!-- New Delivery Address Section -->
+                                    <div class="card mb-4" style="background-color: #2d3035;">
+                                        <div class="card-body">
+                                            <h5 class="card-title" style="color: #ffffff; font-size: 18px; margin-bottom: 15px;">Delivery Address</h5>
+                                            <div style="color: #ffffff;">
+                                                {{ order.shipping_address|linebreaks }}
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="table-responsive">
                                         <table class="table">
                                             <thead>
@@ -246,7 +257,7 @@
                                                 <tr>
                                                     <td><img src="{{ item.product.images.first.image.url }}"
                                                             class="product-image" alt="{{ item.product.name }}"></td>
-                                                    <td>{{ item.product.name|truncatechars:50 }}</td>
+                                                    <td>{{ item.product.name|truncatechars:30 }}</td>
                                                     <td>{{ item.product_variant.color }} - {{ item.product_variant.size }}</td>
                                                     <td>{{ item.quantity }}</td>
                                                     <td>₹{{ item.product.price|floatformat:2 }}</td>

@@ -21,10 +21,11 @@ from payments.views import initiate_retry_payment
 from offers.models import ProductOffer, CategoryOffer
 
 
-def is_admin(user):
-    return user.is_authenticated and user.is_superuser
+###############################################USER SIDE###############################################
 
-
+"""
+CHECKOUT
+"""
 @login_required
 def place_order(request):
     user = request.user
@@ -50,7 +51,7 @@ def place_order(request):
             product_offer = ProductOffer.objects.filter(product=product, is_active=True).first()
             category_offer = CategoryOffer.objects.filter(category=product.category, is_active=True).first()
 
-            # Calculate the final price based on the best offer
+            # Final price calculation according to the offer price
             if product_offer and category_offer:
                 final_price = min(
                     product.price * (1 - product_offer.discount_percentage / 100),
@@ -77,7 +78,7 @@ def place_order(request):
         # Store cart total in session for coupon validation
         request.session['cart_total'] = str(total_offer_price)
 
-        # Apply coupon discount if any
+        # Apply coupon discount if coupon having
         coupon_discount = Decimal('0.00')
         coupon_code = request.session.get('coupon_code', None)
         if coupon_code:
@@ -86,13 +87,14 @@ def place_order(request):
                 if coupon.is_valid() and total_offer_price >= coupon.minimum_purchase_amount:
                     if not CouponUsage.objects.filter(user=user, coupon=coupon).exists():
                         coupon_discount = (coupon.discount_percentage / Decimal('100.00')) * total_offer_price
+
+                        # Reduce the coupon discount from total
                         if coupon_discount > coupon.max_discount_amount:
                             grand_total -= coupon.max_discount_amount
                             discounted_amount += coupon.max_discount_amount
                             coupon_discount = coupon.max_discount_amount
                         else:
                             grand_total -= coupon_discount
-                            # Add coupon discount to the total discount amount
                             discounted_amount += coupon_discount
                         
             except Coupon.DoesNotExist:
@@ -114,10 +116,9 @@ def place_order(request):
             if not address_id or not payment_method:
                 return JsonResponse({"error": "Address or payment method not provided."}, status=400)
 
-            # Handle address selection
+            # Address Handling
             if address_id == "new":
-                # If the user adds a new address, it should already be in the Address table
-                # So we fetch the latest address added by the user
+                # If the user add new address show it on the address section 
                 address = Address.objects.filter(user=user).order_by('-id').first()
             elif address_id:
                 # Fetch the selected address
@@ -141,7 +142,7 @@ def place_order(request):
                 phone=address.phone,
             )
 
-            # Check if payment method is wallet and if the user has sufficient balance
+            # Check the wallet have sufficient fund in wallet if he using wallet for payment
             if payment_method == "wallet":
                 wallet = Wallet.objects.get(user=user)
                 if wallet.balance < grand_total:
@@ -236,6 +237,9 @@ def place_order(request):
     return render(request, 'user/checkout.html', context)
 
 
+"""
+ORDER SUCCESS
+"""
 @login_required
 def order_success(request):
     latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
@@ -270,18 +274,9 @@ def order_success(request):
         quantity = Decimal(str(item.quantity))
         total_listed_price += product.price * quantity
         total_offer_price += final_price * quantity
-    
-    discounted_amount = total_listed_price - total_offer_price
-    delivery_charge = Decimal('40.00') if total_offer_price < Decimal('1000.00') else Decimal('0.00')
 
-    # Use the total_price from the Order model (already includes coupon discount)
+    # Use the total_price from the Order model
     grand_total = latest_order.total_price
-
-    # Calculate coupon discount only if a coupon was applied to this order
-    coupon_discount = Decimal('0.00')
-    if latest_order.coupon:
-        # Calculate the discount percentage applied
-        coupon_discount = (latest_order.coupon.discount_percentage / Decimal('100.00')) * total_offer_price
     
     # Clear the entered coupon code from the session after the order is successfully placed
     if 'entered_coupon_code' in request.session:
@@ -289,13 +284,7 @@ def order_success(request):
     
     context = {
         'order_number': latest_order.id,
-        # 'order_items': order_items,
-        # 'total_listed_price': total_listed_price,
-        # 'total_offer_price': total_offer_price,
-        # 'discounted_amount': discounted_amount,
-        # 'delivery_charge': delivery_charge,
         'grand_total': grand_total,
-        # 'coupon_discount': coupon_discount if latest_order.coupon else Decimal('0.00'),  # Only show discount if coupon was applied
         'payment_status': latest_order.payment_status,
         'show_retry_button': latest_order.payment_status == 'Processing' and latest_order.payment_method == 'razorpay',
     }
@@ -303,13 +292,16 @@ def order_success(request):
     return render(request, 'user/order_confirm.html', context)
 
 
+
+"""
+USER SIDE ORDERS LISTING PAGE
+"""
 @login_required
 def user_orders(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     
-    # Pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(orders, 10)  # Show 10 orders per page
+    paginator = Paginator(orders, 10)
 
     try:
         orders = paginator.page(page)
@@ -321,15 +313,17 @@ def user_orders(request):
     return render(request, 'user/orders_list.html', {'orders': orders})
 
 
+
+"""
+USER SIDE ORDER ITEMS LISTING PAGE
+"""
 @login_required
 def order_items(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     order_items = order.items.all()
     
-    # Pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(order_items, 10)  # Show 10 items per page
-
+    paginator = Paginator(order_items, 10)
     try:
         order_items = paginator.page(page)
     except PageNotAnInteger:
@@ -340,7 +334,9 @@ def order_items(request, order_id):
     return render(request, 'user/order_items.html', {'order': order, 'order_items': order_items})
 
 
-
+"""
+USER SIDE ORDER ITEM DETAILS LISTING PAGE
+"""
 @login_required
 def user_order_details(request, item_id):
     particular_product = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
@@ -408,6 +404,41 @@ def user_order_details(request, item_id):
         'coupon_discount': coupon_discount,
         'days_since_delivery': days_since_delivery,
     })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -658,6 +689,14 @@ def download_invoice(request, order_id):
     return response
 
 
+
+
+"""
+ADMIN CHECK
+"""
+def is_admin(user):
+    return user.is_authenticated and user.is_superuser
+
 @user_passes_test(is_admin)
 def order_management(request):
     orders = Order.objects.all().order_by('-created_at')
@@ -847,18 +886,17 @@ def update_order_status(request, order_id):
         order_item.save()
         refund_amount = max(refund_amount, Decimal('0.00'))
 
-        # Credit wallet for non-COD payments
-        if order_item.order.payment_method != 'COD':
-            wallet, created = Wallet.objects.get_or_create(user=order.user)
-            wallet.balance += refund_amount
-            wallet.save()
+        # Credit amount to wallet for online, COD, and wallet payment methods
+        wallet, created = Wallet.objects.get_or_create(user=order.user)
+        wallet.balance += refund_amount
+        wallet.save()
 
-            WalletTransaction.objects.create(
-                wallet=wallet,
-                order=order_item.order,
-                amount=refund_amount,
-                transaction_type='credit'
-            )
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            order=order_item.order,
+            amount=refund_amount,
+            transaction_type='credit'
+        )
     else:
         pass
 

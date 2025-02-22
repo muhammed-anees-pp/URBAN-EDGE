@@ -188,6 +188,10 @@ def verify_otp(request):
             # Create a referral entry for the new user
             Referral.objects.create(user=user)
 
+            # Credit ₹50 to the new user's wallet
+            wallet, _ = Wallet.objects.get_or_create(user=user)
+            #WalletTransaction.objects.create()
+
             # Handle referral code
             if referral_code:
                 try:
@@ -195,8 +199,8 @@ def verify_otp(request):
                     referred_by = referral.user
                     Referral.objects.filter(user=user).update(referred_by=referred_by)
 
-                    # Credit ₹50 to the new user's wallet
-                    wallet, _ = Wallet.objects.get_or_create(user=user)
+                    # # Credit ₹50 to the new user's wallet
+                    # wallet, _ = Wallet.objects.get_or_create(user=user)
                     wallet.balance += 50
                     wallet.save()
                     WalletTransaction.objects.create(
