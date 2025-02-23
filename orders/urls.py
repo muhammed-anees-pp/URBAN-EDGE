@@ -1,23 +1,18 @@
 from django.urls import path
-from .views import (
-    place_order, order_success, 
-    user_orders, user_order_details, cancel_order_item, 
-    order_management, admin_order_details, update_order_status,
-    request_return, download_invoice, order_items, retry_payment, retry_order_success
-)
+from . import views 
 
 urlpatterns = [
-    path('checkout/', place_order, name='place_order'),
-    path('order-success/', order_success, name='order_success'),
-    path('my-orders/', user_orders, name='user_orders'),
-    path('my-orders/<str:order_id>/items/', order_items, name='order_items'),
-    path('my-orders/<str:item_id>/', user_order_details, name='user_order_details'),
-    path('cancel-order-item/<str:item_id>/', cancel_order_item, name='cancel_order_item'),
-    path('request-return/<str:item_id>/', request_return, name='request_return'),
-    path('admin/orders/', order_management, name='order_management'),
-    path('admin/orders/<str:order_id>/', admin_order_details, name='admin_order_details'),
-    path('admin/orders/<str:order_id>/update-status/', update_order_status, name='update_order_status'),
-    path('download-invoice/<str:order_id>/', download_invoice, name='download_invoice'),
-    path('retry-payment/<str:order_id>/', retry_payment, name='retry_payment'),
-    path('retry-success/<str:order_id>/', retry_order_success, name='retry_order_success'),
+    path('checkout/', views.place_order, name='place_order'),
+    path('orders/order-success/<str:order_id>/', views.order_success, name='order_success'),
+    path('my-orders/', views.user_orders, name='user_orders'),
+    path('my-orders/<str:order_id>/items/', views.order_items, name='order_items'),
+    path('my-orders/<str:item_id>/', views.user_order_details, name='user_order_details'),
+    path('cancel-order-item/<str:item_id>/', views.cancel_order_item, name='cancel_order_item'),
+    path('request-return/<str:item_id>/', views.request_return, name='request_return'),
+    path('admin/orders/', views.order_management, name='order_management'),
+    path('admin/orders/<str:order_id>/', views.admin_order_details, name='admin_order_details'),
+    path('admin/orders/<str:order_id>/update-status/', views.update_order_status, name='update_order_status'),
+    path('download-invoice/<str:order_id>/', views.download_invoice, name='download_invoice'),
+    path('retry-payment/<str:order_id>/', views.retry_payment, name='retry_payment'),
+    path('retry-success/<str:order_id>/', views.retry_order_success, name='retry_order_success'),
 ]

@@ -4,7 +4,6 @@
 
 {% block extra_css %}
 <style>
-    /* Custom styles matching reference templates */
     .breadcrumb a {
         color: #088178;
         text-decoration: none;
@@ -15,7 +14,6 @@
         color: #666;
     }
 
-    /* Sidebar Styles */
     .sidebar {
         position: sticky;
         top: 20px;
@@ -44,7 +42,6 @@
         margin-right: 10px;
     }
 
-    /* Orders Card Styles */
     .orders-card {
         background: #ffffff;
         border-radius: 12px;
@@ -98,7 +95,6 @@
         color: white;
     }
 
-    /* Status dot styling */
     .status-dot {
         display: inline-block;
         width: 10px;
@@ -107,7 +103,10 @@
         margin-right: 8px;
     }
 
-    /* Status-specific colors */
+    .status-processing {
+        background-color: cyan;
+    }
+
     .status-order_placed {
         background-color: blue;
     }
@@ -140,7 +139,6 @@
         background-color: red;
     }
 
-    /* Pagination Styles */
     .pagination {
         display: flex;
         justify-content: center;
@@ -190,7 +188,6 @@
         color: white;
     }
 
-    /* Responsive adjustments */
     @media (max-width: 991px) {
         .sidebar {
             position: static;
@@ -277,6 +274,7 @@
                         </div>
                     </div>
                 </div>
+                
                 {% endfor %}
                 <!-- Pagination-->
                 <div class="pagination">

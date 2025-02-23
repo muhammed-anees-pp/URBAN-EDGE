@@ -211,13 +211,14 @@ def initiate_payment(request):
                         "user_id": user.id,
                     },
                 })
+                callback_url = reverse('order_success', args=[order.id])
                 return JsonResponse({
                     "razorpay_order_id": razorpay_order["id"],
                     "django_order_id": order.id,
                     "razorpay_merchant_key": settings.RAZOR_KEY_ID,
                     "razorpay_amount": amount,
                     "currency": "INR",
-                    "callback_url": request.build_absolute_uri(reverse('order_success')),
+                    "callback_url": request.build_absolute_uri(callback_url),
                 })
             else:
                 return JsonResponse({"error": "Invalid payment method."}, status=400)

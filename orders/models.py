@@ -7,7 +7,7 @@ from user_profile.models import Address, ShippingAddress
 from django.utils import timezone
 
 def generate_order_id():
-    # Example: ORD-20231025-USER123-ABC123
+    # ORD-20231025-USER123-ABC123
     date_part = timezone.now().strftime("%Y%m%d")  # Current date in YYYYMMDD format
     random_part = uuid.uuid4().hex[:6].upper()  # Random 6-character string
     return f"ORD-{date_part}-{random_part}"
@@ -79,7 +79,6 @@ class Order(models.Model):
             print("Not all items are in final states. Setting order status to 'pending'.")
             self.status = 'pending'
 
-        # self.save()
         self.save(update_fields=['status'])
         print(f"Updated order status: {self.status}")
 
@@ -91,10 +90,10 @@ class OrderItem(models.Model):
         ('out_for_delivery', 'Out For Delivery'),
         ('delivered', 'Delivered'),
         ('canceled', 'Canceled'),
-        ('return_requested', 'Return Requested'),  # User requests return
-        ('returned', 'Returned'),  # Admin approves return
+        ('return_requested', 'Return Requested'),
+        ('returned', 'Returned'),
         ('return', 'Return'),
-        ('return_denied', 'Return Denied'),  # Admin denies return
+        ('return_denied', 'Return Denied'),
     ]
 
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)

@@ -21,8 +21,7 @@ from payments.views import initiate_retry_payment
 from offers.models import ProductOffer, CategoryOffer
 
 
-###############################################USER SIDE###############################################
-
+###############################################USER SIDE START###############################################
 """
 CHECKOUT
 """
@@ -148,7 +147,6 @@ def place_order(request):
                 if wallet.balance < grand_total:
                     return JsonResponse({"error": "Insufficient funds in wallet."}, status=400)
 
-            # Determine payment and order status based on payment method
             if payment_method == "COD":
                 payment_status = 'Pending'
                 order_status = 'pending'
@@ -215,7 +213,7 @@ def place_order(request):
             if 'entered_coupon_code' in request.session:
                 del request.session['entered_coupon_code']
 
-            return redirect(reverse('order_success'))
+            return redirect(reverse('order_success', args=[order.id]))
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
@@ -232,7 +230,7 @@ def place_order(request):
         'delivery_charge': delivery_charge,
         'grand_total': grand_total,
         'coupon_discount': coupon_discount,
-        'entered_coupon_code': entered_coupon_code,  # Pass the entered coupon code to the template
+        'entered_coupon_code': entered_coupon_code,
     }
     return render(request, 'user/checkout.html', context)
 
@@ -241,15 +239,9 @@ def place_order(request):
 ORDER SUCCESS
 """
 @login_required
-def order_success(request):
-    latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
-    
-    if not latest_order:
-        return render(request, 'user/order_confirm.html', {
-            'error': 'No order found.'
-        })
-    
-    order_items = OrderItem.objects.filter(order=latest_order)
+def order_success(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order_items = order.items.all()
     
     total_listed_price = Decimal('0.00')
     total_offer_price = Decimal('0.00')
@@ -276,21 +268,20 @@ def order_success(request):
         total_offer_price += final_price * quantity
 
     # Use the total_price from the Order model
-    grand_total = latest_order.total_price
+    grand_total = order.total_price
     
     # Clear the entered coupon code from the session after the order is successfully placed
     if 'entered_coupon_code' in request.session:
         del request.session['entered_coupon_code']
     
     context = {
-        'order_number': latest_order.id,
+        'order_number': order.id,
         'grand_total': grand_total,
-        'payment_status': latest_order.payment_status,
-        'show_retry_button': latest_order.payment_status == 'Processing' and latest_order.payment_method == 'razorpay',
+        'payment_status': order.payment_status,
+        'show_retry_button': order.payment_status == 'Processing' and order.payment_method == 'razorpay',
     }
     
     return render(request, 'user/order_confirm.html', context)
-
 
 
 """
@@ -311,7 +302,6 @@ def user_orders(request):
         orders = paginator.page(paginator.num_pages)
 
     return render(request, 'user/orders_list.html', {'orders': orders})
-
 
 
 """
@@ -400,43 +390,9 @@ def user_order_details(request, item_id):
     })
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+"""
+CANCEL OPTION FOR USER
+"""
 @login_required
 def cancel_order_item(request, item_id):
     order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
@@ -511,9 +467,7 @@ def cancel_order_item(request, item_id):
                             refund_amount = order_item.price * order_item.quantity
                     else:
                         refund_amount = (order_item.price * order_item.quantity) - (
-                            (coupon.discount_percentage / Decimal('100.00')) *
-                            order_item.price *
-                            order_item.quantity
+                            (coupon.discount_percentage / Decimal('100.00')) * order_item.price * order_item.quantity
                         )
                 order_item.order.save()
             else:
@@ -528,7 +482,7 @@ def cancel_order_item(request, item_id):
 
             refund_amount = max(refund_amount, Decimal('0.00'))
 
-            # Credit wallet for non-COD payments
+            # Credit wallet for non COD payments
             if order_item.order.payment_method != 'COD':
                 wallet, created = Wallet.objects.get_or_create(user=request.user)
                 wallet.balance += refund_amount
@@ -552,12 +506,14 @@ def cancel_order_item(request, item_id):
     return render(request, 'user/cancel_reason.html', {'order_item': order_item})
 
 
-
+"""
+RETURN REQUEST - USER
+"""
 @login_required
 def request_return(request, item_id):
     order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
 
-    # Check if the item is eligible for return (delivered within 7 days)
+    # Check if the item is eligible for return delivered within 7 days
     if order_item.status != 'delivered' or (timezone.now() - order_item.updated_at).days > 7:
         messages.error(request, "This item is not eligible for return.")
         return redirect('user_order_details', item_id=item_id)
@@ -565,7 +521,6 @@ def request_return(request, item_id):
     if request.method == "POST":
         return_reason = request.POST.get("return_reason")
         if return_reason:
-            # Update the order item status
             order_item.status = 'return_requested'
             order_item.return_reason = return_reason
             order_item.return_requested_at = timezone.now()
@@ -577,11 +532,92 @@ def request_return(request, item_id):
             messages.error(request, "Please provide a reason for return.")
             return redirect('request_return', item_id=item_id)
 
-    # Render the return reason form template
     return render(request, 'user/return_reason.html', {'order_item': order_item})
 
+"""
+RETRY PAYMENT FOR RAZORPAY FAILED PAYMENTS
+"""
+@csrf_exempt
+def retry_payment(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    if request.method == "POST":
+        request.session['retry_payment_details'] = {
+            'order_id': order.id,
+            'shipping_address_id': order.shipping_address.id,
+            'payment_method': order.payment_method,
+            'total_price': str(order.total_price),
+            'cart_items': [{'product_variant_id': item.product_variant.id, 'quantity': item.quantity} for item in order.items.all()],
+            'coupon_code': order.coupon.coupon_code if order.coupon else None,
+            'coupon_discount': '0.00',
+        }
+        return initiate_retry_payment(request)
+    
+    context = {
+        'order': order,
+    }
+    return render(request, 'user/retry_payment_confirmation.html', context)
 
 
+"""
+RETRY ORDER SUCCESS PAGE
+"""
+@login_required
+def retry_order_success(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order_items = order.items.all()
+    
+    total_listed_price = Decimal('0.00')
+    total_offer_price = Decimal('0.00')
+    for item in order_items:
+        product = item.product
+        product_offer = ProductOffer.objects.filter(product=product, is_active=True).first()
+        category_offer = CategoryOffer.objects.filter(category=product.category, is_active=True).first()
+
+        # Calculate the final price based on the best offer
+        if product_offer and category_offer:
+            final_price = min(
+                product.price * (1 - product_offer.discount_percentage / 100),
+                product.price * (1 - category_offer.discount_percentage / 100)
+            )
+        elif product_offer:
+            final_price = product.price * (1 - product_offer.discount_percentage / 100)
+        elif category_offer:
+            final_price = product.price * (1 - category_offer.discount_percentage / 100)
+        else:
+            final_price = product.price
+
+        quantity = Decimal(str(item.quantity))
+        total_listed_price += product.price * quantity
+        total_offer_price += final_price * quantity
+    
+    discounted_amount = total_listed_price - total_offer_price
+    delivery_charge = Decimal('40.00') if total_offer_price < Decimal('1000.00') else Decimal('0.00')
+    grand_total = order.total_price
+
+    coupon_discount = Decimal('0.00')
+    if order.coupon:
+        coupon_discount = (order.coupon.discount_percentage / Decimal('100.00')) * total_offer_price
+    
+    context = {
+        'order_number': order.id,
+        'order_items': order_items,
+        'total_listed_price': total_listed_price,
+        'total_offer_price': total_offer_price,
+        'discounted_amount': discounted_amount,
+        'delivery_charge': delivery_charge,
+        'grand_total': grand_total,
+        'coupon_discount': coupon_discount,
+        'payment_status': order.payment_status,
+        'show_retry_button': False
+    }
+    
+    return render(request, 'user/retry_order_confirm.html', context)
+
+
+"""
+DOWNLOAD INVOICE
+"""
 def download_invoice(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     order_items = order.items.all()
@@ -619,10 +655,8 @@ def download_invoice(request, order_id):
     delivery_charge = Decimal('40.00') if total_offer_price < Decimal('1000.00') else Decimal('0.00')
     coupon_discount = order.discount_coupon_amount
     
-    
     grand_total = (total_offer_price - coupon_discount) + delivery_charge
 
-   
     # Prepare order items with calculated values
     processed_items = []
     for item in order_items:
@@ -682,22 +716,26 @@ def download_invoice(request, order_id):
     response['Content-Disposition'] = f'attachment; filename="invoice_{order.id}.pdf"'
     return response
 
+###############################################USER SIDE END###############################################
 
 
 
+###############################################ADMIN SIDE START###############################################
 """
 ADMIN CHECK
 """
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
 
+"""
+ORDERS LIST
+"""
 @user_passes_test(is_admin)
 def order_management(request):
     orders = Order.objects.all().order_by('-created_at')
 
-    # Pagination
-    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
-    paginator = Paginator(orders, 10)  # Show 10 products per page
+    page = request.GET.get('page', 1) 
+    paginator = Paginator(orders, 10) 
 
     try:
         orders = paginator.page(page)
@@ -709,7 +747,9 @@ def order_management(request):
     return render(request, 'admin/order_admin.html', {'orders': orders})
 
 
-
+"""
+ORDER DETAILS
+"""
 @user_passes_test(is_admin)
 def admin_order_details(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -738,12 +778,6 @@ def admin_order_details(request, order_id):
 
     status_choices = OrderItem.ORDER_ITEM_STATUS_CHOICES
 
-    # Calculate coupon discount
-    coupon_discount = Decimal('0.00')
-    if order.coupon:
-        coupon_discount = (order.coupon.discount_percentage / Decimal('100.00')) * order.total_price
-
-    # Pagination
     page = request.GET.get('page', 1)
     paginator = Paginator(order_items, 10)
 
@@ -758,10 +792,12 @@ def admin_order_details(request, order_id):
         'order': order,
         'order_items': order_items,
         'status_choices': status_choices,
-        #'coupon_discount': coupon_discount,
     })
 
 
+"""
+STATUS UPDATE
+"""
 @user_passes_test(is_admin)
 @require_POST
 def update_order_status(request, order_id):
@@ -774,10 +810,6 @@ def update_order_status(request, order_id):
 
     order_item = get_object_or_404(OrderItem, id=item_id, order=order)
 
-    # Debug: Log the current and new status
-    print(f"Current status of OrderItem {order_item.id}: {order_item.status}")
-    print(f"Requested new status: {new_status}")
-
     # Check if the new status is allowed using the can_update_status method
     if not order_item.can_update_status(new_status):
         return JsonResponse({"error": f"Cannot update status from {order_item.status} to {new_status}."}, status=400)
@@ -789,17 +821,13 @@ def update_order_status(request, order_id):
     order_item.status = new_status
     order_item.save()
 
-    # Debug: Log the status update
-    print(f"Updated status of OrderItem {order_item.id} to {order_item.status}")
-
-    # If the order is delivered and payment method is COD, update payment status to 'Paid'
+    # If the order is delivered and payment method is COD, update payment status to Paid
     if new_status == 'delivered' and order.payment_method == 'COD':
         order.payment_status = 'Paid'
         order.save()
 
-    # If the status is updated to 'return', process the refund logic
     if new_status == 'return':
-        # Refill stock and credit amount to wallet if the status is updated to 'return'
+        # Refill stock and credit amount to wallet if the status is updated to return
         product_variant = order_item.product_variant
         product_variant.stock += order_item.quantity
         product_variant.save()
@@ -841,7 +869,6 @@ def update_order_status(request, order_id):
 
             order_total_coupon_discount = order_item.order.discount_coupon_amount
 
-            # Distribute the discount evenly across all items in the original order
             discount_per_item = order_total_coupon_discount / len(original_order_items)
             if order_total_coupon_discount == coupon.max_discount_amount:
                     if remaining_total_price < coupon.minimum_purchase_amount:
@@ -859,11 +886,8 @@ def update_order_status(request, order_id):
                     if not order_item.order.discount_applied:
                         refund_amount = (order_item.price * order_item.quantity) - total_discount
                         order_item.order.discount_applied = True
-                        print(f"Before saving: discount_applied={order_item.order.discount_applied}")
-                        order_item.order.save(update_fields=['discount_applied'])  # Ensure only this field updates
-                        order_item.order.refresh_from_db()  # Force refresh from DB
-                        print(f"Final discount_applied value in DB: {order.discount_applied}")
-                        print(f"After saving: discount_applied={order_item.order.discount_applied}")
+                        order_item.order.save(update_fields=['discount_applied'])  
+                        order_item.order.refresh_from_db()
                     else:
                         refund_amount = order_item.price * order_item.quantity
                 else:
@@ -895,11 +919,8 @@ def update_order_status(request, order_id):
         pass
 
     # Update the order status
-    print(f"Before update_order: discount_applied={order.discount_applied}")
     order.update_order()
     order.refresh_from_db()
-    print(f"After update_order: discount_applied={order.discount_applied}")
-
 
     return JsonResponse({
         "success": True,
@@ -907,85 +928,3 @@ def update_order_status(request, order_id):
         "redirect_url": reverse('admin_order_details', args=[order.id])
     })
 
-
-"""
-RETRY PAYMENT FOR RAZORPAY FAILED PAYMENTS
-"""
-@csrf_exempt
-def retry_payment(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    
-    if request.method == "POST":
-        # Store cart details in session for retry payment
-        request.session['retry_payment_details'] = {
-            'order_id': order.id,
-            'shipping_address_id': order.shipping_address.id,
-            'payment_method': order.payment_method,
-            'total_price': str(order.total_price),
-            'cart_items': [{'product_variant_id': item.product_variant.id, 'quantity': item.quantity} for item in order.items.all()],
-            'coupon_code': order.coupon.coupon_code if order.coupon else None,
-            'coupon_discount': '0.00',
-        }
-        return initiate_retry_payment(request)
-    
-    # If it's a GET request, render a confirmation page
-    context = {
-        'order': order,
-    }
-    return render(request, 'user/retry_payment_confirmation.html', context)
-
-
-"""
-RETRY ORDER SUCCESS PAGE
-"""
-@login_required
-def retry_order_success(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    order_items = order.items.all()
-    
-    total_listed_price = Decimal('0.00')
-    total_offer_price = Decimal('0.00')
-    for item in order_items:
-        product = item.product
-        product_offer = ProductOffer.objects.filter(product=product, is_active=True).first()
-        category_offer = CategoryOffer.objects.filter(category=product.category, is_active=True).first()
-
-        # Calculate the final price based on the best offer
-        if product_offer and category_offer:
-            final_price = min(
-                product.price * (1 - product_offer.discount_percentage / 100),
-                product.price * (1 - category_offer.discount_percentage / 100)
-            )
-        elif product_offer:
-            final_price = product.price * (1 - product_offer.discount_percentage / 100)
-        elif category_offer:
-            final_price = product.price * (1 - category_offer.discount_percentage / 100)
-        else:
-            final_price = product.price
-
-        quantity = Decimal(str(item.quantity))
-        total_listed_price += product.price * quantity
-        total_offer_price += final_price * quantity
-    
-    discounted_amount = total_listed_price - total_offer_price
-    delivery_charge = Decimal('40.00') if total_offer_price < Decimal('1000.00') else Decimal('0.00')
-    grand_total = order.total_price
-
-    coupon_discount = Decimal('0.00')
-    if order.coupon:
-        coupon_discount = (order.coupon.discount_percentage / Decimal('100.00')) * total_offer_price
-    
-    context = {
-        'order_number': order.id,
-        'order_items': order_items,
-        'total_listed_price': total_listed_price,
-        'total_offer_price': total_offer_price,
-        'discounted_amount': discounted_amount,
-        'delivery_charge': delivery_charge,
-        'grand_total': grand_total,
-        'coupon_discount': coupon_discount,
-        'payment_status': order.payment_status,
-        'show_retry_button': False  # Disable retry button on this page
-    }
-    
-    return render(request, 'user/retry_order_confirm.html', context)
