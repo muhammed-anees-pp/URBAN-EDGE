@@ -56,6 +56,7 @@ def admin_login(request):
 
     return render(request, 'admin/admin_login.html', {'form_data': form_data})
 
+
 @user_passes_test(is_admin)
 @login_required(login_url='admin_login')
 def admin_dashboard(request):
@@ -149,17 +150,14 @@ def admin_dashboard(request):
                 messages.error(request, "Invalid graph date range selected")
                 return redirect('admin_dashboard')
 
-    # Get COMPLETED orders within the main dashboard date range
-    completed_orders = Order.objects.filter(
-        status='completed',
-        created_at__date__range=[start_date, end_date]
-    )
+    # Get all orders within the main dashboard date range
+    orders = Order.objects.filter(created_at__date__range=[start_date, end_date])
 
     # Calculate totals for the main dashboard
     total_sales = Decimal('0.00')
     total_discount = Decimal('0.00')
     
-    for order in completed_orders:
+    for order in orders.filter(status='completed'):
         valid_items = order.items.filter(
             status__in=['delivered', 'return_requested', 'return_denied']
         )
@@ -171,13 +169,13 @@ def admin_dashboard(request):
 
     # Other dashboard data
     total_users = User.objects.filter(is_superuser=False).count()
-    total_orders_count = completed_orders.count()
+    total_orders_count = orders.count()  # Total orders (pending + completed + canceled + returned)
 
     order_status_counts = {
-        'pending': Order.objects.filter(status='pending').count(),
-        'completed': completed_orders.count(),
-        'canceled': Order.objects.filter(status='canceled').count(),
-        'returned': Order.objects.filter(status='returned').count(),
+        'pending': orders.filter(status='pending').count(),
+        'completed': orders.filter(status='completed').count(),
+        'canceled': orders.filter(status='canceled').count(),
+        'returned': orders.filter(status='returned').count(),
     }
 
     item_status_counts = {
@@ -307,17 +305,15 @@ def generate_sales_report(request):
     except ValueError:
         return HttpResponse("Invalid date format", status=400)
 
-    # Get completed orders in date range
-    completed_orders = Order.objects.filter(
-        status='completed',
-        created_at__date__range=[start_date, end_date]
-    )
+    # Get all orders within the date range
+    orders = Order.objects.filter(created_at__date__range=[start_date, end_date])
 
-    order_data = []
+    # Calculate totals for the report
     total_sales = Decimal('0.00')
     total_discount = Decimal('0.00')
+    order_data = []
 
-    for order in completed_orders:
+    for order in orders.filter(status='completed'):
         valid_items = order.items.filter(
             status__in=['delivered', 'return_requested', 'return_denied']
         )
@@ -337,11 +333,20 @@ def generate_sales_report(request):
         total_sales += order_total
         total_discount += order_discount
 
+    # Calculate order status counts
+    order_status_counts = {
+        'pending': orders.filter(status='pending').count(),
+        'completed': orders.filter(status='completed').count(),
+        'canceled': orders.filter(status='canceled').count(),
+        'returned': orders.filter(status='returned').count(),
+    }
+
     context = {
         'order_data': order_data,
         'total_sales': total_sales - total_discount,
         'total_discount_amount': total_discount,
-        'total_orders': len(order_data),
+        'total_orders': orders.count(),  # Total orders (pending + completed + canceled + returned)
+        'order_status_counts': order_status_counts,  # Include order status counts
         'start_date': start_date.strftime('%Y-%m-%d'),
         'end_date': end_date.strftime('%Y-%m-%d'),
         'report_generated_at': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -409,20 +414,23 @@ def generate_sales_report(request):
         address_cell.font = address_font
         address_cell.alignment = left_align
 
-        # Period Info (changed from right_align to left_align)
+        # Period Info
         worksheet.merge_cells('A6:F6')
         period_cell = worksheet.cell(row=6, column=1, value=f"Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
         period_cell.font = normal_font
-        period_cell.alignment = left_align  # Changed from right_align to left_align
+        period_cell.alignment = left_align
 
         # Summary Section
         worksheet.merge_cells('A8:F8')
         summary_title = worksheet.cell(row=8, column=1, value="Summary")
         summary_title.font = summary_title_font
 
+        #Adjesting the sales amount according to the discount
+        total_sales -= total_discount
+
         # Summary Data
         summary_data = [
-            ('Total Orders', len(order_data)),
+            #('Total Orders', orders.count()),
             ('Total Sales', f"₹{total_sales:,.2f}"),
             ('Total Discount', f"₹{total_discount:,.2f}")
         ]
@@ -435,18 +443,48 @@ def generate_sales_report(request):
             cell.font = summary_label_font
             cell.fill = summary_item_fill
             cell.border = border
-            cell.alignment = left_align  # Added left alignment
+            cell.alignment = left_align
             
             # Values
             cell = worksheet.cell(row=start_row + idx, column=2, value=value)
             cell.font = summary_value_font
             cell.fill = summary_item_fill
             cell.border = border
-            cell.alignment = right_align  # Changed to always use left alignment
+            cell.alignment = right_align
 
+        # Order Status Counts Section
+        status_row = start_row + len(summary_data) + 2
+        worksheet.merge_cells(f'A{status_row}:F{status_row}')
+        status_title = worksheet.cell(row=status_row, column=1, value="Order Status Counts")
+        status_title.font = summary_title_font
+
+        # Order Status Data
+        status_data = [
+            ('Total Orders', orders.count()),
+            ('Pending', order_status_counts['pending']),
+            ('Completed', order_status_counts['completed']),
+            ('Canceled', order_status_counts['canceled']),
+            ('Returned', order_status_counts['returned']),
+        ]
+
+        # Create status grid
+        for idx, (label, value) in enumerate(status_data):
+            # Labels
+            cell = worksheet.cell(row=status_row + idx + 1, column=1, value=label)
+            cell.font = summary_label_font
+            cell.fill = summary_item_fill
+            cell.border = border
+            cell.alignment = left_align
+            
+            # Values
+            cell = worksheet.cell(row=status_row + idx + 1, column=2, value=value)
+            cell.font = summary_value_font
+            cell.fill = summary_item_fill
+            cell.border = border
+            cell.alignment = right_align
 
         # Order Details Section
-        detail_row = start_row + 5
+        detail_row = status_row + len(status_data) + 2
         worksheet.merge_cells(f'A{detail_row}:F{detail_row}')
         detail_title = worksheet.cell(row=detail_row, column=1, value="Order Details")
         detail_title.font = summary_title_font
@@ -497,6 +535,10 @@ def generate_sales_report(request):
         return response
     
     return (request, 'admin_dashboard')
+
+
+
+
 
 
 @user_passes_test(is_admin)

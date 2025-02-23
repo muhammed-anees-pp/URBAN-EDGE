@@ -322,6 +322,23 @@
             }
         }
 
+        /* #custom_date_range,
+        #graph_custom_date_range {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            background-color: #32363e;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid rgba(54, 153, 255, 0.15);
+        }
+
+        #custom_date_range.show,
+        #graph_custom_date_range.show {
+            display: grid;
+        } */
+
         #custom_date_range,
         #graph_custom_date_range {
             display: none;
@@ -376,7 +393,10 @@
                                 <h4 class="card-title">
                                     <i class="mdi mdi-filter-variant"></i> Dashboard Controls
                                 </h4>
-                                <div class="filter-controls">
+
+
+                                <!-- Inside the <body> section, update the filter forms as follows -->
+                                <!-- <div class="filter-controls">
                                     <form method="post" class="d-flex w-100 flex-wrap gap-3">
                                         {% csrf_token %}
                                         <input type="hidden" name="dashboard_filter" value="1">
@@ -384,10 +404,13 @@
                                         <div class="filter-group">
                                             <label class="filter-label">Date Range</label>
                                             <select name="date_range" id="date_range" class="form-control">
-                                                <option value="1_day" {% if date_range == '1_day' %}selected{% endif %}>1 Day</option>
-                                                <option value="1_week" {% if date_range == '1_week' %}selected{% endif %}>1 Week</option>
+                                                <option value="1_day" {% if date_range == '1_day' %}selected{% endif %}>1
+                                                    Day</option>
+                                                <option value="1_week" {% if date_range == '1_week' %}selected{% endif %}>
+                                                    1 Week</option>
                                                 <option value="1_month" {% if date_range == '1_month' %}selected{% endif %}>1 Month</option>
-                                                <option value="custom" {% if date_range == 'custom' %}selected{% endif %}>Custom</option>
+                                                <option value="custom" {% if date_range == 'custom' %}selected{% endif %}>
+                                                    Custom</option>
                                             </select>
                                         </div>
 
@@ -410,20 +433,71 @@
                                                 <i class="mdi mdi-file-download"></i> Generate Report
                                             </button>
                                         </div>
+                                        <div id="custom_date_range"
+                                            class="mx-3 mb-3 {% if date_range == 'custom' %}show{% endif %}">
+                                            <div class="date-input-group">
+                                                <label class="date-input-label">Start Date</label>
+                                                <input type="date" name="custom_start" id="custom_start"
+                                                    class="form-control" value="{{ start_date }}">
+                                            </div>
+                                            <div class="date-input-group">
+                                                <label class="date-input-label">End Date</label>
+                                                <input type="date" name="custom_end" id="custom_end"
+                                                    class="form-control" value="{{ end_date }}">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div> -->
+                                <div class="filter-controls">
+                                    <form method="post" class="d-flex w-100 flex-wrap gap-3">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="dashboard_filter" value="1">
+                                
+                                        <div class="filter-group">
+                                            <label class="filter-label">Date Range</label>
+                                            <select name="date_range" id="date_range" class="form-control">
+                                                <option value="1_day" {% if date_range == '1_day' %}selected{% endif %}>1 Day</option>
+                                                <option value="1_week" {% if date_range == '1_week' %}selected{% endif %}>1 Week</option>
+                                                <option value="1_month" {% if date_range == '1_month' %}selected{% endif %}>1 Month</option>
+                                                <option value="custom" {% if date_range == 'custom' %}selected{% endif %}>Custom</option>
+                                            </select>
+                                        </div>
+                                
+                                        <div class="filter-group">
+                                            <label class="filter-label">Report Format</label>
+                                            <select id="report_format" class="form-control">
+                                                <option value="pdf">PDF</option>
+                                                <option value="excel">Excel</option>
+                                            </select>
+                                        </div>
+                                
+                                        <div class="filter-group" style="display: flex; align-items: flex-end;">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="mdi mdi-filter"></i> Apply Filter
+                                            </button>
+                                        </div>
+                                
+                                        <div class="filter-group" style="display: flex; align-items: flex-end;">
+                                            <button type="button" onclick="generateReport()" class="btn btn-primary">
+                                                <i class="mdi mdi-file-download"></i> Generate Report
+                                            </button>
+                                        </div>
+                                
+                                        <!-- Include custom date range fields within the form -->
+                                        <div id="custom_date_range" class="mx-3 mb-3 {% if date_range == 'custom' %}show{% endif %}">
+                                            <div class="date-input-group">
+                                                <label class="date-input-label">Start Date</label>
+                                                <input type="date" name="custom_start" id="custom_start" class="form-control" value="{{ start_date }}">
+                                            </div>
+                                            <div class="date-input-group">
+                                                <label class="date-input-label">End Date</label>
+                                                <input type="date" name="custom_end" id="custom_end" class="form-control" value="{{ end_date }}">
+                                            </div>
+                                        </div>
                                     </form>
                                 </div>
 
-                                <div id="custom_date_range"
-                                    class="mx-3 mb-3 {% if date_range == 'custom' %}show{% endif %}">
-                                    <div class="date-input-group">
-                                        <label class="date-input-label">Start Date</label>
-                                        <input type="date" name="custom_start" id="custom_start" class="form-control" value="{{ start_date }}">
-                                    </div>
-                                    <div class="date-input-group">
-                                        <label class="date-input-label">End Date</label>
-                                        <input type="date" name="custom_end" id="custom_end" class="form-control" value="{{ end_date }}">
-                                    </div>
-                                </div>
+
 
                                 <h4 class="card-title">
                                     <i class="mdi mdi-calendar-text"></i> Sales Summary ({{ start_date }} to {{ end_date }})
@@ -522,6 +596,9 @@
                                 <h4 class="card-title">
                                     <i class="mdi mdi-chart-timeline-variant"></i> Graph Controls
                                 </h4>
+
+
+                                <!-- Update the graph filter form similarly
                                 <div class="filter-controls">
                                     <form method="post" class="d-flex w-100 align-items-end gap-3">
                                         {% csrf_token %}
@@ -547,20 +624,59 @@
                                     class="mx-3 mb-3 {% if graph_date_range == 'custom' %}show{% endif %}">
                                     <div class="date-input-group">
                                         <label class="date-input-label">Start Date</label>
-                                        <input type="date" name="graph_custom_start" id="graph_custom_start" class="form-control" value="{{ graph_start_date }}">
+                                        <input type="date" name="graph_custom_start" id="graph_custom_start"
+                                            class="form-control" value="{{ graph_start_date }}">
                                     </div>
                                     <div class="date-input-group">
                                         <label class="date-input-label">End Date</label>
-                                        <input type="date" name="graph_custom_end" id="graph_custom_end" class="form-control" value="{{ graph_end_date }}">
+                                        <input type="date" name="graph_custom_end" id="graph_custom_end"
+                                            class="form-control" value="{{ graph_end_date }}">
                                     </div>
-                                </div>
+                                </div> -->
+                                <!-- Update the graph filter form similarly -->
+<div class="filter-controls">
+    <form method="post" class="d-flex w-100 align-items-end gap-3">
+        {% csrf_token %}
+        <input type="hidden" name="graph_filter" value="1">
+
+        <div class="filter-group">
+            <label class="filter-label">Date Range</label>
+            <select name="graph_date_range" id="graph_date_range" class="form-control">
+                <option value="1_day" {% if graph_date_range == '1_day' %}selected{% endif %}>1 Day</option>
+                <option value="1_week" {% if graph_date_range == '1_week' %}selected{% endif %}>1 Week</option>
+                <option value="1_month" {% if graph_date_range == '1_month' %}selected{% endif %}>1 Month</option>
+                <option value="custom" {% if graph_date_range == 'custom' %}selected{% endif %}>Custom</option>
+            </select>
+        </div>
+        <!-- Include custom date range fields within the form -->
+        <div id="graph_custom_date_range" class="mx-3 mb-3 {% if graph_date_range == 'custom' %}show{% endif %}">
+            <div class="date-input-group">
+                <label class="date-input-label">Start Date</label>
+                <input type="date" name="graph_custom_start" id="graph_custom_start" class="form-control" value="{{ graph_start_date }}">
+            </div>
+            <div class="date-input-group">
+                <label class="date-input-label">End Date</label>
+                <input type="date" name="graph_custom_end" id="graph_custom_end" class="form-control" value="{{ graph_end_date }}">
+            </div>
+        </div>
+        
+
+        <button type="submit" class="btn btn-primary">
+            <i class="mdi mdi-filter"></i> Apply Filter
+        </button>
+
+        
+    </form>
+</div>
+
                             </div>
 
                             <!-- Charts Section -->
                             <div class="charts-container">
                                 <div class="card">
                                     <h4 class="card-title">
-                                        <i class="mdi mdi-chart-line"></i> Sales Trend ({{ graph_start_date }} to {{ graph_end_date }})
+                                        <i class="mdi mdi-chart-line"></i> Sales Trend ({{ graph_start_date }} to {{
+                                        graph_end_date }})
                                     </h4>
                                     <div class="chart-wrapper">
                                         <canvas id="salesChart"></canvas>
@@ -569,7 +685,8 @@
 
                                 <div class="card">
                                     <h4 class="card-title">
-                                        <i class="mdi mdi-chart-donut"></i> Order Conversion ({{ graph_start_date }} to {{ graph_end_date }})
+                                        <i class="mdi mdi-chart-donut"></i> Order Conversion ({{ graph_start_date }} to
+                                        {{ graph_end_date }})
                                     </h4>
                                     <div class="chart-wrapper">
                                         <canvas id="orderConversionChart"></canvas>

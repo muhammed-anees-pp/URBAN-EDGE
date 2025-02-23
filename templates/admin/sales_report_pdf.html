@@ -59,12 +59,12 @@
             font-weight: bold;
         }
         .summary-grid {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, auto);
             gap: 15px;
         }
         .summary-item {
-            flex: 1;
             padding: 12px;
             background: #f8f9fa;
             border-radius: 6px;
@@ -178,6 +178,22 @@
                     <div class="summary-value">{{ total_orders }}</div>
                 </div>
                 <div class="summary-item">
+                    <div class="summary-label">Pending</div>
+                    <div class="summary-value">{{ order_status_counts.pending }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Completed</div>
+                    <div class="summary-value">{{ order_status_counts.completed }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Canceled</div>
+                    <div class="summary-value">{{ order_status_counts.canceled }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Returned</div>
+                    <div class="summary-value">{{ order_status_counts.returned }}</div>
+                </div>
+                <div class="summary-item">
                     <div class="summary-label">Total Sales</div>
                     <div class="summary-value">₹{{ total_sales|floatformat:2 }}</div>
                 </div>
@@ -214,8 +230,6 @@
                 </tbody>
             </table>
         </div>
-
-        
 
         <div class="footer">
             <p>This is an automatically generated report from URBAN EDGE</p>

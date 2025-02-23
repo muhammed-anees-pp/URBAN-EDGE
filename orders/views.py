@@ -377,15 +377,9 @@ def user_order_details(request, item_id):
     # Calculate coupon discount
     coupon_discount = Decimal('0.00')
     if order.coupon:
-        coupon_discount = (order.coupon.discount_percentage / Decimal('100.00')) * total_offer_price
-        if coupon_discount > order.coupon.max_discount_amount:
-            grand_total -= order.coupon.max_discount_amount
-            discounted_amount += order.coupon.max_discount_amount
-            coupon_discount = order.coupon.max_discount_amount
-        else:
-            grand_total -= coupon_discount
-            # Add coupon discount to the total discount amount
-            discounted_amount += coupon_discount
+        coupon_discount = order.discount_coupon_amount
+        grand_total -= coupon_discount
+        discounted_amount += coupon_discount
 
     other_products_in_order = order_items.exclude(id=particular_product.id)
 
