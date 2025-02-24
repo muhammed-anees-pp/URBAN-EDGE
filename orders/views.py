@@ -540,6 +540,7 @@ RETRY PAYMENT FOR RAZORPAY FAILED PAYMENTS
 @csrf_exempt
 def retry_payment(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
+    error_message = request.GET.get('error', None)
     
     if request.method == "POST":
         request.session['retry_payment_details'] = {
@@ -555,6 +556,7 @@ def retry_payment(request, order_id):
     
     context = {
         'order': order,
+        'error_message': error_message,
     }
     return render(request, 'user/retry_payment_confirmation.html', context)
 

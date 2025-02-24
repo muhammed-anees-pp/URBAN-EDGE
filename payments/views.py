@@ -14,7 +14,6 @@ from user_profile.models import Address, ShippingAddress
 import logging
 from django.contrib import messages
 from django.shortcuts import redirect, reverse
-
 from offers.models import ProductOffer, CategoryOffer
 
 # log set for debug
@@ -171,13 +170,13 @@ def initiate_payment(request):
                         order=order,
                         product=product,
                         product_variant=product_variant,
-                        quantity=1,  # Each OrderItem has a quantity of 1
+                        quantity=1, 
                         price=final_price,
                     )
-                    product_variant.stock -= 1  # Deduct stock for each quantity
+                    product_variant.stock -= 1
                     product_variant.save()
                         
-            # Record coupon usage only after the order is successfully created
+            # Record coupon usage
             if coupon_code:
                 CouponUsage.objects.create(user=user, coupon=coupon)
                 del request.session['coupon_code']
@@ -272,7 +271,7 @@ def create_order(request):
                     order=order,
                     product=product,
                     product_variant=product_variant,
-                    quantity=1,  # Each OrderItem has a quantity of 1
+                    quantity=1, 
                     price=best_offer_price,
                 )
                 # product_variant.stock -= 1  # Deduct stock for each quantity
@@ -362,7 +361,7 @@ def paymenthandler(request):
             order_items = OrderItem.objects.filter(order=order)
             for item in order_items:
                 product_variant = item.product_variant
-                product_variant.stock += 1  # Revert stock for each quantity
+                product_variant.stock += 1 
                 product_variant.save()
 
         order.payment_status = 'Pending'
@@ -408,7 +407,7 @@ def initiate_retry_payment(request):
                     "notes": {
                         "django_order_id": order.id,
                         "user_id": user.id,
-                        "is_retry": True  # Add retry flag
+                        "is_retry": True
                     },
                 })
                 logger.debug(f"Razorpay Order Created: {razorpay_order}")

@@ -497,52 +497,6 @@
 
 <hr class="section-divider">
 
-<!-- <section class="ftco-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12 text-center">
-                <h2 class="section-title">Latest Products</h2>
-                <p class="section-description">Discover our newest arrivals. Trendy, stylish, and just for you!</p>
-            </div>
-        </div>
-        <div class="row">
-            {% for product in random_products %}
-            <div class="col-sm-6 col-md-3 ftco-animate">
-                <div class="product-card">
-                    {% if product.has_offer %}
-                        <div class="offer-badge">{{ product.best_offer_percentage }}% OFF</div>
-                    {% endif %}
-                    {% if product.images.first %}
-                    <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
-                    {% else %}
-                    <img src="{% static 'images/placeholder.png' %}" alt="No image available">
-                    {% endif %}
-                    <div class="product-details">
-                        <div class="rating-stars">
-                            {% for i in "12345" %}
-                            <span
-                                class="star {% if i <= product.average_rating|floatformat:0 %}filled{% else %}empty{% endif %}">&#9733;</span>
-                            {% endfor %}
-                            <span>({{ product.review_count }} reviews)</span>
-                        </div>
-                        <h5>{{ product.name }}</h5>
-                        <p class="price">
-                            {% if product.has_offer %}
-                                <span style="color: black; text-decoration: line-through;">₹{{ product.price }}</span>
-                                <span style="color: red;">₹{{ product.best_offer_price }}</span>
-                            {% else %}
-                                <span style="color: black;">₹{{ product.price }}</span>
-                            {% endif %}
-                        </p>
-                        <a href="{% url 'product_details' product.id %}" class="view-details-btn">View Details</a>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</section> -->
-
 <section class="ftco-section">
     <div class="container">
         <div class="row">
