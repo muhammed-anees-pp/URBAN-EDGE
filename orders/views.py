@@ -928,3 +928,5 @@ def update_order_status(request, order_id):
         "redirect_url": reverse('admin_order_details', args=[order.id])
     })
 
+
+###############################################ADMIN SIDE END###############################################

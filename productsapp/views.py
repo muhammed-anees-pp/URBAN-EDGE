@@ -374,53 +374,58 @@ def product_details(request, product_id):
     }
     return render(request, 'user/product_details.html', context)
 
+
+
+
+
+"""
+CATEGORY BASED PRODUCT LISTING
+"""
 def category_products(request, category_id):
     category = get_object_or_404(Category, id=category_id, is_listed=True)
     products = Product.objects.filter(category=category, is_listed=True).prefetch_related('images')
 
-    # Handle search
-    search_query = request.GET.get('search', '')  # Get search input
+    # Search
+    search_query = request.GET.get('search', '')
     if search_query:
-        products = products.filter(name__icontains=search_query)  # Search by name (case-insensitive)
+        products = products.filter(name__icontains=search_query)
 
-    # Handle sorting
-    sort_option = request.GET.get('sort', '')  # Get sort option
+    # Sorting
+    sort_option = request.GET.get('sort', '')  
     if sort_option == 'name-asc':
-        products = products.order_by('name')  # Sort A to Z
+        products = products.order_by('name')  
     elif sort_option == 'name-desc':
-        products = products.order_by('-name')  # Sort Z to A
-    elif sort_option == 'price-asc':  # Sort by price Low to High
+        products = products.order_by('-name') 
+    elif sort_option == 'price-asc': 
         products = products.order_by('price')
-    elif sort_option == 'price-desc':  # Sort by price High to Low
+    elif sort_option == 'price-desc': 
         products = products.order_by('-price')
 
-    # Pagination
-    paginator = Paginator(products, 12)  # Show 12 products per page
+    paginator = Paginator(products, 12)
     page = request.GET.get('page')
     try:
         products = paginator.page(page)
     except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
         products = paginator.page(1)
     except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
         products = paginator.page(paginator.num_pages)
 
-    # Prepare context data
     context = {
         'category': category,
         'products': [{
             'product': product,
-            'first_image': product.images.first()  # Fetch the first image
+            'first_image': product.images.first() 
         } for product in products],
         'search_query': search_query,
         'sort_option': sort_option,
-        'page_obj': products,  # Add pagination object to context
+        'page_obj': products,
     }
     return render(request, 'user/category_products.html', context)
 
 
-
+"""
+STOCK CHECKING WHEN ADDING TO CART/CHECKOUT
+"""
 def check_stock(request):
     if request.method == "POST":
         color = request.POST.get('color')
