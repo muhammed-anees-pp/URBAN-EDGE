@@ -6,10 +6,18 @@ from .models import ProductOffer, CategoryOffer
 from productsapp.models import Product
 from category.models import Category
 
+
+"""
+OFFER MANAGEMENT 
+"""
 @user_passes_test(lambda u: u.is_superuser)
 def offer_management(request):
     return render(request, 'admin/offer_management.html')
 
+
+"""
+PRODUCT OFFER LISTING 
+"""
 @user_passes_test(lambda u: u.is_superuser)
 def product_offer_list(request):
     query = request.GET.get('q')
@@ -21,6 +29,10 @@ def product_offer_list(request):
     product_offers = paginator.get_page(page_number)
     return render(request, 'admin/product_offer_list.html', {'product_offers': product_offers})
 
+
+"""
+ADD PRODUCT OFFER
+"""
 @user_passes_test(lambda u: u.is_superuser)
 def add_product_offer(request, product_id=None):
     products = Product.objects.all()
@@ -73,11 +85,15 @@ def add_product_offer(request, product_id=None):
     
     return render(request, 'admin/add_product_offer.html', {'products': products})
 
+
+"""
+EDIT PRODUCT OFFER
+"""
 @user_passes_test(lambda u: u.is_superuser)
 def edit_product_offer(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     product_offer = get_object_or_404(ProductOffer, product=product)
-    products = Product.objects.all()  # Add this line to pass products to the template
+    products = Product.objects.all()
     
     if request.method == 'POST':
         new_product_id = request.POST.get('product')
@@ -130,6 +146,10 @@ def edit_product_offer(request, product_id):
         'products': products
     })
 
+
+"""
+PRODUCT OFFER ACTIVATIOIN/DEACTIVATION
+"""
 @user_passes_test(lambda u: u.is_superuser)
 def toggle_product_offer(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -139,6 +159,10 @@ def toggle_product_offer(request, product_id):
     messages.success(request, f'Product offer {"activated" if product_offer.is_active else "deactivated"} successfully.')
     return redirect('product_offer_list')
 
+
+"""
+CATEGORY OFFER LISTING
+"""
 @user_passes_test(lambda u: u.is_superuser)
 def category_offer_list(request):
     query = request.GET.get('q')
@@ -150,6 +174,10 @@ def category_offer_list(request):
     category_offers = paginator.get_page(page_number)
     return render(request, 'admin/category_offer_list.html', {'category_offers': category_offers})
 
+
+"""
+ADD CATEGORY OFFER
+"""
 @user_passes_test(lambda u: u.is_superuser)
 def add_category_offer(request, category_id=None):
     categories = Category.objects.all()
@@ -202,11 +230,15 @@ def add_category_offer(request, category_id=None):
     
     return render(request, 'admin/add_category_offer.html', {'categories': categories})
 
+
+"""
+EDIT CATEGORY OFFER
+"""
 @user_passes_test(lambda u: u.is_superuser)
 def edit_category_offer(request, category_id):
     category = get_object_or_404(Category, id=category_id)
     category_offer = get_object_or_404(CategoryOffer, category=category)
-    categories = Category.objects.all()  # Add this line to pass categories to the template
+    categories = Category.objects.all() 
     
     if request.method == 'POST':
         new_category_id = request.POST.get('category')
@@ -259,6 +291,10 @@ def edit_category_offer(request, category_id):
         'categories': categories
     })
 
+
+"""
+CATEGORY OFFER ACTIVATE/DEACTIVATE
+"""
 @user_passes_test(lambda u: u.is_superuser)
 def toggle_category_offer(request, category_id):
     category = get_object_or_404(Category, id=category_id)

@@ -12,22 +12,25 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 
-#PROFILE
+"""
+USER PROFILE
+"""
 @login_required
 def user_profile(request):
-    """User profile view."""
     addresses = Address.objects.filter(user=request.user, is_deleted=False)
-    referral = Referral.objects.filter(user=request.user).first()  # Get the referral code for the user
+    referral = Referral.objects.filter(user=request.user).first()
     context = {
         'addresses': addresses,
-        'referral': referral,  # Add referral to the context
+        'referral': referral,
     }
     return render(request, 'user/profile.html', context)
 
-#ADDRESS
+
+"""
+VIEW ADDRESS PAGE
+"""
 @login_required
 def view_addresses(request):
-    """View all addresses."""
     addresses = Address.objects.filter(user=request.user, is_deleted=False)
 
     # If no address is marked as default, set the oldest address as default
@@ -38,10 +41,11 @@ def view_addresses(request):
 
     return render(request, 'user/address.html', {'addresses': addresses})
 
-#DEFAULT ADDRESS
+"""
+DEFAULT ADDRESS SETTING
+"""
 @login_required
 def set_default_address(request, address_id):
-    """Set an address as default."""
     address = get_object_or_404(Address, id=address_id, user=request.user)
 
     # Set the selected address as default
@@ -51,10 +55,11 @@ def set_default_address(request, address_id):
     messages.success(request, "Default address updated successfully!")
     return redirect('addresses')
 
-#ADD ADDRESS
+"""
+NEW ADDRESS ADDING
+"""
 @login_required
 def add_address(request):
-    """Add a new address."""
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         address = request.POST.get('address', '').strip()
@@ -120,10 +125,12 @@ def add_address(request):
     return render(request, 'user/add_address.html')
 
 
-#EDIT ADDRESS
+
+"""
+EDIT ALREADY HAVING ADDRESS
+"""
 @login_required
 def edit_address(request, address_id):
-    """Edit an existing address."""
     address = get_object_or_404(Address, id=address_id, user=request.user)
 
     if request.method == 'POST':
@@ -191,23 +198,26 @@ def edit_address(request, address_id):
     return render(request, 'user/edit_address.html', {'address': address})
 
 
-#DELETE ADDRESS
+"""
+DELETING ADDRESS
+"""
 @login_required
 def delete_address(request, address_id):
-    """Delete an address permanently."""
     address = get_object_or_404(Address, id=address_id, user=request.user)
 
     if request.method == 'POST':
-        address.delete()  # Permanently delete the address
+        address.delete()
         messages.success(request, 'Address deleted successfully!')
         return redirect('addresses')
 
     return redirect('addresses')
 
-#CHANGE PASSWORD
+
+"""
+CHANGE PASSWORD
+"""
 @login_required
 def change_password(request):
-    """Change user's password."""
     if request.method == 'POST':
         current_password = request.POST.get('current_password')
         new_password = request.POST.get('new_password')
@@ -235,9 +245,11 @@ def change_password(request):
 
     return render(request, 'user/change_password.html')
 
-#PASSWORD VALIDATION
+
+"""
+VALIDATE PASSWORD
+"""
 def validate_password(password):
-    """Validate password strength."""
     if len(password) < 8:
         return False, "Password must be at least 8 characters long."
     if not re.search(r"[A-Z]", password):
@@ -250,10 +262,12 @@ def validate_password(password):
         return False, "Password must contain at least one special character."
     return True, ""
 
-#EMAIL CHANGE
+
+"""
+CHANGE EMAIL FUNCTION
+"""
 @login_required
 def change_email(request):
-    """Step 1: Render page to input new email and validate it."""
     if request.method == 'POST':
         new_email = request.POST.get('new_email', '').strip()
 
@@ -290,10 +304,11 @@ def change_email(request):
 
 
 
-#EMAIL VARIFICATION
+"""
+EMAIL VERIFICATION
+"""
 @login_required
 def verify_email(request):
-    """Step 2: Verify the OTP and update the email."""
     if request.method == 'POST':
         entered_otp = request.POST.get('otp', '').strip()
         session_otp = request.session.get('otp')
@@ -315,8 +330,7 @@ def verify_email(request):
             request.session.pop('otp', None)
             request.session.pop('new_email', None)
 
-            # messages.success(request, 'Your email has been successfully updated.')
-            return redirect('user_profile')  # Redirect to profile page
+            return redirect('user_profile')
 
         # Handle invalid OTP
         messages.error(request, 'Invalid OTP. Please try again.')

@@ -11,18 +11,17 @@ from .forms import ContactForm
 HOME PAGE
 """
 def index(request):
-    # Get the listed categories
     categories = Category.objects.filter(is_listed=True)
 
-    # # Fetch the latest 4 products (based on created date or any other criteria)
-    latest_products = Product.objects.filter(is_listed=True).order_by('-created_at')[:4]  # Adjust 'created_at' based on your model fields
+    # Fetch the latest 4 products 
+    latest_products = Product.objects.filter(is_listed=True).order_by('-created_at')[:4] 
 
     # Randomly shuffle the products to show them in random order
     random_products = random.sample(list(latest_products), len(latest_products))
 
     context = {
         'categories': categories,
-        'random_products': random_products,  # Add the random products to the context
+        'random_products': random_products,
     }
     return render(request, 'user/home.html', context)
 

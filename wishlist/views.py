@@ -6,13 +6,15 @@ from productsapp.models import Product
 from cart.models import Cart, CartItem
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-#WISHLIST VIEW
+
+"""
+WISHLIST PAGE
+"""
 @login_required
 def wishlist_view(request):
     wishlist, created = Wishlist.objects.get_or_create(user=request.user)
     wishlist_items = wishlist.items.all()
 
-    # Pagination
     page = request.GET.get('page', 1)
     paginator = Paginator(wishlist_items, 10)
 
@@ -25,12 +27,14 @@ def wishlist_view(request):
 
     context = {
         'wishlist_items': wishlist_items,
-        'wishlist_count': wishlist_items.paginator.count,  # Total count of items
+        'wishlist_count': wishlist_items.paginator.count,
     }
     return render(request, 'user/wishlist.html', context)
 
 
-#ADD TO WISHLIST
+"""
+ADD TO WISHLIST
+"""
 @login_required
 def add_to_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -45,7 +49,10 @@ def add_to_wishlist(request, product_id):
 
     return redirect(request.META.get('HTTP_REFERER', 'wishlist'))
 
-#REMOVE FROM WISHLIST
+
+"""
+REMOVE FROM WISHLIST
+"""
 @login_required
 def remove_from_wishlist(request, item_id):
     wishlist_item = get_object_or_404(WishlistItem, id=item_id, wishlist__user=request.user)
@@ -54,7 +61,10 @@ def remove_from_wishlist(request, item_id):
     return redirect('wishlist')
 
 
-#MOVE TO CART
+
+"""
+MOVE TO CART
+"""
 @login_required
 def move_to_cart(request, item_id):
     wishlist_item = get_object_or_404(WishlistItem, id=item_id, wishlist__user=request.user)

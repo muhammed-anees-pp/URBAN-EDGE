@@ -4,7 +4,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Wallet, WalletTransaction
 
 
-#WALLET VIEW
+"""
+WALLET PAGE
+"""
 @login_required
 def wallet_view(request):
     try:
@@ -13,8 +15,8 @@ def wallet_view(request):
         # If the wallet does not exist, create a new one with zero balance
         wallet = Wallet.objects.create(user=request.user, balance=0.00)
     
-    # Get filter parameter from the request
-    filter_type = request.GET.get('filter', 'all')  # Default to 'all'
+    # Filter
+    filter_type = request.GET.get('filter', 'all') 
     
     # Filter transactions based on the selected filter
     transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
@@ -23,9 +25,8 @@ def wallet_view(request):
     elif filter_type == 'debit':
         transactions = transactions.filter(transaction_type='debit')
     
-    # Pagination
-    page = request.GET.get('page', 1)  # Default to page 1
-    paginator = Paginator(transactions, 10)  # Show 10 transactions per page
+    page = request.GET.get('page', 1) 
+    paginator = Paginator(transactions, 10)
     
     try:
         transactions = paginator.page(page)
