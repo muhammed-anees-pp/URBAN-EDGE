@@ -15,12 +15,10 @@ class Product(models.Model):
     
     @property
     def best_offer_price(self):
-        # Check for active product offer
         product_offer = None
         if hasattr(self, 'product_offer'):
             product_offer = self.product_offer if self.product_offer.is_active else None
 
-        # Check for active category offer
         category_offer = None
         if hasattr(self.category, 'category_offer'):
             category_offer = self.category.category_offer if self.category.category_offer.is_active else None
@@ -61,7 +59,7 @@ class Product(models.Model):
             offers.append(category_offer.discount_percentage)
 
         if offers:
-            return int(max(offers))  # Return as an integer
+            return int(max(offers))
         return 0
 
 

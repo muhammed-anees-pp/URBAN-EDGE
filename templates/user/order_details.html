@@ -172,12 +172,10 @@
         position: relative;
     }
 
-    /* Hide return-related steps by default */
     .timeline-step.return-step {
         display: none;
     }
 
-    /* Show specific return steps based on status */
     .timeline[data-status="return_requested"] .return-step.return-requested,
     .timeline[data-status="returned"] .return-step.returned,
     .timeline[data-status="return_denied"] .return-step.return-denied {
@@ -197,20 +195,17 @@
         transition: all 0.3s ease;
     }
 
-    /* Processing state */
     .timeline[data-status="processing"] .icon {
         background-color: transparent;
         border: 2px solid #e9ecef;
     }
 
-    /* Completed states */
     .timeline-step.completed .icon,
     .timeline-step.active .icon {
         background-color: #088178;
         color: white;
     }
 
-    /* Return states */
     .timeline-step.return-active .icon {
         background-color: #ffa500;
         color: white;
@@ -221,7 +216,6 @@
         color: white;
     }
 
-    /* Timeline connector lines */
     .timeline-connector {
         position: absolute;
         height: 2px;
@@ -237,7 +231,6 @@
         background-color: #088178;
     }
 
-    /* Return connector styling */
     .timeline-step.return-active .timeline-connector {
         background-color: #ffa500;
     }
@@ -246,7 +239,6 @@
         background-color: #dc3545;
     }
 
-    /* Hide connectors after return steps */
     .timeline-step.return-step .timeline-connector {
         display: none;
     }
@@ -589,20 +581,16 @@
                     <a href="{% url 'user_orders' %}" class="back-btn">
                         <i class="bi me-2 back"></i>Back to Orders
                     </a>
-                    {% if particular_product.status != 'processing' and particular_product.status != 'out_for_delivery'
-                    and particular_product.status != 'delivered' and particular_product.status != 'canceled' and
-                    particular_product.status != 'return_requested' and particular_product.status != 'returned' and
-                    particular_product.status != 'return_denied' %}
+                    {% if particular_product.status != 'processing' and particular_product.status != 'out_for_delivery' and particular_product.status != 'delivered' and particular_product.status != 'canceled' and particular_product.status != 'return_requested' and particular_product.status != 'returned' and particular_product.status != 'return_denied' %}
                     <a href="{% url 'cancel_order_item' particular_product.id %}" class="cancel-btn">
                         <i class="bi me-2 cancel"></i>Cancel Product
                     </a>
                     {% endif %}
-                    {% if particular_product.status == 'delivered' and days_since_delivery <= 7 and
-                        particular_product.status !='return_requested' %} <a
+                    {% if particular_product.status == 'delivered' and days_since_delivery <= 7 and particular_product.status != 'return_requested' %} <a
                         href="{% url 'request_return' particular_product.id %}" class="return-btn">
                         <i class="bi bi-arrow-return-left"></i> Request Return
                         </a>
-                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
 

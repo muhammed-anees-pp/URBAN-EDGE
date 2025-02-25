@@ -18,6 +18,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from offers.models import ProductOffer, CategoryOffer
 
 
+"""
+PRODUCT LISTING
+"""
 @user_passes_test(is_admin)
 def product_list(request):
     query = request.GET.get('q', '')
@@ -29,7 +32,6 @@ def product_list(request):
     # Sort products to show the last added products first
     products = products.order_by('-id')
 
-    # Pagination
     page = request.GET.get('page', 1)
     paginator = Paginator(products, 8)
 
@@ -52,6 +54,9 @@ def product_list(request):
     })
 
 
+"""
+CREATE PRODUCT
+"""
 @user_passes_test(is_admin)
 def create_product(request):
     if request.method == "POST":
@@ -130,6 +135,9 @@ def create_product(request):
     return render(request, 'admin/add_product.html', {'categories': categories})
 
 
+"""
+EDIT PRODUCT
+"""
 @user_passes_test(is_admin)
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -205,6 +213,10 @@ def edit_product(request, product_id):
     })
 
 
+
+"""
+ADD VARIANT
+"""
 @user_passes_test(is_admin)
 def add_variant(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -252,16 +264,16 @@ def add_variant(request, product_id):
 
 
 
-# Variant List View
+"""
+VARIANT LISTING
+"""
 @user_passes_test(is_admin)
 def variant_list(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    variants = product.variants.all()  # Get related variants
+    variants = product.variants.all()  
 
-    # Pagination
-    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
-    paginator = Paginator(variants, 10)  # Show 10 products per page
-
+    page = request.GET.get('page', 1)  
+    paginator = Paginator(variants, 10)  
     try:
         variants = paginator.page(page)
     except PageNotAnInteger:
@@ -272,6 +284,9 @@ def variant_list(request, product_id):
     return render(request, 'admin/variant.html', {'product': product, 'variants': variants})
 
 
+"""
+UPDATE VARIANT
+"""
 @user_passes_test(is_admin)
 def update_variant(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)
@@ -317,6 +332,10 @@ def update_variant(request, variant_id):
 
     return render(request, 'admin/edit_variant.html', {'variant': variant})
 
+
+"""
+DELETE VARIANT
+"""
 @user_passes_test(is_admin)
 def delete_variant(request, variant_id):
     # Get the variant object or 404 if not found
@@ -325,7 +344,9 @@ def delete_variant(request, variant_id):
     return redirect('variant', product_id=variant.product.id)
 
 
-
+"""
+LISTING AND UNLISTING THE PRODUCTS
+"""
 @user_passes_test(is_admin)
 def toggle_product_listing(request, product_id):
     try:
@@ -339,7 +360,9 @@ def toggle_product_listing(request, product_id):
     return redirect('product_management')
 
 
-
+"""
+PRODUCT DETAILS PAGE
+"""
 def product_details(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     
@@ -357,7 +380,7 @@ def product_details(request, product_id):
     product_images = product.images.all()  # Fetch all images related to the product
     related_products = Product.objects.filter(category=product.category).exclude(id=product_id)
     
-    # Randomly select 4 related products (if there are more than 4)
+    # Randomly select 4 related products
     related_products = random.sample(list(related_products), min(len(related_products), 5))
     can_review = False
 
@@ -373,9 +396,6 @@ def product_details(request, product_id):
         'can_review': can_review,
     }
     return render(request, 'user/product_details.html', context)
-
-
-
 
 
 """

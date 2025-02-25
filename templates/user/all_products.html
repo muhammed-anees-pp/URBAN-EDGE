@@ -35,7 +35,8 @@
                         <input type="hidden" name="sort" value="{{ sort_option }}">
                         {% for category in categories %}
                         <div class="filter-option">
-                            <input type="checkbox" name="categories" value="{{ category.id }}" id="category_{{ category.id }}" {% if category.id in selected_categories %}checked{% endif %} />
+                            <input type="checkbox" name="categories" value="{{ category.id }}"
+                                id="category_{{ category.id }}" {% if category.id in selected_categories %}checked{% endif %} />
                             <label for="category_{{ category.id }}">{{ category.category_name }}</label>
                         </div>
                         {% endfor %}
@@ -153,7 +154,6 @@
 {% endif %}
 
 <style>
-    /* General Layout */
     .container-fluid {
         padding: 0 30px;
     }
@@ -174,7 +174,6 @@
         min-height: calc(100vh - 250px);
     }
 
-    /* Sidebar Styles */
     .filters-sidebar {
         width: 300px;
         flex-shrink: 0;
@@ -193,7 +192,6 @@
         margin-bottom: 15px;
     }
 
-    /* Search Styles */
     .search-input-wrapper {
         position: relative;
     }
@@ -217,7 +215,6 @@
         cursor: pointer;
     }
 
-    /* Filter Options */
     .filter-option {
         margin: 10px 0;
     }
@@ -256,7 +253,6 @@
         background-color: #c82333;
     }
 
-    /* Sort Styles */
     .sort-select {
         width: 100%;
         padding: 12px;
@@ -266,7 +262,6 @@
         background-color: white;
     }
 
-    /* Products Grid */
     .products-container {
         flex-grow: 1;
     }
@@ -278,7 +273,6 @@
         margin-bottom: 40px;
     }
 
-    /* Product Card */
     .product-card {
         background: white;
         border-radius: 12px;
@@ -288,10 +282,7 @@
         height: 500px;
         display: flex;
         flex-direction: column;
-    }
-
-    .product-card:hover {
-        transform: translateY(-5px);
+        position: relative;
     }
 
     .offer-badge {
@@ -305,6 +296,10 @@
         font-size: 12px;
         font-weight: bold;
         z-index: 1;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
     }
 
     .product-image {
@@ -330,7 +325,6 @@
         flex-grow: 1;
     }
 
-    /* Rating Stars */
     .rating-stars {
         color: #ffc107;
         margin-bottom: 10px;
@@ -350,7 +344,6 @@
         margin-left: 5px;
     }
 
-    /* Product Details */
     .product-name {
         font-size: 1rem;
         color: #2c3e50;
@@ -364,7 +357,6 @@
         position: relative;
     }
 
-    /* Creates fade effect for text overflow */
     .product-name:after {
         content: '';
         position: absolute;
@@ -411,7 +403,6 @@
         color: white;
     }
 
-    /* Pagination */
     .pagination-wrapper {
         margin-top: 30px;
         margin-bottom: 30px;
@@ -457,7 +448,6 @@
         border-color: #1a1a1a;
     }
 
-    /* Responsive Design */
     @media (max-width: 992px) {
         .products-wrapper {
             flex-direction: column;

@@ -145,9 +145,7 @@
 
     .product-card img {
         height: 250px;
-        /* Fixed height for images */
         object-fit: cover;
-        /* Ensure proper image cropping */
         border-radius: 5px;
         margin-bottom: 10px;
     }
@@ -167,7 +165,6 @@
         display: block;
         line-height: 1.2;
         max-height: 2.4em;
-        /* Limits to 2 lines */
     }
 
     .price {
@@ -333,72 +330,143 @@
         letter-spacing: 1px;
     }
 
-    /* Styles for Latest Products Section */
     .ftco-section {
         padding: 50px 0;
         background-color: #f9f9f9;
     }
 
     .product-card {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 15px;
-        text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%; 
     }
 
-    .product-card img {
-        max-width: 100%;
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .offer-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: #ff5252;
+        color: white;
+        padding: 5px 10px;
         border-radius: 5px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 1;
+    }
+
+    .product-image {
+        height: 250px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-image img {
+        width: auto;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image img {
+        transform: scale(1.05);
+    }
+
+    .product-info {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+    }
+
+    .rating-stars {
+        color: #ffc107;
         margin-bottom: 10px;
     }
 
-    .product-card h5 {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #333;
+    .star.filled {
+        color: #ffc107;
     }
 
-    .product-card .price {
-        font-size: 18px;
+    .star.empty {
+        color: #e4e5e9;
+    }
+
+    .review-count {
+        color: #666;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+
+    .product-name {
+        font-size: 1rem;
+        color: #2c3e50;
+        margin: 10px 0;
+        max-height: 2.4em;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        white-space: normal;
+        position: relative;
+    }
+
+    .product-name:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 40%;
+        height: 1.2em;
+        background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+    }
+
+    .product-price {
+        margin: 10px 0;
+    }
+
+    .original-price {
+        color: #666;
+        text-decoration: line-through;
+        margin-right: 10px;
+    }
+
+    .offer-price {
+        color: #ff5252;
         font-weight: bold;
-        color: #7c8811;
-        margin: 0;
     }
 
+    .regular-price {
+        color: #2c3e50;
+        font-weight: bold;
+    }
 
     .view-details-btn {
-        display: inline-block;
-        background: #7c8811;
-        color: #fff;
-        padding: 8px 20px;
-        border-radius: 4px;
+        background-color: #088178;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        border-radius: 8px;
         text-decoration: none;
-        margin-top: 10px;
+        transition: background-color 0.3s ease;
+        margin-top: auto;
     }
-
 
     .view-details-btn:hover {
-        background: #a5b32c;
+        background-color: #066c65;
+        color: white;
     }
-
-    .price span {
-        font-weight: bold;
-    }
-
-    .price span[style*="text-decoration: line-through"] {
-        color: #666;
-        /* Optional: Change the color of the strikethrough text */
-    }
-
-    .price span[style*="color: red"] {
-        color: red;
-        font-weight: bold;
-    }
-
-
 
     .section-title {
         font-size: 2.5rem;
@@ -411,36 +479,13 @@
         color: #666;
         margin-bottom: 30px;
     }
-
-    .rating-stars {
-        display: inline-block;
-        font-size: 1.2rem;
-        color: #ffc107;
-        margin-bottom: 10px;
-    }
-
-    .rating-stars .star {
-        cursor: pointer;
-    }
-
-    .rating-stars .star.filled {
-        color: #ffc107;
-    }
-
-    .rating-stars .star.empty {
-        color: #e4e5e9;
-    }
-
-
     @media (max-width: 768px) {
         .product-card {
             height: auto;
-            /* Allow flexibility for smaller screens */
         }
 
         .product-card img {
             height: 150px;
-            /* Adjust image height */
         }
     }
 </style>
@@ -496,7 +541,6 @@
 </section>
 
 <hr class="section-divider">
-
 <section class="ftco-section">
     <div class="container">
         <div class="row">
@@ -512,28 +556,29 @@
                     {% if product.has_offer %}
                         <div class="offer-badge">{{ product.best_offer_percentage }}% OFF</div>
                     {% endif %}
-                    {% if product.images.first %}
-                    <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
-                    {% else %}
-                    <img src="{% static 'images/placeholder.png' %}" alt="No image available">
-                    {% endif %}
-                    <div class="product-details">
+                    <div class="product-image">
+                        {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+                        {% else %}
+                        <img src="{% static 'images/placeholder.png' %}" alt="No image available">
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
                         <div class="rating-stars">
                             {% for i in "12345" %}
-                            <span
-                                class="star {% if i <= product.average_rating|floatformat:0 %}filled{% else %}empty{% endif %}">&#9733;</span>
+                            <span class="star {% if i <= product.average_rating|floatformat:0 %}filled{% else %}empty{% endif %}">&#9733;</span>
                             {% endfor %}
-                            <span>({{ product.review_count }} reviews)</span>
+                            <span class="review-count">({{ product.review_count }} reviews)</span>
                         </div>
-                        <h5>{{ product.name }}</h5>
-                        <p class="price">
+                        <h3 class="product-name">{{ product.name }}</h3>
+                        <div class="product-price">
                             {% if product.has_offer %}
-                                <span style="color: black; text-decoration: line-through;">₹{{ product.price|floatformat:2 }}</span>
-                                <span style="color: red;">₹{{ product.best_offer_price|floatformat:2 }}</span>
+                            <span class="original-price">₹{{ product.price|floatformat:2 }}</span>
+                            <span class="offer-price">₹{{ product.best_offer_price|floatformat:2 }}</span>
                             {% else %}
-                                <span style="color: black;">₹{{ product.price|floatformat:2 }}</span>
+                            <span class="regular-price">₹{{ product.price|floatformat:2 }}</span>
                             {% endif %}
-                        </p>
+                        </div>
                         <a href="{% url 'product_details' product.id %}" class="view-details-btn">View Details</a>
                     </div>
                 </div>

@@ -7,33 +7,37 @@
     .review-form {
         max-width: 600px;
         margin: 50px auto;
-        padding: 20px;
+        padding: 30px;
         background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        border: 1px solid #ddd;
     }
 
     .review-form h2 {
         margin-bottom: 20px;
-        font-size: 1.8rem;
+        font-size: 2rem;
         color: #333;
+        text-align: center;
     }
 
     .review-form label {
         display: block;
-        margin-bottom: 5px;
-        font-size: 1rem;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
         color: #555;
     }
 
     .review-form .rating-stars-input {
         margin-bottom: 20px;
+        text-align: center;
     }
 
     .review-form .rating-stars-input .star {
         cursor: pointer;
-        font-size: 1.5rem;
+        font-size: 2rem;
         color: #e9e9e4;
+        transition: color 0.3s ease;
     }
 
     .review-form .rating-stars-input .star.filled {
@@ -42,30 +46,34 @@
 
     .review-form textarea {
         width: 100%;
-        padding: 10px;
-        border-radius: 5px;
+        padding: 15px;
+        border-radius: 10px;
         border: 1px solid #ddd;
         margin-bottom: 20px;
-        font-size: 1rem;
+        font-size: 1.1rem;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     .review-form button {
-        padding: 10px 20px;
-        background-color: #007bff;
+        width: 100%;
+        padding: 15px;
+        background-color: #088178;
         color: white;
         border: none;
-        border-radius: 5px;
+        border-radius: 10px;
         cursor: pointer;
-        font-size: 1rem;
+        font-size: 1.2rem;
+        transition: background-color 0.3s ease;
     }
 
     .review-form button:hover {
-        background-color: #0056b3;
+        background-color: #066c65;
     }
 
     .error-message {
         color: red;
         margin-bottom: 20px;
+        text-align: center;
     }
 </style>
 
@@ -85,10 +93,8 @@
             {% endfor %}
         </div>
         <input type="hidden" name="rating" id="rating" value="{{ review.rating }}" required>
-        <br>
         <label for="review_text">Review:</label>
         <textarea name="review_text" id="review_text" rows="4" required>{{ review.review_text }}</textarea>
-        <br>
         <button type="submit">Update Review</button>
     </form>
 </div>
