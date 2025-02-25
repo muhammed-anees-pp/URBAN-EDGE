@@ -21,5 +21,5 @@ class CartItem(models.Model):
 
     def total_price(self):
         product = self.product_variant.product
-        price = product.offer if product.offer else product.price  # Apply discount if available
+        price = product.offer if product.offer else product.price
         return self.quantity * price

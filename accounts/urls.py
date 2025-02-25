@@ -8,12 +8,11 @@ urlpatterns = [
     
     # Registration
     path("register/", views.register, name='register'),
-    path('otp/verify/', views.verify_otp, name='verify_otp'),  # Removed <str:email>, not used in the view
-    path('otp/resend/', views.resend_otp, name='resend_otp'),  # Removed <str:email>, not used in the view
+    path('otp/verify/', views.verify_otp, name='verify_otp'),
+    path('otp/resend/', views.resend_otp, name='resend_otp'),
 
     # Forgot Password
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('verify-forgot-password-otp/', views.verify_forgot_password_otp, name='verify_forgot_password_otp'),
-    # path("resend-forgot-password-otp/", views.resend_forgot_password_otp, name='resend_forgot_password_otp'),
     path('reset-password/', views.reset_password, name='reset_password'),
 ]

@@ -3,8 +3,18 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.utils import timezone
 from .models import Coupon, CouponUsage
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator
+from .forms import CouponForm
 
+
+
+
+###############################################USER SIDE START###############################################
+"""
+APPLY COUPON
+"""
 @login_required
 def apply_coupon(request):
     if request.method == "POST":
@@ -31,6 +41,9 @@ def apply_coupon(request):
     return redirect('place_order')
 
 
+"""
+REMOVE COUPON
+"""
 @login_required
 def remove_coupon(request):
     if 'coupon_code' in request.session:
@@ -40,14 +53,51 @@ def remove_coupon(request):
 
 
 
+"""
+AVAILABLE COUPONS LISTING IN THE USER SIDE
+"""
+@login_required
+def view_coupons(request):
+    now = timezone.now().date()
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.core.paginator import Paginator
-from .models import Coupon
-from .forms import CouponForm  # We'll create this form later
+    # Filter valid coupons active and within the validity period
+    valid_coupons = Coupon.objects.filter(
+        valid_from__lte=now,  
+        valid_to__gte=now,    
+        is_active=True      
+    )
 
-# List Coupons with Pagination
+    # Check which coupons the user has already used
+    used_coupons = CouponUsage.objects.filter(user=request.user).values_list('coupon_id', flat=True)
+
+    # Flag for used coupons
+    coupon_list = []
+    for coupon in valid_coupons:
+        coupon_list.append({
+            'coupon': coupon,
+            'is_used': coupon.coupon_id in used_coupons,
+        })
+
+    context = {
+        'coupon_list': coupon_list,
+    }
+    return render(request, 'user/view_coupons.html', context)
+
+###############################################USER SIDE END###############################################
+
+
+###############################################ADMIN SIDE START###############################################
+"""
+ADMIN CHECK
+"""
+def is_admin(user):
+    return user.is_authenticated and user.is_superuser
+
+
+"""
+COUPON LISTING IN THE ADMIN SIDE
+"""
+@user_passes_test(is_admin)
 def coupon_list(request):
     query = request.GET.get('q', '')
     coupons = Coupon.objects.all()
@@ -55,7 +105,7 @@ def coupon_list(request):
     if query:
         coupons = coupons.filter(coupon_code__icontains=query)
 
-    paginator = Paginator(coupons, 10)  # Show 10 coupons per page
+    paginator = Paginator(coupons, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -65,7 +115,11 @@ def coupon_list(request):
     }
     return render(request, 'admin/coupon_list.html', context)
 
-# Add Coupon
+
+"""
+ADD NEW COUPON
+"""
+@user_passes_test(is_admin)
 def add_coupon(request):
     if request.method == 'POST':
         form = CouponForm(request.POST)
@@ -77,22 +131,29 @@ def add_coupon(request):
         form = CouponForm()
     return render(request, 'admin/add_coupon.html', {'form': form})
 
-# Edit Coupon
+
+"""
+EDIT AVAILABLE COUPON
+"""
+@user_passes_test(is_admin)
 def edit_coupon(request, coupon_id):
     coupon = get_object_or_404(Coupon, coupon_id=coupon_id)
     if request.method == 'POST':
-        form = CouponForm(request.POST, instance=coupon)  # Pass the instance here
+        form = CouponForm(request.POST, instance=coupon)
         if form.is_valid():
             form.save()
             messages.success(request, 'Coupon updated successfully.')
             return redirect('coupon_list')
     else:
-        form = CouponForm(instance=coupon)  # Pass the instance here
+        form = CouponForm(instance=coupon)
     return render(request, 'admin/edit_coupon.html', {'form': form, 'coupon': coupon})
 
 
 
-# Activate/Deactivate Coupon
+"""
+COUPON ACTIVATE/DEACTIVATE
+"""
+@user_passes_test(is_admin)
 def toggle_coupon_status(request, coupon_id):
     coupon = get_object_or_404(Coupon, coupon_id=coupon_id)
     coupon.is_active = not coupon.is_active
@@ -101,7 +162,11 @@ def toggle_coupon_status(request, coupon_id):
     messages.success(request, f'Coupon {action} successfully.')
     return redirect('coupon_list')
 
-# Delete Coupon
+
+"""
+COUPON DELETING
+"""
+@user_passes_test(is_admin)
 def delete_coupon(request, coupon_id):
     coupon = get_object_or_404(Coupon, coupon_id=coupon_id)
     coupon.delete()
@@ -109,4 +174,4 @@ def delete_coupon(request, coupon_id):
     return redirect('coupon_list')
 
 
-
+###############################################ADMIN SIDE END###############################################

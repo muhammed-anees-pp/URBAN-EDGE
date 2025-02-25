@@ -9,13 +9,14 @@ class CouponForm(forms.ModelForm):
     class Meta:
         model = Coupon
         fields = [
-            'coupon_code', 'minimum_purchase_amount', 'discount_percentage',
+            'coupon_code', 'description', 'minimum_purchase_amount', 'discount_percentage',
             'max_discount_amount', 'valid_from', 'valid_to'
         ]
         widgets = {
             'valid_from': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'valid_to': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'coupon_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'minimum_purchase_amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'discount_percentage': forms.NumberInput(attrs={'class': 'form-control'}),
             'max_discount_amount': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -43,7 +44,7 @@ class CouponForm(forms.ModelForm):
         cleaned_data = super().clean()
         valid_from = cleaned_data.get('valid_from')
         valid_to = cleaned_data.get('valid_to')
-        instance = getattr(self, 'instance', None)  # Get the instance being edited
+        instance = getattr(self, 'instance', None)
 
         if instance and instance.pk:
             # Check if valid_from is being changed
@@ -56,7 +57,7 @@ class CouponForm(forms.ModelForm):
                 if valid_to and valid_from and valid_to <= valid_from:
                     self.add_error('valid_to', 'Valid to date must be after valid from date.')
         else:
-            # For new coupons, enforce the usual validation rules
+            # For new coupons, do the usual validation rules
             if valid_from and valid_from < timezone.now().date():
                 self.add_error('valid_from', 'Valid from date cannot be in the past.')
 

@@ -27,24 +27,35 @@ from django.utils.dateformat import DateFormat
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.db.models.functions import TruncHour, TruncDay
-import json
 import logging
 from django.db.models import Min, Sum, Count, Case, When, F, Value
 from django.db.models.functions import TruncDay, TruncHour, TruncWeek, TruncMonth
 
+
+
+"""
+ERROR FINDING/DEBUG
+"""
 logger = logging.getLogger(__name__)
 
+
+"""
+ADMIN CHECK
+"""
 def is_admin(user):
     return user.is_staff
 
+"""
+ADMIN LOGIN
+"""
 @never_cache
 def admin_login(request):
-    form_data = {'username': ''}  # Initialize form data
+    form_data = {'username': ''} 
 
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        form_data['username'] = username  # Retain username in form data
+        form_data['username'] = username
 
         user = authenticate(request, username=username, password=password)
 
@@ -57,6 +68,9 @@ def admin_login(request):
     return render(request, 'admin/admin_login.html', {'form_data': form_data})
 
 
+"""
+DASHBOARD
+"""
 @user_passes_test(is_admin)
 @login_required(login_url='admin_login')
 def admin_dashboard(request):
@@ -281,6 +295,9 @@ def admin_dashboard(request):
     return render(request, 'admin/dashboard.html', context)
 
 
+"""
+SALES REPORT GENERATE
+"""
 @user_passes_test(is_admin)
 @login_required(login_url='admin_login')
 def generate_sales_report(request):
@@ -377,7 +394,7 @@ def generate_sales_report(request):
         summary_label_font = Font(bold=True, size=10, name='Arial', color='4b5563')
         summary_value_font = Font(bold=True, size=11, name='Arial', color='1e40af')
         normal_font = Font(name='Arial', size=10)
-        amount_font = Font(name='Consolas', size=10, color='1e40af')  # Monospace font for amounts
+        amount_font = Font(name='Consolas', size=10, color='1e40af') 
 
         border = Border(
             left=Side(style='thin', color='e5e7eb'),
@@ -538,16 +555,15 @@ def generate_sales_report(request):
 
 
 
-
-
-
+"""
+ADMIN SIDE USER MANAGEMENT
+"""
 @user_passes_test(is_admin)
 def user_manage(request):
     users = User.objects.filter(is_superuser=False).order_by('-date_joined')
 
-    # Pagination
-    page = request.GET.get('page', 1)  # Get the page number from the URL parameters
-    paginator = Paginator(users, 10)  # Show 10 products per page
+    page = request.GET.get('page', 1)  
+    paginator = Paginator(users, 10) 
 
     try:
         users = paginator.page(page)
@@ -559,6 +575,10 @@ def user_manage(request):
 
     return render(request,'admin/users.html',{'users':users})
 
+
+"""
+BLOCK USER
+"""
 @user_passes_test(is_admin)
 def block_user(request,user_id):
     user = get_object_or_404(User, id=user_id)
@@ -567,6 +587,9 @@ def block_user(request,user_id):
     messages.success(request, f'{user.username} has been blocked.')
     return redirect('users')
 
+"""
+UNBLOCK USER
+"""
 @user_passes_test(is_admin)
 def unblock_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -575,6 +598,10 @@ def unblock_user(request, user_id):
     messages.success(request, f'{user.username} has been unblocked.')
     return redirect('users')
 
+
+"""
+ADMIN LOGOUT
+"""
 @login_required(login_url='admin_login')
 def admin_logout(request):
     logout(request)

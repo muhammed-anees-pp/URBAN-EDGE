@@ -4,7 +4,6 @@
 
 {% block extra_css %}
 <style>
-    /* Custom styles matching shop page */
     .breadcrumb a {
         color: #088178;
         text-decoration: none;
@@ -15,7 +14,6 @@
         color: #666;
     }
 
-    /* Sidebar Styles */
     .sidebar {
         position: sticky;
         top: 20px;
@@ -44,7 +42,6 @@
         margin-right: 10px;
     }
 
-    /* Profile Form Styles */
     .profile-card {
         background: #ffffff;
         border-radius: 12px;
@@ -90,12 +87,10 @@
         top: 50%;
         transform: translateY(-50%);
         text-decoration: none;
-        /* Remove underline */
     }
 
     .change-btn:hover {
         color: #006c5f;
-        /* Darker shade on hover */
     }
 
     .save-btn {
@@ -144,7 +139,6 @@
         font-size: 24px;
     }
 
-    /* Add subtle feedback animation */
     .copy-success {
         animation: pulse 0.5s ease-in-out;
     }
@@ -155,7 +149,6 @@
         100% { transform: translateY(-50%) scale(1); }
     }
 
-    /* Password Input Styles */
     .password-input {
         position: relative;
     }
@@ -171,7 +164,6 @@
         cursor: pointer;
     }
 
-    /* Responsive adjustments */
     @media (max-width: 991px) {
         .sidebar {
             position: static;
@@ -206,7 +198,10 @@
                             <i class="bi bi-box"></i> My Orders
                         </a>
                         <a class="nav-link" href="{% url 'wallet_view' %}">
-                            <i class="bi bi-wallet"></i> My Wallet
+                            <i class="bi bi-wallet"></i> Wallet
+                        </a>
+                        <a class="nav-link" href="{% url 'view_coupons' %}">
+                            <i class="bi bi-ticket-perforated"></i> Coupons
                         </a>
                         <a class="nav-link logout-link" href="{% url 'userlogout' %}">
                             <i class="bi bi-box-arrow-right"></i> Logout
@@ -321,19 +316,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- <script>
-    document.querySelectorAll('.toggle-password').forEach(button => {
-        button.addEventListener('click', function () {
-            const input = this.previousElementSibling;
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            input.setAttribute('type', type);
-            const icon = this.querySelector('i');
-            icon.classList.toggle('bi-eye');
-            icon.classList.toggle('bi-eye-slash');
-        });
-    });
-</script> -->
-
 <script>
     // Existing password toggle script
     document.querySelectorAll('.toggle-password').forEach(button => {

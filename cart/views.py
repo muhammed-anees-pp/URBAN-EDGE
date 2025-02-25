@@ -2,7 +2,7 @@ from decimal import Decimal
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from .models import Cart, CartItem
-from productsapp.models import Product, ProductVariant # Import ProductVariant
+from productsapp.models import Product, ProductVariant
 from django.contrib.auth.decorators import login_required
 import logging
 from django.views.decorators.http import require_POST
@@ -13,6 +13,10 @@ from offers.models import ProductOffer, CategoryOffer
 
 logger = logging.getLogger(__name__)
 
+
+"""
+CART VIEW
+"""
 @login_required
 def cart_view(request):
     if not request.user.is_authenticated:
@@ -90,17 +94,20 @@ def cart_view(request):
 
     return render(request, 'user/cart.html', context)
 
+
+"""
+ADD TO CART OPTION
+"""
 @login_required(login_url='/login/')
 def add_to_cart(request):
     product_id = request.POST.get('product_id')
     color = request.POST.get('color')
     size = request.POST.get('size')
-    quantity = int(request.POST.get('quantity', 1))  # Default to 1 if not provided
+    quantity = int(request.POST.get('quantity', 1))
 
     logger.info(f"Adding to cart: product_id={product_id}, color={color}, size={size}, quantity={quantity}")
 
     try:
-        # Fetch the product
         product = Product.objects.get(id=product_id)
 
         # Check if the product has any variants
@@ -146,6 +153,9 @@ def add_to_cart(request):
         return JsonResponse({'success': False, 'error': str(e)})
 
 
+"""
+UPDATE CART
+"""
 @login_required(login_url='/login/')
 @require_POST
 def update_cart(request, item_id, action):
@@ -168,6 +178,9 @@ def update_cart(request, item_id, action):
         return JsonResponse({'message': str(e), 'status': 'error'}, status=500)
 
 
+"""
+REMOVE FROM CART
+"""
 @login_required(login_url='/login/')
 @require_POST
 def remove_from_cart(request, item_id):

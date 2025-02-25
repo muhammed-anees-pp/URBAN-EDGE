@@ -4,11 +4,16 @@ from .models import Category
 from django.utils import timezone
 from admin_side.views import is_admin
 from django.contrib.auth.decorators import user_passes_test
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # Import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger 
 
+
+###############################################ADMIN SIDE START###############################################
+"""
+CATEGORY MANAGEMENT
+"""
 @user_passes_test(is_admin)
 def category_management(request):
-    search_query = request.GET.get('search', '')  # Get the search query from the GET request
+    search_query = request.GET.get('search', '')  
 
     if request.method == 'POST':
         category_name = request.POST.get('category_name')
@@ -27,18 +32,16 @@ def category_management(request):
             messages.success(request, "Category created successfully!")
             return redirect('category_management')
 
-        # Return the modal with the error message
         categories = Category.objects.all()
 
     # Search categories based on the search query
     if search_query:
-        categories = Category.objects.filter(category_name__icontains=search_query)  # Case-insensitive search
+        categories = Category.objects.filter(category_name__icontains=search_query)  
     else:
-        categories = Category.objects.all()  # No search query, display all categories
+        categories = Category.objects.all() 
 
-    # Pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(categories, 10)  # Show 10 categories per page
+    paginator = Paginator(categories, 10)
 
     try:
         categories = paginator.page(page)
@@ -53,6 +56,9 @@ def category_management(request):
     })
 
 
+"""
+EDIT CATEGORY
+"""
 @user_passes_test(is_admin)
 def edit_category(request, category_id):
     category = get_object_or_404(Category, id=category_id)
@@ -76,6 +82,9 @@ def edit_category(request, category_id):
     return render(request, 'admin/edit_category.html', {'category': category})
 
 
+"""
+CATEGORY ACTIVATE/DEACTIVATE
+"""
 @user_passes_test(is_admin)
 def toggle_listing(request, category_id):
     category = get_object_or_404(Category, id=category_id)
@@ -83,3 +92,5 @@ def toggle_listing(request, category_id):
     category.save()
     messages.success(request, f"Category {'unlisted' if not category.is_listed else 'relisted'} successfully!")
     return redirect('category_management')
+
+###############################################ADMIN SIDE END###############################################

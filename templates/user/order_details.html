@@ -4,7 +4,6 @@
 
 {% block extra_css %}
 <style>
-    /* Custom styles matching reference templates */
     .breadcrumb a {
         color: #088178;
         text-decoration: none;
@@ -15,7 +14,6 @@
         color: #666;
     }
 
-    /* Sidebar Styles */
     .sidebar {
         position: sticky;
         top: 20px;
@@ -44,7 +42,6 @@
         margin-right: 10px;
     }
 
-    /* Order Details Card Styles */
     .details-card {
         background: #ffffff;
         border-radius: 12px;
@@ -159,24 +156,12 @@
         color: white;
     }
 
-    /* Updated Timeline Styles */
-    /* .timeline {
+    .timeline {
         display: flex;
         justify-content: space-between;
         position: relative;
         margin: 20px 0;
         padding: 20px 0;
-    }
-
-    .timeline::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background-color: #e9ecef;
-        z-index: 1;
     }
 
     .timeline-step {
@@ -185,15 +170,17 @@
         align-items: center;
         z-index: 2;
         position: relative;
-    } */
+    }
 
     /* Hide return-related steps by default */
-    /* .timeline-step.return-step {
+    .timeline-step.return-step {
         display: none;
     }
 
-    
-    .timeline.return-requested .return-step {
+    /* Show specific return steps based on status */
+    .timeline[data-status="return_requested"] .return-step.return-requested,
+    .timeline[data-status="returned"] .return-step.returned,
+    .timeline[data-status="return_denied"] .return-step.return-denied {
         display: flex;
     }
 
@@ -210,47 +197,58 @@
         transition: all 0.3s ease;
     }
 
-    .timeline-step.completed .icon {
-        background-color: #088178;
-        color: white;
+    /* Processing state */
+    .timeline[data-status="processing"] .icon {
+        background-color: transparent;
+        border: 2px solid #e9ecef;
     }
 
+    /* Completed states */
+    .timeline-step.completed .icon,
     .timeline-step.active .icon {
         background-color: #088178;
         color: white;
     }
 
-    .timeline-step.canceled .icon {
+    /* Return states */
+    .timeline-step.return-active .icon {
+        background-color: #ffa500;
+        color: white;
+    }
+
+    .timeline-step.return-denied .icon {
         background-color: #dc3545;
         color: white;
     }
 
-    .timeline-step.return-active .icon {
-        background-color: #ffa500;
-        color: white;
-    } */
-
     /* Timeline connector lines */
-    /* .timeline-connector {
+    .timeline-connector {
         position: absolute;
         height: 2px;
         background-color: #e9ecef;
         top: 20px;
-        width: 100%;
-        left: 50%;
+        width: calc(100% - 40px);
+        left: calc(50% + 20px);
         z-index: 1;
     }
 
-    .timeline-step.completed .timeline-connector {
+    .timeline-step.completed .timeline-connector,
+    .timeline-step.active .timeline-connector {
         background-color: #088178;
     }
 
-    .timeline-step.canceled .timeline-connector {
+    /* Return connector styling */
+    .timeline-step.return-active .timeline-connector {
+        background-color: #ffa500;
+    }
+
+    .timeline-step.return-denied .timeline-connector {
         background-color: #dc3545;
     }
 
-    .timeline-step.return-active .timeline-connector {
-        background-color: #ffa500;
+    /* Hide connectors after return steps */
+    .timeline-step.return-step .timeline-connector {
+        display: none;
     }
 
     .timeline-step p {
@@ -265,164 +263,37 @@
         color: #088178;
     }
 
-    .timeline-step.canceled p {
+    .timeline-step.return-active p {
+        color: #ffa500;
+    }
+
+    .timeline-step.return-denied p {
         color: #dc3545;
     }
 
-    .timeline-step.return-active p {
-        color: #ffa500;
-    } */
+    .hidden {
+        display: none;
+    }
 
+    .timeline-step.canceled-status {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
 
-    /* Updated Timeline Styles */
-.timeline {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-    margin: 20px 0;
-    padding: 20px 0;
-}
+    .timeline-step.canceled-status .icon {
+        background-color: transparent;
+        border: none;
+        color: #dc3545;
+        font-size: 2rem;
+    }
 
-.timeline-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 2;
-    position: relative;
-}
-
-/* Hide return-related steps by default */
-.timeline-step.return-step {
-    display: none;
-}
-
-/* Show specific return steps based on status */
-.timeline[data-status="return_requested"] .return-step.return-requested,
-.timeline[data-status="returned"] .return-step.returned,
-.timeline[data-status="return_denied"] .return-step.return-denied {
-    display: flex;
-}
-
-.timeline-step .icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #e9ecef;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-    color: #666;
-    transition: all 0.3s ease;
-}
-
-/* Processing state */
-.timeline[data-status="processing"] .icon {
-    background-color: transparent;
-    border: 2px solid #e9ecef;
-}
-
-/* Completed states */
-.timeline-step.completed .icon,
-.timeline-step.active .icon {
-    background-color: #088178;
-    color: white;
-}
-
-/* Return states */
-.timeline-step.return-active .icon {
-    background-color: #ffa500;
-    color: white;
-}
-
-.timeline-step.return-denied .icon {
-    background-color: #dc3545;
-    color: white;
-}
-
-/* Timeline connector lines */
-.timeline-connector {
-    position: absolute;
-    height: 2px;
-    background-color: #e9ecef;
-    top: 20px;
-    width: calc(100% - 40px);
-    left: calc(50% + 20px);
-    z-index: 1;
-}
-
-.timeline-step.completed .timeline-connector,
-.timeline-step.active .timeline-connector {
-    background-color: #088178;
-}
-
-/* Return connector styling */
-.timeline-step.return-active .timeline-connector {
-    background-color: #ffa500;
-}
-
-.timeline-step.return-denied .timeline-connector {
-    background-color: #dc3545;
-}
-
-/* Hide connectors after return steps */
-.timeline-step.return-step .timeline-connector {
-    display: none;
-}
-
-.timeline-step p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: #666;
-    text-align: center;
-}
-
-.timeline-step.completed p,
-.timeline-step.active p {
-    color: #088178;
-}
-
-.timeline-step.return-active p {
-    color: #ffa500;
-}
-
-.timeline-step.return-denied p {
-    color: #dc3545;
-}
-
-.hidden {
-    display: none;
-}
-
-/* Canceled Status */
-.timeline-step.canceled-status {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-}
-
-.timeline-step.canceled-status .icon {
-    background-color: transparent;
-    border: none;
-    color: #dc3545; /* Red color for canceled icon */
-    font-size: 2rem; /* Larger icon size */
-}
-
-.timeline-step.canceled-status p {
-    color: #dc3545; /* Red color for text */
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-
-
-
-
-
-
-
-
+    .timeline-step.canceled-status p {
+        color: #dc3545;
+        font-weight: bold;
+        margin-top: 10px;
+    }
 
     .status-dot {
         display: inline-block;
@@ -530,6 +401,9 @@
                         <a class="nav-link" href="{% url 'wallet_view' %}">
                             <i class="bi bi-wallet"></i> My Wallet
                         </a>
+                        <a class="nav-link" href="{% url 'view_coupons' %}">
+                            <i class="bi bi-ticket-perforated"></i> Coupons
+                        </a>
                         <a class="nav-link logout-link" href="{% url 'userlogout' %}">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </a>
@@ -542,7 +416,7 @@
         <div class="col-lg-9">
             <!-- 1st Container: Order Summary, Particular Product, Delivery Address, Back Button -->
             <div class="details-card mb-4">
-        
+
                 <!-- Order Summary -->
                 <div class="order-summary">
                     <div class="row align-items-center">
@@ -563,15 +437,15 @@
                 <div class="timeline" data-status="{{ particular_product.status }}">
                     <!-- Canceled Status (Special Case) -->
                     {% if particular_product.status == 'canceled' %}
-                        <div class="timeline-step canceled-status">
-                            <div class="icon">
-                                <i class="bi bi-x-circle-fill" style="color: #dc3545;"></i>
-                            </div>
-                            <p>Canceled</p>
+                    <div class="timeline-step canceled-status">
+                        <div class="icon">
+                            <i class="bi bi-x-circle-fill" style="color: #dc3545;"></i>
                         </div>
+                        <p>Canceled</p>
+                    </div>
                     {% else %}
-                        <!-- Order Placed -->
-                        <div class="timeline-step 
+                    <!-- Order Placed -->
+                    <div class="timeline-step 
                             {% if particular_product.status != 'canceled' and particular_product.status != 'processing' %}
                                 {% if particular_product.status != 'order_placed' %}
                                     completed
@@ -579,77 +453,88 @@
                                     active
                                 {% endif %}
                             {% endif %}">
-                            <div class="icon">
-                                <i class="bi bi-cart"></i>
-                            </div>
-                            <p>Order Placed</p>
-                            <div class="timeline-connector {% if particular_product.status == 'order_placed' or particular_product.status == 'processing' %}hidden{% endif %}"></div>
+                        <div class="icon">
+                            <i class="bi bi-cart"></i>
                         </div>
-                
-                        <!-- Shipped -->
-                        <div class="timeline-step 
+                        <p>Order Placed</p>
+                        <div
+                            class="timeline-connector {% if particular_product.status == 'order_placed' or particular_product.status == 'processing' %}hidden{% endif %}">
+                        </div>
+                    </div>
+
+                    <!-- Shipped -->
+                    <div class="timeline-step 
                             {% if particular_product.status == 'shipped' %}
                                 active
                             {% elif particular_product.status == 'out_for_delivery' or particular_product.status == 'delivered' or particular_product.status == 'return_requested' or particular_product.status == 'returned' or particular_product.status == 'return_denied' %}
                                 completed
                             {% endif %}">
-                            <div class="icon">
-                                <i class="bi bi-truck"></i>
-                            </div>
-                            <p>Shipped</p>
-                            <div class="timeline-connector {% if particular_product.status == 'shipped' or particular_product.status == 'order_placed' or particular_product.status == 'processing' %}hidden{% endif %}"></div>
+                        <div class="icon">
+                            <i class="bi bi-truck"></i>
                         </div>
-                
-                        <!-- Out for Delivery -->
-                        <div class="timeline-step 
+                        <p>Shipped</p>
+                        <div
+                            class="timeline-connector {% if particular_product.status == 'shipped' or particular_product.status == 'order_placed' or particular_product.status == 'processing' %}hidden{% endif %}">
+                        </div>
+                    </div>
+
+                    <!-- Out for Delivery -->
+                    <div class="timeline-step 
                             {% if particular_product.status == 'out_for_delivery' %}
                                 active
                             {% elif particular_product.status == 'delivered' or particular_product.status == 'return_requested' or particular_product.status == 'returned' or particular_product.status == 'return_denied' %}
                                 completed
                             {% endif %}">
-                            <div class="icon">
-                                <i class="bi bi-box-seam"></i>
-                            </div>
-                            <p>Out for Delivery</p>
-                            <div class="timeline-connector {% if particular_product.status == 'out_for_delivery' or particular_product.status == 'shipped' or particular_product.status == 'order_placed' or particular_product.status == 'processing' %}hidden{% endif %}"></div>
+                        <div class="icon">
+                            <i class="bi bi-box-seam"></i>
                         </div>
-                
-                        <!-- Delivered -->
-                        <div class="timeline-step 
+                        <p>Out for Delivery</p>
+                        <div
+                            class="timeline-connector {% if particular_product.status == 'out_for_delivery' or particular_product.status == 'shipped' or particular_product.status == 'order_placed' or particular_product.status == 'processing' %}hidden{% endif %}">
+                        </div>
+                    </div>
+
+                    <!-- Delivered -->
+                    <div class="timeline-step 
                             {% if particular_product.status == 'delivered' %}
                                 active
                             {% elif particular_product.status == 'return_requested' or particular_product.status == 'returned' or particular_product.status == 'return_denied' %}
                                 completed
                             {% endif %}">
-                            <div class="icon">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <p>Delivered</p>
-                            <div class="timeline-connector {% if particular_product.status == 'delivered' or particular_product.status == 'out_for_delivery' or particular_product.status == 'shipped' or particular_product.status == 'order_placed' or particular_product.status == 'processing' %}hidden{% endif %}"></div>
+                        <div class="icon">
+                            <i class="bi bi-check-circle"></i>
                         </div>
-                
-                        <!-- Return Steps -->
-                        <div class="timeline-step return-step return-requested {% if particular_product.status == 'return_requested' %}return-active{% endif %}">
-                            <div class="icon">
-                                <i class="bi bi-arrow-return-left"></i>
-                            </div>
-                            <p>Return Requested</p>
-                            <div class="timeline-connector"></div>
+                        <p>Delivered</p>
+                        <div
+                            class="timeline-connector {% if particular_product.status == 'delivered' or particular_product.status == 'out_for_delivery' or particular_product.status == 'shipped' or particular_product.status == 'order_placed' or particular_product.status == 'processing' %}hidden{% endif %}">
                         </div>
-                
-                        <div class="timeline-step return-step returned {% if particular_product.status == 'returned' %}return-active{% endif %}">
-                            <div class="icon">
-                                <i class="bi bi-arrow-return-right"></i>
-                            </div>
-                            <p>Returned</p>
+                    </div>
+
+                    <!-- Return Steps -->
+                    <div
+                        class="timeline-step return-step return-requested {% if particular_product.status == 'return_requested' %}return-active{% endif %}">
+                        <div class="icon">
+                            <i class="bi bi-arrow-return-left"></i>
                         </div>
-                
-                        <div class="timeline-step return-step return-denied {% if particular_product.status == 'return_denied' %}return-denied{% endif %}">
-                            <div class="icon">
-                                <i class="bi bi-x-circle"></i>
-                            </div>
-                            <p>Return Denied</p>
+                        <p>Return Requested</p>
+                        <div class="timeline-connector"></div>
+                    </div>
+
+                    <div
+                        class="timeline-step return-step returned {% if particular_product.status == 'returned' %}return-active{% endif %}">
+                        <div class="icon">
+                            <i class="bi bi-arrow-return-right"></i>
                         </div>
+                        <p>Returned</p>
+                    </div>
+
+                    <div
+                        class="timeline-step return-step return-denied {% if particular_product.status == 'return_denied' %}return-denied{% endif %}">
+                        <div class="icon">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <p>Return Denied</p>
+                    </div>
                     {% endif %}
                 </div>
 
@@ -704,16 +589,20 @@
                     <a href="{% url 'user_orders' %}" class="back-btn">
                         <i class="bi me-2 back"></i>Back to Orders
                     </a>
-                    {% if particular_product.status != 'processing' and particular_product.status != 'out_for_delivery' and particular_product.status != 'delivered' and particular_product.status != 'canceled' and particular_product.status != 'return_requested' and particular_product.status != 'returned' and particular_product.status != 'return_denied' %}
+                    {% if particular_product.status != 'processing' and particular_product.status != 'out_for_delivery'
+                    and particular_product.status != 'delivered' and particular_product.status != 'canceled' and
+                    particular_product.status != 'return_requested' and particular_product.status != 'returned' and
+                    particular_product.status != 'return_denied' %}
                     <a href="{% url 'cancel_order_item' particular_product.id %}" class="cancel-btn">
                         <i class="bi me-2 cancel"></i>Cancel Product
                     </a>
                     {% endif %}
-                    {% if particular_product.status == 'delivered' and days_since_delivery <= 7 and particular_product.status != 'return_requested' %} <a
+                    {% if particular_product.status == 'delivered' and days_since_delivery <= 7 and
+                        particular_product.status !='return_requested' %} <a
                         href="{% url 'request_return' particular_product.id %}" class="return-btn">
                         <i class="bi bi-arrow-return-left"></i> Request Return
                         </a>
-                    {% endif %}
+                        {% endif %}
                 </div>
             </div>
 
@@ -842,13 +731,11 @@
     </div>
 </div>
 
-<!-- Add this script to show the modal if there is a success message -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Check if there are any success messages
-        const successMessages = "{{ messages|escapejs }}"; // Pass messages to JavaScript
-        if (successMessages.includes("success")) { // Check if any message has the 'success' tag
-            $('#returnModal').modal('show'); // Show the modal
+        const successMessages = "{{ messages|escapejs }}";
+        if (successMessages.includes("success")) {
+            $('#returnModal').modal('show');
         }
     });
 </script>

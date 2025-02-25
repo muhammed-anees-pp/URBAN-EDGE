@@ -12,12 +12,16 @@ from user_profile.models import Referral
 from wallet.models import Wallet, WalletTransaction
 
 
+"""
+GENERATE 4 DIGIT OTP
+"""
 def generate_otp():
-    """Generate a random 4-digit OTP."""
     return random.randint(1000, 9999)
 
+"""
+SEND OTP TO EMAIL ACCOUNT
+"""
 def send_otp_email(email, otp):
-    """Send OTP email to the user."""
     subject = "Your OTP Code"
     message = f"Your OTP code is: {otp}"
     try:
@@ -27,8 +31,10 @@ def send_otp_email(email, otp):
         print(f"Error sending email: {e}")
         return False
 
+"""
+PASSWORD VALIDATION
+"""
 def validate_password(password):
-    """Validate password strength."""
     if len(password) < 8:
         return False, "Password must be at least 8 characters long."
     if not re.search(r"[A-Z]", password):
@@ -41,13 +47,14 @@ def validate_password(password):
         return False, "Password must contain at least one special character."
     return True, ""
 
-
+"""
+USER LOGIN
+"""
 def user_login(request):
-    """Login user."""
     if request.user.is_authenticated:
         return redirect('home')
 
-    form_data = {}  # To retain user input on error
+    form_data = {}  
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -59,10 +66,8 @@ def user_login(request):
 
         user = authenticate(request, username=username, password=password)
         if user:
-            # Specify the backend explicitly (optional, as authenticate already handles this)
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
-            # messages.success(request, 'Successfully logged in.')
             return redirect('home')
         else:
             messages.error(request, 'Invalid username or password.')
@@ -71,20 +76,22 @@ def user_login(request):
     return render(request, 'login.html', {'form_data': form_data})
 
 
-
+"""
+USER LOGOUT
+"""
 def user_logout(request):
-    """Logout user."""
     logout(request)
-    # messages.success(request, 'Successfully logged out.')
     return redirect('home')
 
 
+"""
+USER SIGN UP/ REGISTRATION
+"""
 def register(request):
-    """User registration with OTP and referral code."""
     if request.user.is_authenticated:
         return redirect('home')
 
-    form_data = {}  # To retain user input on error
+    form_data = {}  
     if request.method == 'POST':
         username = request.POST.get('username').strip()
         first_name = request.POST.get('first_name').strip()
@@ -92,8 +99,7 @@ def register(request):
         email = request.POST.get('email').strip()
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
-        referral_code = request.POST.get('referral_code', '').strip()  # Get referral code
-
+        referral_code = request.POST.get('referral_code', '').strip()  
         form_data = {
             'username': username,
             'first_name': first_name,
@@ -148,9 +154,10 @@ def register(request):
 
     return render(request, 'register.html', {'form_data': form_data})
 
-
+"""
+OTP VERIFICATION
+"""
 def verify_otp(request):
-    """Verify OTP and complete registration."""
     email = request.session.get('email')
 
     if request.method == 'POST':
@@ -199,7 +206,6 @@ def verify_otp(request):
                     referred_by = referral.user
                     Referral.objects.filter(user=user).update(referred_by=referred_by)
 
-                    # # Credit ₹50 to the new user's wallet
                     # wallet, _ = Wallet.objects.get_or_create(user=user)
                     wallet.balance += 50
                     wallet.save()
@@ -207,7 +213,7 @@ def verify_otp(request):
                         wallet=wallet,
                         amount=50,
                         transaction_type='credit',
-                        description='Referral bonus for new user'  # Add description
+                        description='Referral bonus for new user'
                     )
 
                     # Credit ₹100 to the referred user's wallet
@@ -218,10 +224,10 @@ def verify_otp(request):
                         wallet=referred_wallet,
                         amount=100,
                         transaction_type='credit',
-                        description='Referral bonus for referring user'  # Add description
+                        description='Referral bonus for referring user'
                     )
                 except Referral.DoesNotExist:
-                    pass  # Invalid referral code, ignore
+                    pass 
 
             # Clear session data
             for key in ['otp', 'otp_expires_at', 'username', 'email', 'password', 'first_name', 'last_name', 'referral_code']:
@@ -236,8 +242,11 @@ def verify_otp(request):
 
     return render(request, 'verify_otp.html', {'email': email})
 
+
+"""
+RESEND OTP
+"""
 def resend_otp(request):
-    """Resend OTP functionality"""
     if request.method == 'POST':
         otp = request.session.get('otp')
         otp_expires_at = request.session.get('otp_expires_at')
@@ -252,15 +261,17 @@ def resend_otp(request):
         new_otp = generate_otp()
         expires_at = django_timezone.now() + timedelta(minutes=1)
         request.session['otp'] = new_otp
-        request.session['otp_expires_at'] = int(expires_at.timestamp())  # Store as timestamp
+        request.session['otp_expires_at'] = int(expires_at.timestamp())  
 
         if send_otp_email(request.session['email'], new_otp):
             return JsonResponse({'success': True, 'message': 'New OTP sent successfully!'})
         else:
             return JsonResponse({'success': False, 'message': 'Failed to send OTP. Please try again.'})
 
+"""
+FORGOT PASSWORD
+"""
 def forgot_password(request):
-    """Handle forgot password logic."""
     if request.method == 'POST':
         email = request.POST.get('email')
         try:
@@ -270,7 +281,7 @@ def forgot_password(request):
 
             # Store OTP and expiry as timestamps in session
             request.session['password_reset_otp'] = otp
-            request.session['password_reset_expires_at'] = int(expires_at.timestamp())  # Store as timestamp
+            request.session['password_reset_expires_at'] = int(expires_at.timestamp())
             request.session['reset_email'] = email  # Store email in session
 
             if send_otp_email(email, otp):
@@ -285,8 +296,10 @@ def forgot_password(request):
     return render(request, 'forgot_password.html')
 
 
+"""
+VERIFY FORGOT PASSWORD OTP
+"""
 def verify_forgot_password_otp(request):
-    """Verify OTP for password reset."""
     if request.method == 'POST':
         entered_otp = request.POST.get('otp')
 
@@ -318,9 +331,10 @@ def verify_forgot_password_otp(request):
     return render(request, 'verify_forgot_password_otp.html')
 
 
-
+"""
+RESET PASSWORD
+"""
 def reset_password(request):
-    """Reset password after OTP verification."""
     if request.method == 'POST':
         new_password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')

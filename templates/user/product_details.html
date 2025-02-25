@@ -824,8 +824,8 @@
             .then(data => {
                 cartMessage.style.display = "block";
                 if (data.success) {
-                    cartMessage.style.backgroundColor = "#d4edda"; // Green background for success
-                    cartMessage.style.color = "#155724"; // Dark green text
+                    cartMessage.style.backgroundColor = "#d4edda"; 
+                    cartMessage.style.color = "#155724"; 
                     cartMessage.innerText = data.message || "Item added to cart!";
                 } else {
                     cartMessage.style.backgroundColor = "#f8d7da"; // Red background for error
