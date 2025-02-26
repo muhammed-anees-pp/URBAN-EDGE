@@ -174,7 +174,7 @@ USE_TZ = True
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Use your email provider's SMTP
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER') 
@@ -183,7 +183,6 @@ DEFAULT_FROM_EMAIL='urbanedge458@gmail.com'
 CONTACT_EMAIL='urbanedge458@gmail.com' 
 
 # DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL') 
-#DEFAULT_FROM_EMAIL='urbanedge458@gmail.com'
 #CONTACT_EMAIL = os.getenv('CONTACT_EMAIL') 
 
 
