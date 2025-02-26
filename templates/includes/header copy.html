@@ -13,6 +13,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
 
     <style>
+        /* General Reset */
         * {
             margin: 0;
             padding: 0;
@@ -20,9 +21,11 @@
             font-family: Arial, sans-serif;
         }
 
+        /* Body Styles */
         body {
             font-family: Arial, sans-serif;
             padding-top: 90px;
+            /* Space for the fixed header */
         }
 
         .announcement-bar {
@@ -35,6 +38,7 @@
             top: 0;
             width: 100%;
             z-index: 1001;
+            /* Slightly higher z-index to ensure it's on top */
         }
 
         header {
@@ -42,6 +46,7 @@
             border-bottom: 1px solid #ddd;
             position: fixed;
             top: 30px;
+            /* Positioned below the announcement bar */
             width: 100%;
             z-index: 1000;
             display: flex;
@@ -50,6 +55,7 @@
             padding: 15px 30px;
         }
 
+        /* Logo Styles */
         .logo {
             font-size: 22px;
             font-weight: bold;
@@ -57,6 +63,7 @@
             color: black;
         }
 
+        /* Search Section */
         .search-container {
             flex: 1;
             display: flex;
@@ -83,6 +90,7 @@
             cursor: pointer;
         }
 
+        /* Navigation Section */
         .nav-section {
             display: flex;
             align-items: center;
@@ -100,6 +108,7 @@
             color: #7c8811;
         }
 
+        /* Profile Dropdown */
         .profile-container {
             position: relative;
         }
@@ -150,6 +159,7 @@
             gap: 8px;
         }
 
+        /* Responsive Design */
         @media (max-width: 768px) {
             header {
                 flex-wrap: wrap;
@@ -185,10 +195,10 @@
         <a href="{% url 'home' %}" class="logo">URBAN EDGE</a>
 
         <!-- Search -->
-        <!-- <div class="search-container">
+        <div class="search-container">
             <input type="text" placeholder="Search for products...">
             <i data-feather="search" class="search-icon"></i>
-        </div> -->
+        </div>
 
         <!-- Navigation -->
         <div class="nav-section">
